@@ -1,7 +1,8 @@
 import pandas as pd
 from pandas import ExcelWriter
-from AtributeManager import *
+
 from ApoyoSTRLIST import *
+from AtributeManager import *
 
 '''
     Funciones para correr programa Descarte
@@ -15,8 +16,14 @@ def cargarExcel(path):
     '''
     #io = "Nombre del Archivo o Direccion del mismo"
     #sheet_name = "Nombre de la Pagina" Especificar Nombre o integer para que vaya de 1 en 1 [0,1, "B"]
-    Datos = pd.read_excel(path,sheet_name=None)
-    return Datos
+    try:
+        Datos = pd.read_excel(path,sheet_name=None)
+        return Datos
+    except:
+        print(F'Ocurrió un error al abrir el archivo')
+        return False
+
+
 def cargarDatos(dataframe):
     '''
         Funcion de chequeo de datos para Ordenar

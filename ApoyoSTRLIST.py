@@ -207,8 +207,8 @@ def Estandarizar(STR, maxLen):
 def clas_maker(clas, vol, cop):
     ''' Funcion para crear una clasificacion completa'''
     STR_clas = clas
-    if vol != 'A0': STR_clas += ' ' + vol
-    if cop > '1' or cop != '': STR_clas += ' C.' + cop
+    if vol != '': STR_clas += ' ' + vol
+    if cop != '1' and cop != '': STR_clas += ' C.' + cop
     return STR_clas
 
 
