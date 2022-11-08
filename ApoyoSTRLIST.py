@@ -219,7 +219,12 @@ def STR_limit(STR, size):
 
 
 def STR_cutter(STR, char, flag=0):
-    '''Funcion para cotar una seccion de una cadena con base a un caracter'''
+    '''
+    Funcion para cortar una seccion de una cadena con base a un caracter
+    @flag: 
+        False = quita desde el elemento en adelante
+        True = quita todo lo anterior al elemento
+    '''
     text_pos = STR.index(char)
     if not flag: return STR[:text_pos]
     else: return STR[text_pos:]

@@ -155,8 +155,13 @@ def cargar_etiquetas(path: str):
   #* Tomamos los datos del excel
   excel_data = cargarExcel(path)
   llaves_excel_data = list(excel_data)
+
+  # Listas de salida de la función
   salida_etiquetas = []
   salida_dicc = []
+  name_flag = True
+  cbarras_flag = True
+
   for key in llaves_excel_data:
     # * Cargamos listas de clasificacion, Volumen y Copia
     clas_data,vol_data,cop_data,name_data,codb_data = cargarDatos(excel_data[key])
@@ -166,19 +171,29 @@ def cargar_etiquetas(path: str):
     if clas_data[0] == False: 
       print('Error en obtener info')
       continue
+    
+    # No contamos con columna de nombres
+    if name_data[0] == False:
+      name_flag = False
+    
+    if codb_data[0] == False:
+      cbarras_flag = False
+
 
     for i in range(len(clas_data)):
-      STR_clas = clas_data[i]       # Tiene la clasificación incompleta del libro
-      STR_cop = str(cop_data[i])    # Contiene la copia del libro
-      STR_vol = vol_data[i]         # Contiene el volumen del libro      
-      
-      # Revisión para el volumen
-      if pd.isna(STR_vol): STR_vol = ''
+      STR_clas = clas_data[i]       
+      STR_cop = str(cop_data[i])    
+      STR_vol = '' if pd.isna(vol_data[i]) else vol_data[i]      
+      STR_name = 'NAN' if not name_flag else name_data[i] 
+      STR_cbarras = 'NAN' if not cbarras_flag  else name_data[i]
       
       # Revision de Caso con Nan
       if pd.isna(STR_clas):
         salida_etiquetas.append(['NAN', 'NO', 'APLICA', 'False'])
-        salida_dicc.append({'clasi': 'NAN', 'copia': STR_cop, 'volum': STR_vol})
+        salida_dicc.append(
+          {'clasi': 'NAN', 'copia': STR_cop, 'volum': STR_vol,
+          'titulo': STR_name, 'cb': STR_cbarras}
+        )
         continue
       
       # Eliminar datos innecesarios
@@ -195,7 +210,10 @@ def cargar_etiquetas(path: str):
 
       if 'V.' in STR_clas or 'C.' in STR_clas:
         salida_etiquetas.append([STR_clas_f, 'NO', 'APLICA', 'False'])
-        salida_dicc.append({'clasi': STR_clas, 'copia': STR_cop, 'volum': STR_vol})
+        salida_dicc.append(
+          {'clasi': STR_clas, 'copia': STR_cop, 'volum': STR_vol,
+          'titulo': STR_name, 'cb': STR_cbarras}
+        )
         continue
 
       # * Revisar si tiene error de estandar
@@ -204,10 +222,16 @@ def cargar_etiquetas(path: str):
         pipe_a_str = STR_clas[:pos_div]
         pipe_b_str = STR_clas[pos_div+sum:]
         salida_etiquetas.append([STR_clas, pipe_a_str, pipe_b_str, 'True'])
-        salida_dicc.append({'clasi': STR_clas, 'copia': STR_cop, 'volum': STR_vol})
+        salida_dicc.append(
+          {'clasi': STR_clas, 'copia': STR_cop, 'volum': STR_vol,
+          'titulo': STR_name, 'cb': STR_cbarras}
+        )
       else:
         salida_etiquetas.append([STR_clas_f, 'NO', 'APLICA', 'False'])
-        salida_dicc.append({'clasi': STR_clas, 'copia': STR_cop, 'volum': STR_vol})
+        salida_dicc.append(
+          {'clasi': STR_clas, 'copia': STR_cop, 'volum': STR_vol,
+          'titulo': STR_name, 'cb': STR_cbarras}
+        )
   return salida_etiquetas, salida_dicc  
 
 

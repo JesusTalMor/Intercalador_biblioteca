@@ -28,11 +28,9 @@ col_width = [25, 15, 15, 10]
 # ? Ventanas de apoyo y configuraciones
 def ventana_modify(STR_clas_f: str, STR_clas:str, volumen:str, copia:str):
   # Eliminar Volumen y Copia de la clasificación
-  prev_STR = str(STR_clas)
-  if "V." in STR_clas:
-    STR_clas = STR_clas[: STR_clas.index("V.") - 1]
-  if "C." in STR_clas:
-    STR_clas = STR_clas[: STR_clas.index("C.") - 1]
+  volumen = volumen.replace('V.', '') if 'V.' in volumen else volumen
+  STR_clas = STR_cutter(STR_clas, 'V.') if 'V.' in STR_clas else STR_clas
+  STR_clas = STR_cutter(STR_clas, 'C.') if 'C.' in STR_clas else STR_clas
   add_flag = False
 
   # * Seccion de Layout de la Ventana
@@ -124,6 +122,14 @@ def main():
   tabla_datos_principal = []
   main_dicc = {}
   row_color_array = []
+
+  #? Variables para manejo de modificacion
+  modify_flag = False
+  modify_index = 0
+
+  #? Tabla para manejo de modificaciones
+  tabla_modify = []
+
 
 
   #? Menu superior de opciones
@@ -252,7 +258,7 @@ def main():
         status = tabla_aux[ind][3]
         main_dicc[len(tabla_principal) + ind] = status
         if status == "False": row = ((len(tabla_principal) + ind), "#F04150")
-        else: row = ((len(tabla_principal) + ind), "#32a852")
+        else: row = ((len(tabla_principal) + ind), "#32A852")
         row_color_array.append(row)
 
       # ? Se cargaron algunas etiquetas pero otras no contienen información
@@ -277,8 +283,56 @@ def main():
       
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
 
+    # * Eventos dentro de la tabla
+    if event == "TABLE":
+      if values["TABLE"] != []:
+        index_value = int(values["TABLE"][0])  # * elemento a seleccionar
+        status = main_dicc[index_value]  # * Revisar el status del elemento
+
+        # * Seleccionar casilla para modfiicar
+        if status == "False" and not modify_flag:
+          # Tomar datos de la casilla
+          modify_flag = True
+          modify_index = index_value
+          # Modificar casilla visualmente
+          main_dicc[index_value] = "Modify"
+          tabla_principal[index_value][3] = "Modify"
+          row_color_array[index_value] = (int(index_value), "#E8871E")
+
+        # * Quitar casilla de modificar
+        elif status == "Modify":
+          main_dicc[index_value] = "False"
+          tabla_principal[index_value][3] = "False"
+          row_color_array[index_value] = (int(index_value), "#F04150")
+          modify_flag = False
+
+      window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
     
-    
+    if event == "Modificar" and modify_flag == True:
+      # * Vamos a abrir una nueva pantalla para modificar el texto
+      mod_output = ventana_modify(
+        STR_clas_f=tabla_principal[modify_index][0], 
+        STR_clas=tabla_datos_principal[modify_index]['clasi'],
+        volumen=tabla_datos_principal[modify_index]['volum'], 
+        copia=tabla_datos_principal[modify_index]['copia']
+      )  # Manda llamar la ventana para modificar
+      
+      if mod_output == []: continue # Se checa si se realizaron cambios
+      
+      # Agregamos elemento a una tabla de modificaciones
+      mod_title = tabla_datos_principal[modify_index]['titulo']
+      mod_QRO = tabla_datos_principal[modify_index]['cb']
+      aux_modify = [mod_title, tabla_principal[modify_index][0], mod_output[0], mod_QRO]
+      tabla_modify.append(aux_modify)
+
+      # Cambiamos la apariencia del elemento en la tabla
+      main_dicc[modify_index] = "True"
+      tabla_principal[modify_index] = mod_output
+      row_color_array[modify_index] = (int(modify_index), "#32A852")
+      modify_flag = False
+      
+      window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
+
     #* Ejecutar el programa
     elif event == 'Ejecutar':
       # ? Checar si se ha puesto un archivo
