@@ -365,7 +365,14 @@ def main():
       
       # * Crear reporte de modificaciones
       inter.reporte_modify(tabla_modify, values['FOLDER'])
-      pop_success_program()
+      
+      # Crear lista para sacar lista para conseguir diccionarios
+      lista_clas_fin = []
+      for ind in range(len(tabla_principal)):
+        # Checar estatus de los elementos
+        if main_dicc[ind] == 'True': lista_clas_fin.append(tabla_datos_principal[ind])
+      
+      inter.crear_diccionario_clas(lista_clas_fin)
       # inter.crear_diccionario_clas(tabla_datos_principal)
       # status = inter.main_program(
       #   archivo=values['EXCEL_FILE'], carpeta=values['FOLDER'], nombre=values['NAME'], 

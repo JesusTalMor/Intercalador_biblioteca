@@ -155,7 +155,6 @@ def crear_diccionario_clas(main_list:list):
   """
   lista_salida = []
   for idx, dicc in enumerate(main_list):
-
     STR_clas_f = clas_maker(dicc['clasi'], dicc['volum'], dicc['copia'])
     lista_salida.append(caso_ideal(STR1=dicc['clasi'], STR_C=dicc['copia'], STR_V=dicc['volum'], index=idx, STR_clas=STR_clas_f))
   
