@@ -116,7 +116,7 @@ def ventana_modify(STR_clas_f: str, STR_clas:str, volumen:str, copia:str, name:s
 
       return tabla_apariencia, tabla_datos
   window.close()
-  return []
+  return [], []
 
 
 def main():
@@ -256,6 +256,11 @@ def main():
       # * Cargar Columna Clasificacion a la tabla
       tabla_aux, tabla_datos = inter.cargar_etiquetas(values['EXCEL_FILE'])
 
+      # ? No se cargo ni una etiqueta
+      if len(tabla_aux) == 0: 
+        pop_error_excel_file()
+        continue
+
       # * Generamos la tabla de datos para el Excel
       for ind in range(len(tabla_aux)):
         status = tabla_aux[ind][3]
@@ -267,18 +272,13 @@ def main():
       # ? Se cargaron algunas etiquetas pero otras no contienen información
       # if excel_flag: pop_warning_excel_file_data_error()
 
-      # ? No se cargo ni una etiqueta
-      if len(tabla_aux) == 0: 
-        pop_error_excel_file()
-        continue
-      
       # ? Concatenamos los nuevos datos a los antiguos
       if len(tabla_principal) != 0:
         tabla_principal = np.concatenate((np.array(tabla_principal), np.array(tabla_aux)), axis=0)
         tabla_principal = tabla_principal.tolist()
 
-        tabla_datos = np.concatenate((np.array(tabla_datos_principal), np.array(tabla_datos)), axis=0)
-        tabla_datos = tabla_datos.tolist()
+        tabla_datos_principal = np.concatenate((np.array(tabla_datos_principal), np.array(tabla_datos)), axis=0)
+        tabla_datos_principal = tabla_datos.tolist()
       # ? No tenemos aun datos en la tabla 
       else: 
         tabla_principal = tabla_aux
@@ -365,8 +365,8 @@ def main():
       
       # * Crear reporte de modificaciones
       inter.reporte_modify(tabla_modify, values['FOLDER'])
-
-      inter.crear_diccionario_clas(tabla_datos_principal)
+      pop_success_program()
+      # inter.crear_diccionario_clas(tabla_datos_principal)
       # status = inter.main_program(
       #   archivo=values['EXCEL_FILE'], carpeta=values['FOLDER'], nombre=values['NAME'], 
       #   reporte=[values['REPORT'], values['EXCEL_ORD'], values['EXCEL_ERR_ORD']], codify=0

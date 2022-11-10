@@ -199,7 +199,7 @@ def cargar_etiquetas(path: str):
       STR_cop = str(cop_data[i])    
       STR_vol = '' if pd.isna(vol_data[i]) else vol_data[i]      
       STR_name = 'NAN' if not name_flag else name_data[i] 
-      STR_cbarras = 'NAN' if not cbarras_flag  else name_data[i]
+      STR_cbarras = 'NAN' if not cbarras_flag  else codb_data[i]
       
       # Revision de Caso con Nan
       if pd.isna(STR_clas):
@@ -257,14 +257,17 @@ def reporte_modify(lista:list, path:str):
   nombre = 'modificaciones'
   file_path = f'{path}/{nombre}.txt'
   txt_file = open(file_path, 'w', encoding="utf-8")
-
   # Escribir lo que necesitamos en el archivo
-  txt_file.write(f'DATOS MODIFICADOS DENTRO DE LA APLICACION')
+  txt_file.write(f'\tDATOS MODIFICADOS DENTRO DE LA APLICACION \n')
   txt_file.write('='*60)
+  txt_file.write('\n\n')
   # Abrir lista y escribir
   for elem in lista:
     for item in elem:
-      txt_file.write(STR_limit(item))
+      # Checar el  largo del item
+      text = STR_limit(item) if len(item) > 25 else item + ' '*(25 - len(item))
+      txt_file.write(f'{text}\t | \t')
+    txt_file.write(f'\n')
   # Finalizada escritura cerrar archivo
   txt_file.close()
 
