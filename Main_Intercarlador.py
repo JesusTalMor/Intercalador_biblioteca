@@ -148,6 +148,20 @@ def main_program(archivo,carpeta,nombre,reporte, codify):
     CB_file.close()
   return True
 
+def crear_diccionario_clas(main_list:list):
+  """ 
+  Separa las caracteristicas de una clasificacion en un diccionario
+  Retorna una lista de diccionarios
+  """
+  lista_salida = []
+  for idx, dicc in enumerate(main_list):
+
+    STR_clas_f = clas_maker(dicc['clasi'], dicc['volum'], dicc['copia'])
+    lista_salida.append(caso_ideal(STR1=dicc['clasi'], STR_C=dicc['copia'], STR_V=dicc['volum'], index=idx, STR_clas=STR_clas_f))
+  
+  for dicc in lista_salida:
+    print(dicc)
+    print('-'*30)
 
 
 def cargar_etiquetas(path: str):
@@ -233,6 +247,27 @@ def cargar_etiquetas(path: str):
           'titulo': STR_name, 'cb': STR_cbarras}
         )
   return salida_etiquetas, salida_dicc  
+
+
+def reporte_modify(lista:list, path:str):
+  """ Genera un reporte de una lista en un txt """
+  # Creamos un archivo txt en una carpeta designada
+  # con el nombre modificaciones
+  # TODO se puede cambiar el nombre del archivo por uno mejor 
+  nombre = 'modificaciones'
+  file_path = f'{path}/{nombre}.txt'
+  txt_file = open(file_path, 'w', encoding="utf-8")
+
+  # Escribir lo que necesitamos en el archivo
+  txt_file.write(f'DATOS MODIFICADOS DENTRO DE LA APLICACION')
+  txt_file.write('='*60)
+  # Abrir lista y escribir
+  for elem in lista:
+    for item in elem:
+      txt_file.write(STR_limit(item))
+  # Finalizada escritura cerrar archivo
+  txt_file.close()
+
 
 
 if __name__ == '__main__':

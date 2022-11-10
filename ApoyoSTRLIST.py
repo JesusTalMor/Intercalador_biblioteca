@@ -212,7 +212,7 @@ def clas_maker(clas, vol, cop):
     return STR_clas
 
 
-def STR_limit(STR, size):
+def STR_limit(STR, size=40):
     '''Funcion para limitar el tamanio de un string'''
     if len(STR) > size: return STR[:size] + '...'
     else: return STR

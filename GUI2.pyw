@@ -26,7 +26,7 @@ col_width = [25, 15, 15, 10]
 
 
 # ? Ventanas de apoyo y configuraciones
-def ventana_modify(STR_clas_f: str, STR_clas:str, volumen:str, copia:str):
+def ventana_modify(STR_clas_f: str, STR_clas:str, volumen:str, copia:str, name:str, cb:str):
   # Eliminar Volumen y Copia de la clasificación
   volumen = volumen.replace('V.', '') if 'V.' in volumen else volumen
   STR_clas = STR_cutter(STR_clas, 'V.') if 'V.' in STR_clas else STR_clas
@@ -111,7 +111,10 @@ def ventana_modify(STR_clas_f: str, STR_clas:str, volumen:str, copia:str):
       temp_vol = f'V.{values["VOL"]}' if values["VOL"] != '' else ''
       STR_clas = clas_maker(values["CLAS"], temp_vol, values["COP"])  # Genera la clasificacion completa
       window.close()
-      return [STR_clas, values["PIPE_A"], values["PIPE_B"], "True"]
+      tabla_apariencia = [STR_clas, values["PIPE_A"], values["PIPE_B"], "True"]
+      tabla_datos = {'clasi': values['CLAS'], 'copia': values['COP'], 'volum': temp_vol, 'titulo': name, 'cb': cb}
+
+      return tabla_apariencia, tabla_datos
   window.close()
   return []
 
@@ -310,24 +313,32 @@ def main():
     
     if event == "Modificar" and modify_flag == True:
       # * Vamos a abrir una nueva pantalla para modificar el texto
-      mod_output = ventana_modify(
+      # Manda llamar la ventana para modificar
+      mod_output, mod_data = ventana_modify(
         STR_clas_f=tabla_principal[modify_index][0], 
         STR_clas=tabla_datos_principal[modify_index]['clasi'],
         volumen=tabla_datos_principal[modify_index]['volum'], 
-        copia=tabla_datos_principal[modify_index]['copia']
-      )  # Manda llamar la ventana para modificar
+        copia=tabla_datos_principal[modify_index]['copia'],
+        name= tabla_datos_principal[modify_index]['titulo'],
+        cb=tabla_datos_principal[modify_index]['cb']
+      )  
       
-      if mod_output == []: continue # Se checa si se realizaron cambios
+      #* Se checa si se realizaron cambios
+      if mod_output == []: continue 
       
       # Agregamos elemento a una tabla de modificaciones
       mod_title = tabla_datos_principal[modify_index]['titulo']
       mod_QRO = tabla_datos_principal[modify_index]['cb']
-      aux_modify = [mod_title, tabla_principal[modify_index][0], mod_output[0], mod_QRO]
+      aux_modify = [STR_limit(mod_title), tabla_principal[modify_index][0], mod_output[0], mod_QRO] 
       tabla_modify.append(aux_modify)
 
-      # Cambiamos la apariencia del elemento en la tabla
+      # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
+      # Actualizar valores en la tabla principal
       tabla_principal[modify_index] = mod_output
+      # Actualizar valores en la tabla de datos
+      tabla_datos_principal[modify_index] = mod_data
+
       row_color_array[modify_index] = (int(modify_index), "#32A852")
       modify_flag = False
       
@@ -352,13 +363,16 @@ def main():
         pop_warning_option()
         continue
       
-      status = inter.main_program(
-        archivo=values['EXCEL_FILE'], carpeta=values['FOLDER'], nombre=values['NAME'], 
-        reporte=[values['REPORT'], values['EXCEL_ORD'], values['EXCEL_ERR_ORD']], codify=0
-      )
-      if not status: pop_error_excel_file()
-      else: pop_success_program()
-        
+      # * Crear reporte de modificaciones
+      inter.reporte_modify(tabla_modify, values['FOLDER'])
+
+      inter.crear_diccionario_clas(tabla_datos_principal)
+      # status = inter.main_program(
+      #   archivo=values['EXCEL_FILE'], carpeta=values['FOLDER'], nombre=values['NAME'], 
+      #   reporte=[values['REPORT'], values['EXCEL_ORD'], values['EXCEL_ERR_ORD']], codify=0
+      # )
+      # if not status: pop_error_excel_file()
+      # else: pop_success_program()
     
     elif event == 'Licencia': pop_info_license()
     
