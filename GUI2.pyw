@@ -133,6 +133,8 @@ def main():
   #? Tabla para manejo de modificaciones
   tabla_modify = []
 
+  #? Bandera de status_clas
+  status_clas_flag = False
 
 
   #? Menu superior de opciones
@@ -182,13 +184,13 @@ def main():
         background_color='#FFFFFF'
         ),
       sg.Checkbox(
-        'Excel Error Ord.', 'G1', 
+        'Orden Instrucciones', 'G1', 
         key='EXCEL_ERR_ORD', 
         font=('Open Sans', 14), 
         background_color='#FFFFFF'
         ),
       sg.Checkbox(
-        'Excel Ord.', 'G1', 
+        'Excel Orden', 'G1', 
         key='EXCEL_ORD', 
         font=('Open Sans', 14), 
         background_color='#FFFFFF'
@@ -359,27 +361,29 @@ def main():
         pop_warning_name()
         continue
       
-      if values['REPORT'] + values['EXCEL_ERR_ORD'] + values['EXCEL_ORD'] == 0:
+      if values['REPORT'] + values['EXCEL_ORD'] + values['EXCEL_ERR_ORD'] == 0:
         pop_warning_option()
         continue
       
-      # * Crear reporte de modificaciones
-      inter.reporte_modify(tabla_modify, values['FOLDER'])
-      
-      # Crear lista para sacar lista para conseguir diccionarios
-      lista_clas_fin = []
+     # * Checar si existe algun elemento erroneo
       for ind in range(len(tabla_principal)):
-        # Checar estatus de los elementos
-        if main_dicc[ind] == 'True': lista_clas_fin.append(tabla_datos_principal[ind])
+        if main_dicc[ind] == 'False':
+          status_clas_flag = True
+          break
       
-      inter.crear_diccionario_clas(lista_clas_fin)
-      # inter.crear_diccionario_clas(tabla_datos_principal)
-      # status = inter.main_program(
-      #   archivo=values['EXCEL_FILE'], carpeta=values['FOLDER'], nombre=values['NAME'], 
-      #   reporte=[values['REPORT'], values['EXCEL_ORD'], values['EXCEL_ERR_ORD']], codify=0
-      # )
-      # if not status: pop_error_excel_file()
-      # else: pop_success_program()
+      if status_clas_flag:
+        status_clas_flag = False
+        pop_warning_clas()
+        continue
+      
+      prog_config = [values['REPORT'],values['EXCEL_ORD'],values['EXCEL_ERR_ORD']]
+      prog_status = inter.main_posible(
+        data=tabla_datos_principal, excel_file=values['EXCEL_FILE'],
+        folder_path=values['FOLDER'], name_file=values['NAME'],
+        report_config=prog_config, modif_list=tabla_modify
+      )
+      if prog_status: pop_success_program()
+      else: pop_error_excel_file()
     
     elif event == 'Licencia': pop_info_license()
     
@@ -390,5 +394,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-  # val = ventana_modify(STR_clas_f='Q126.4 E88 1999 V.3', STR_clas='Q126.4 E88 1999', copia='1', volumen='3')
-  # print(val)

@@ -6,7 +6,7 @@ from AtributeManager import *
 from AuxIntercalado import *
 
 
-def main_program(archivo,carpeta,nombre,reporte, codify):
+def main_posible(excel_file:str, folder_path:str, name_file:str, report_config:list, data:list, modif_list:list):
   '''
     Funcion para correr el programa principal
     @archivo: Una ruta de acceso a un archivo Excel
@@ -16,137 +16,130 @@ def main_program(archivo,carpeta,nombre,reporte, codify):
   '''
   #* Lectura de todas la hojas
   #* Insertar Nombres, es necesario poner el Path Absoluto para el archivo
-  Nombre = archivo
-  path = carpeta
-  name = nombre
-  txt_path = path + '/' + name + '_reporte.txt'
-  txt_path2 = path + '/' + name + '_listadoRevision.txt'
-  main_path = path + '/' + name +'.xlsx'
-  main_path2 = path + '/' + name + '_Ordenador.txt'
   
-  # Objetos de escritura para archivos
-  if reporte[0] == 1: 
-    report_file = open(txt_path, 'w', encoding="utf-8")
-    CB_file = open(txt_path2, 'w', encoding="utf-8")
-  if reporte[1] == 1: writer = ExcelWriter(main_path)
-  if reporte[2] == 1: order_file = open(main_path2, 'w', encoding="utf-8")
-  
-  dataExcel = cargarExcel(Nombre)
-  #Cargamos Datos
-  llaves_Excel = list(dataExcel)
-  for key in llaves_Excel:
-    Data,Data_vol,Data_cop,Data_name,Data_codB = cargarDatos(dataExcel[key])
-    if Data[0] == False: return False
-    len_Data = len(Data)
-    CN = 0 # Variables para casos Normales
-    CLX = 0 # Variable para Casos con Texto LX
-    CMAT = 0 # Variable para Casos con Texto MAT COM
-    CV = 0 # Variables para Casos con Versiones
-    CP = 0 # Variable para Casos con Copia
-    CE = 0 # Variables para Casos Extraños sin análisis
-    #* Definir listas principales para guardar los datos
-    lista_Dic = []      #Lista para Guardar Diccionarios ya separados
-    lista_Raros = []    #Lista para casos sin analisis
-    llaves = ['clase','subdecimal','temaesp','autor','anio','vol','cop'] #* Llaves del diccionario
-    #* Bucle Principal para revision de cadenas (string)
-    for i in range(len_Data):
-      STR = Data[i]   # Tiene la clasificación incompleta del libro
-      STR_C = str(Data_cop[i]) # Contiene la copia del libro
-      STR_V = Data_vol[i] # Contiene el volumen del libro
-      
-      # Se checa si se tiene codigo de Barra o No
-      if Data_codB[0] == False: CB_STR = 'NAN' 
-      else: CB_STR = Data_codB[i] 
-      
-      # Se checa si se tiene titulo o no
-      if Data_name[0] == False: STR_NAME = 'Sin Título' 
-      else: STR_NAME = Data_name[i] 
-      
-      # Revisión para el volumen
-      if pd.isna(STR_V): STR_V = ''
-      
-      
-      # Crear Clasificacion
-      print(STR, STR_V, STR_C)
-      STR_clas = clas_maker(STR, STR_V, STR_C)
+  # Checar si se tiene que hacer un reporte
+  if report_config[0]:
+    reporte_txt_path = f'{folder_path}/{name_file}_reporte.txt'
+    reporte_txt_writer = open(reporte_txt_path, 'w', encoding="utf-8")
+    # Checar si crear el archivo de revision
+    if len(modif_list) != 0:
+      revision_txt_path = f'{folder_path}/{name_file}_listado_revision.txt'
+      revision_txt_writer = open(revision_txt_path, 'w', encoding="utf-8")
 
-      # Revision de Caso con Nan
-      if pd.isna(STR):
-        lista_Raros.append({"indice": i, "cadena": 'NAN',
-                  "titulo": STR_limit(STR_NAME), "c_barras": CB_STR})
-        CE += 1
-      else:
-        if 'LX' in STR: 
-          char = 'LX'  # Para casos con XL
-          STR = STR_cutter(STR, char)
-        elif 'MAT' in STR: 
-          char = 'MAT' # Para casos con MAT COM
-          STR = STR_cutter(STR, char)
-        
-        
-        if 'V.' in STR or 'C.' in STR:
-          lista_Raros.append({"indice": i, "cadena": STR_clas,
-                    "titulo": STR_limit(STR_NAME, 25), "c_barras": CB_STR})
-          CE += 1
-        else:
-          if analisisCasosIdeales(STR, STR_C, STR_V, i, lista_Dic, STR_clas, codify):
-            CN += 1
-          else:
-            lista_Raros.append({"indice": i, "cadena": STR_clas,
-                      "titulo": STR_limit(STR_NAME, 25), "c_barras": CB_STR})
-            CE += 1
+  # Checar si se tiene que ordenar un excel
+  if report_config[1]:
+    excel_writer_path = f'{folder_path}/{name_file}.xlsx'
+    excel_writer = ExcelWriter(excel_writer_path)
+
+  # Checar si se tiene que realizar un ordenador
+  if report_config[2]:
+    orden_txt_path = f'{folder_path}/{name_file}_ordenador.txt'
+    orden_txt_writer = open(orden_txt_path, 'w', encoding="utf-8")
+  
+
+
+  # * Cargar datos del Excel  
+  dataExcel = cargarExcel(excel_file)
+  # * Llaves de las hojas del Excel
+  llaves_Excel = list(dataExcel)
+  
+  data_index = 0
+  for key in llaves_Excel:
+    # * Cargar datos de Hoja
+    # print(F'Usando datos de Hoja {key}')
+    data_keys = list(dataExcel[key])
+    data_len = len(dataExcel[key][data_keys[0]])
     
+    # * Escribir un reporte del sistema
+    if report_config[0]:
+      # print('Preparando reporte del Archivo')
+      prepararReporte(
+        excel_page=key, excel_file=excel_file, data_len=data_len, 
+        modif_list=modif_list, cbarras_name=f'{name_file}_listado_revision.txt',
+        writer_object=reporte_txt_writer, writer_object_aux=revision_txt_writer
+      )
+
+    # * Recibe una lista de string de datos y los separa
+    # print('Separar lista completa')
+    aux_list = data[data_index:(data_len-1)]
     
-    if reporte[1] == 1 or reporte[2] == 1:
-      
-      lista_Dic, maxlen_All = limpiarLista(lista_Dic,llaves)
-      lista_Dic = estandarizarLista(lista_Dic, maxlen_All[0], maxlen_All[1], maxlen_All[2], maxlen_All[3], llaves)
-      # Detectar casos raros
-      # Ordenando Lista
-      lista_ORD = []
-      #for elem in lista_Dic:
-      #    print(elem)
-      #print('\n\n\n')
-      lista_ORD = sorted(lista_Dic, key=lambda llave : llave[llaves[0]])
-      lista_ORD = ordenarLista(lista_ORD,llaves,0)
+    # * Crear diccionarios de Clasificación
+    # print('Creando diccionarios')
+    dicc_list = crear_diccionario_clas(aux_list)
     
+    # * Ordenar diccionario completo
+    # print('Ordenando diccionario')
+    lista_ord = ordenar_dicc(dicc_list)
     
-    if reporte[1] == 1:
-      data_frame = prepararExcel(dataExcel[key], lista_ORD)
-      escribirExcel(data_frame,key,writer)
-    
-    
-    if reporte[2] == 1:
-      prepararErrorExcel(lista_ORD, lista_Dic, Data_name, order_file)
-    
-    
-    if reporte[0] == 1:
-      report_file.write('='*55 + '\n')
-      report_file.write('\t Reporte de ' + key + '\n')
-      report_file.write('\n')
-      report_file.write('Archivo Utilizado:\n')
-      report_file.write(Nombre + '\n')
-      report_file.write('='*55 + '\n')
-      report_file.write('\n')
-      imprimirResultados(CN, CLX, CMAT, CV, CE, CP, len_Data, report_file)
-      if lista_Raros == []:
-        report_file.write('='*55 + '\n')
-        report_file.write('\t Sin Casos Sin Estandar LC' + '\n')
-        report_file.write('='*55 + '\n')
-      else:
-        report_file.write('NOTA:\n')
-        report_file.write('En el archivo: ' + str(txt_path2) + ' encontraras los codigos de barra\n')
-        report_file.write('para cargarlos en una lista de Sierra.' + '\n')
-        report_file.write('\n\n')
-        imprimirLista(lista_Raros, 'Items con Estandar LC Incorrecto',report_file)
-        for elem in lista_Raros: CB_file.write(elem["c_barras"] + '\n')
-      report_file.write('\n\n')
-  if reporte[2] == 1: order_file.close()
-  if reporte[1] == 1: writer.save()
-  if reporte[0] == 1: 
-    report_file.close()
-    CB_file.close()
+    # * Escribir excel ordenado
+    if report_config[1]:
+      # print('Preparando Excel Ordenado')
+      data_frame = prepararExcel(dataExcel[key], lista_ord)
+      escribirExcel(data_frame,key,excel_writer)
+
+    # * Escribir instrucciones para ordenar libros
+    if report_config[2]:
+      # print('Preparando Instrucciones Ordenar')
+      prepararErrorExcel(lista_ord, dicc_list, aux_list, orden_txt_writer)
+
+    data_index = data_len
+    # print('Hoja Completada con Exito')
+  
+  if report_config[0]:
+    reporte_txt_writer.close()
+    if len(modif_list) != 0:
+      revision_txt_writer.close()
+  if report_config[1]:
+    excel_writer.save()
+  if report_config[2]:
+    orden_txt_writer.close()
+  
+  
+  # print('Excel Completado con Exito')
   return True
+
+
+def prepararReporte(excel_page:str, excel_file:str, data_len:int, modif_list:list, cbarras_name:str, writer_object, writer_object_aux):
+  len_char = 55
+  writer_object.write('='*len_char + '\n')
+  writer_object.write(f'\t Reporte de {excel_page}\n\n')
+  writer_object.write(f'Archivo Utilizado:\n{excel_file}\n')
+  writer_object.write('='*len_char + '\n')
+  writer_object.write('='*len_char + '\n\n')
+  writer_object.write("\t Detalle del Reporte \n")
+  writer_object.write('='*len_char + '\n')
+  writer_object.write(f'Total de Casos Cargados: {data_len}\n')
+  writer_object.write(f'Casos Correctamente Analizados: {data_len - len(modif_list)}\n')
+  writer_object.write(f'Casos Modificados: {len(modif_list)}\n')
+  writer_object.write('='*len_char + '\n')
+
+  if len(modif_list) == 0:
+    writer_object.write('='*len_char + '\n')
+    writer_object.write('\t Sin Casos Sin Estandar LC' + '\n')
+    writer_object.write('='*len_char + '\n')
+  else:
+    writer_object.write('NOTA:\n')
+    writer_object.write(f'En el archivo: {cbarras_name} encontraras los codigos de barra\n')
+    writer_object.write('para cargarlos en una lista de Sierra.' + '\n')
+    writer_object.write('\n\n')
+    for elem in modif_list:
+      writer_object_aux.write(f'{elem[3]}\n')
+  
+  reporte_modify(modif_list, writer_object)
+  writer_object.write('\n\n')
+
+
+def ordenar_dicc(main_list:list):
+  llaves = ['clase','subdecimal','temaesp','autor','anio','vol','cop'] #* Llaves del diccionario
+  # * Limpieza de caracteres no deseados y toma de tamaño de los string
+  main_list, maxlen_All = limpiarLista(main_list,llaves)
+  main_list = estandarizarLista(main_list, maxlen_All[0], maxlen_All[1], maxlen_All[2], maxlen_All[3], llaves)
+  # * Ordenando Lista de Salida
+  lista_ORD = []
+  lista_ORD = sorted(main_list, key=lambda llave : llave[llaves[0]])
+  lista_ORD = ordenarLista(lista_ORD,llaves,0)
+  return lista_ORD
+
 
 def crear_diccionario_clas(main_list:list):
   """ 
@@ -156,11 +149,13 @@ def crear_diccionario_clas(main_list:list):
   lista_salida = []
   for idx, dicc in enumerate(main_list):
     STR_clas_f = clas_maker(dicc['clasi'], dicc['volum'], dicc['copia'])
-    lista_salida.append(caso_ideal(STR1=dicc['clasi'], STR_C=dicc['copia'], STR_V=dicc['volum'], index=idx, STR_clas=STR_clas_f))
-  
-  for dicc in lista_salida:
-    print(dicc)
-    print('-'*30)
+    lista_salida.append(
+      caso_ideal(
+        STR1=dicc['clasi'], STR_C=dicc['copia'], 
+        STR_V=dicc['volum'], index=idx, STR_clas=STR_clas_f
+      )
+    )
+  return lista_salida
 
 
 def cargar_etiquetas(path: str):
@@ -248,35 +243,25 @@ def cargar_etiquetas(path: str):
   return salida_etiquetas, salida_dicc  
 
 
-def reporte_modify(lista:list, path:str):
+def reporte_modify(lista:list, writer_object):
   """ Genera un reporte de una lista en un txt """
-  # Creamos un archivo txt en una carpeta designada
-  # con el nombre modificaciones
-  # TODO se puede cambiar el nombre del archivo por uno mejor 
-  nombre = 'modificaciones'
-  file_path = f'{path}/{nombre}.txt'
-  txt_file = open(file_path, 'w', encoding="utf-8")
   # Escribir lo que necesitamos en el archivo
-  txt_file.write(f'\tDATOS MODIFICADOS DENTRO DE LA APLICACION \n')
-  txt_file.write('='*60)
-  txt_file.write('\n\n')
+  writer_object.write(f'\tDATOS MODIFICADOS DENTRO DE LA APLICACION \n')
+  writer_object.write('='*60)
+  writer_object.write('\n\n')
   # Abrir lista y escribir
   for elem in lista:
     for item in elem:
       # Checar el  largo del item
-      text = STR_limit(item) if len(item) > 25 else item + ' '*(25 - len(item))
-      txt_file.write(f'{text}\t | \t')
-    txt_file.write(f'\n')
-  # Finalizada escritura cerrar archivo
-  txt_file.close()
+      text = STR_limit(item) if len(item) > 40 else item + ' '*(40 - len(item))
+      writer_object.write(f'{text}\t | \t')
+    writer_object.write(f'\n')
 
 
+def imprimir_lista(lista:list):
+  for elem in lista:
+    print(elem)
+    print('-'*150)
 
 if __name__ == '__main__':
-  #archivo = "C:/00_UniversidadTec/10_SextSemestre/01_SB/Excel/B.xlsx"
-  excel = 'Para ordenar-Caso HB 3717_ 1-06-2022'
-  archivo = "C:/Users/EQUIPO/Desktop/" + excel + ".xlsx"
-  carpeta = "C:/Users/EQUIPO/Desktop"
-  nombre = 'Reto'
-  reporte = [1,1,1]
-  print(main_program(archivo,carpeta,nombre,reporte,0))
+  pass

@@ -3,10 +3,6 @@ from tkinter import messagebox
 
 # # ? POP_up de advertencia (Warning)
 ##########################################################
-def pop_warning_element():
-  msg = f'!Advertencia!\nEl reporte de registros modificados no se generará.'
-  messagebox.showwarning("Inicio Elemento", msg)
-
 def pop_warning_excel_file():
   msg = f'!Fallo!\nSeleccione un archivo de Excel'
   messagebox.showwarning("No Excel File", msg)
@@ -26,6 +22,10 @@ def pop_warning_name():
 def pop_warning_option():
   msg = f'!Advertencia!\n Seleccione alguna opción'
   messagebox.showwarning("No Option", msg)
+
+def pop_warning_clas():
+  msg = f'!Advertencia!\n Algunas clasificaciones tienen error.\n Modifique para continuar'
+  messagebox.showwarning("Some Clas Errors", msg)
 ##########################################################
 
 # # ? POP_up de Error (Error)

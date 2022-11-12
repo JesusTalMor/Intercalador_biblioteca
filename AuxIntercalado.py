@@ -99,6 +99,8 @@ def limpiarLista(lista_Main,llaves):
             #Limpiando Autor
             lista_Main[ind][llaves[4]] = Limpieza(lista_Main[ind][llaves[4]])  
     return lista_Main, ML_all
+
+
 def estandarizarLista(lista_Main,MLC,MLSD,MLTE,MLA,llaves):
     '''
         Funcion para estandarizar todas las llaves de los diccionarios \n
@@ -300,11 +302,11 @@ def prepararErrorExcel(lisORD, lisDIC, lisNAME, txt_file):
                                 while x >= 0:
                                     # Poner Bandera AQUI
                                     if lisDIC[x]["indice"] in lisCORR:
-                                        txt_file.write('Libro Anterior Correcto: ' + '| ' + lisDIC[x]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[x]["indice"]], 40) + '\n')
+                                        txt_file.write('Libro Anterior Correcto: ' + '| ' + lisDIC[x]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[x]["indice"]]['titulo']) + '\n')
                                         break
                                     x -= 1
                                 txt_file.write('Seguido a este libro encontraras el libro que debes retirar:\n')
-                                txt_file.write('Libro a Retirar: '+ '| ' + lisDIC[i]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[i]["indice"]], 40) + '\n\n')
+                                txt_file.write('Libro a Retirar: '+ '| ' + lisDIC[i]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[i]["indice"]]['titulo']) + '\n\n')
                                 txt_file.write('*'*90 + '\n')
                 else:
                     # Proceso para retirar muchos libros erroneos
@@ -312,7 +314,7 @@ def prepararErrorExcel(lisORD, lisDIC, lisNAME, txt_file):
                         if lisSAL[index][1] == 0:
                             txt_file.write('*'*85 + '\n')
                             txt_file.write("INFORMACION PARA RETIRAR\n")
-                            txt_file.write('Libro a retirar: '+ '| ' + lisORD[index]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[index]["indice"]], 40) + '\n\n')
+                            txt_file.write('Libro a retirar: '+ '| ' + lisORD[index]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[index]["indice"]]['titulo']) + '\n\n')
                             txt_file.write('Este libro esta ubicado entre los siguientes libros correctos\n')
                             for x in range(len(lisSAL)):
                                 if lisDIC[x]["indice"] == lisORD[index]["indice"]:
@@ -320,12 +322,12 @@ def prepararErrorExcel(lisORD, lisDIC, lisNAME, txt_file):
                                     pos_pos = x + 1
                                     while pos_neg >= 0:
                                         if lisDIC[pos_neg]["indice"] in lisCORR:
-                                            txt_file.write('Libro Anterior Correcto:  ' + '| ' + lisDIC[pos_neg]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_neg]["indice"]], 40) + '\n')
+                                            txt_file.write('Libro Anterior Correcto:  ' + '| ' + lisDIC[pos_neg]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_neg]["indice"]]['titulo']) + '\n')
                                             break
                                         pos_neg -= 1
                                     while pos_pos < len(lisORD):
                                         if lisDIC[pos_pos]["indice"] in lisCORR:
-                                            txt_file.write('Libro Siguiente Correcto:  ' + '| ' + lisDIC[pos_pos]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_pos]["indice"]], 40) + '\n')
+                                            txt_file.write('Libro Siguiente Correcto:  ' + '| ' + lisDIC[pos_pos]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_pos]["indice"]]['titulo']) + '\n')
                                             break
                                         pos_pos += 1
                                     break
@@ -336,7 +338,7 @@ def prepararErrorExcel(lisORD, lisDIC, lisNAME, txt_file):
                     if lisSAL[index][1] == 0:
                         txt_file.write('*'*85 + '\n')
                         txt_file.write("INFORMACION PARA RETIRAR\n")
-                        txt_file.write('Libro a retirar: '+ '| ' + lisORD[index]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[index]["indice"]], 40) + '\n\n')
+                        txt_file.write('Libro a retirar: '+ '| ' + lisORD[index]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[index]["indice"]]['titulo']) + '\n\n')
                         txt_file.write('Este libro esta ubicado entre los siguientes libros correctos\n')
                         for x in range(len(lisSAL)):
                             if lisDIC[x]["indice"] == lisORD[index]["indice"]:
@@ -344,12 +346,12 @@ def prepararErrorExcel(lisORD, lisDIC, lisNAME, txt_file):
                                 pos_pos = x + 1
                                 while pos_neg >= 0:
                                     if lisDIC[pos_neg]["indice"] in lisCORR:
-                                        txt_file.write('Libro Anterior Correcto:  ' + '| ' + lisDIC[pos_neg]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_neg]["indice"]], 40) + '\n')
+                                        txt_file.write('Libro Anterior Correcto:  ' + '| ' + lisDIC[pos_neg]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_neg]["indice"]]['titulo']) + '\n')
                                         break
                                     pos_neg -= 1
                                 while pos_pos < len(lisORD):
                                     if lisDIC[pos_pos]["indice"] in lisCORR:
-                                        txt_file.write('Libro Siguiente Correcto:  ' + '| ' + lisDIC[pos_pos]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_pos]["indice"]], 40) + '\n')
+                                        txt_file.write('Libro Siguiente Correcto:  ' + '| ' + lisDIC[pos_pos]["clas"] + ' | ' + STR_limit(lisNAME[lisDIC[pos_pos]["indice"]]['titulo']) + '\n')
                                         break
                                     pos_pos += 1
                                 break
@@ -370,17 +372,17 @@ def prepararErrorExcel(lisORD, lisDIC, lisNAME, txt_file):
                     pos_neg = index - 1
                     pos_pos = index + 1
                     ref = False
-                    txt_file.write('Libro a Colocar: '+ '| ' + lisORD[index]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[index]["indice"]], 40) + '\n\n')
+                    txt_file.write('Libro a Colocar: '+ '| ' + lisORD[index]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[index]["indice"]]['titulo']) + '\n\n')
                     txt_file.write('Este libro va entre lo siguientes libros\n')
                     while pos_neg >= 0 and not ref:
                         if lisSAL[pos_neg][1] == 2:
-                            txt_file.write('Libro Anterior:  ' + '| ' + lisORD[pos_neg]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[pos_neg]["indice"]], 40) + '\n')
+                            txt_file.write('Libro Anterior:  ' + '| ' + lisORD[pos_neg]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[pos_neg]["indice"]]['titulo']) + '\n')
                             # ref = True
                             break
                         pos_neg -= 1
                     while pos_pos < len(lisORD) and not ref:
                         if lisSAL[pos_pos][1] == 2:
-                            txt_file.write('Libro Siguiente: ' + '| ' + lisORD[pos_pos]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[pos_pos]["indice"]], 40) + '\n')
+                            txt_file.write('Libro Siguiente: ' + '| ' + lisORD[pos_pos]["clas"] + ' | ' + STR_limit(lisNAME[lisORD[pos_pos]["indice"]]['titulo']) + '\n')
                             # ref = True
                             break
                         pos_pos += 1
@@ -437,6 +439,7 @@ def imprimirResultados(CN,CLX,CMAT,CV,CE,CP,lenght,txt_file):
     txt_file.write("Total de Items con Estandar LC Incorrecto: " + str(SumCE) + "/" + str(Porcent(SumCE,SumEnd)) + '%\n')
     txt_file.write('='*55 + '\n')
     txt_file.write("\n\n")
+
 def imprimirLista(lisMain,STR,txt_file):
     '''
         Toma una lista e imprime los valores
