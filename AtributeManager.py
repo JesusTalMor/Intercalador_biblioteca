@@ -1,4 +1,5 @@
 from ApoyoSTRLIST import *
+
 '''
     Funciones para Seccionar Clasificacion por Atributos
 '''
@@ -12,7 +13,7 @@ def caso_ideal(STR1, STR_C='1', STR_V='A0', STR_clas='A0', index=1, flag=0):
         @Return: un diccionario con todos los atributos depurados
     '''
     letras_array = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-    Dic = {"indice":index, "clase":"A0", "subdecimal":"A0", "temaesp":"A0", "autor":"A0", "anio":"3000", "vol":STR_V, "cop":STR_C, "clas":STR_clas}
+    Dic = {"indice":index, "clase":"A0", "subdecimal":"A0", "temaesp":"A0", "autor":"A0", "anio":"1000", "vol":STR_V, "cop":STR_C, "clas":STR_clas}
     pos_div1, sum = buscarPIPE(STR1)
     if pos_div1 != 0:
         PIPE_A = STR1[:pos_div1]

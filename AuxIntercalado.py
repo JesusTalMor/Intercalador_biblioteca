@@ -171,6 +171,7 @@ def prepararExcel(main_df, lisMain):
         @lisMain: Es una lista de diccionarios de donde sacamos el orden
         @Return: Un diccionario con la estructura ordenada para main_df
     '''
+    
     llaves = list(main_df)
     lista_Salida = []
     # Creamos listas para cada parte del diccionario del DataFrame
@@ -361,14 +362,14 @@ def prepararErrorExcel(lisORD, lisDIC, lisNAME, txt_file):
             # txt_file.write('Erroneo' + ' | ' + elem[2] + ' | ' + STR_limit(lisNAME[elem[0]], 40))
             txt_file.write('\n\n\n')
             txt_file.write('='*90 + '\n')
-            txt_file.write("\tPASO 2. INFORMACION PARA ACOMODAR LIBROS \n")
+            txt_file.write("\tPASO 2. INFORMACION PARA INTERCALAR LIBROS \n")
             txt_file.write('='*90 + '\n')
             # for elem in lisSAL: print(elem)
             # for elem in lisORD: print(elem["indice"]) 
             for index in range(len(lisSAL)):
                 if lisSAL[index][1] == 0:
                     txt_file.write('+'*90 + '\n')
-                    txt_file.write("INFORMACION PARA ACOMODAR\n")
+                    txt_file.write("INFORMACION PARA INTERCALAR\n")
                     pos_neg = index - 1
                     pos_pos = index + 1
                     ref = False

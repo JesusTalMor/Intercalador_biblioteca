@@ -280,7 +280,7 @@ def main():
         tabla_principal = tabla_principal.tolist()
 
         tabla_datos_principal = np.concatenate((np.array(tabla_datos_principal), np.array(tabla_datos)), axis=0)
-        tabla_datos_principal = tabla_datos.tolist()
+        tabla_datos_principal = tabla_datos_principal.tolist()
       # ? No tenemos aun datos en la tabla 
       else: 
         tabla_principal = tabla_aux
