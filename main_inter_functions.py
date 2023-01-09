@@ -8,7 +8,7 @@ import string_helper as sh
 
 # from AtributeManager import *
 
-
+# TODO Falta contemplar la posibilidad de multiples hojas
 
 # ? Pasos para el programa 
 # TODO Cargar los datos de las clasificaciones desde el excel
@@ -292,10 +292,77 @@ def ordenar_libros_atributo(lista):
 
 # TODO Crear nuevo excel corregido
 
-def crear_nuevo_excel(lista, dataframe):
-  pass
+def crear_excel_ordenado(lista_orden, lista_datos, ruta_archivo):
+  # Sacar el data frame del excel
+  dataframe = cargar_excel(ruta_archivo)
+  paginas_excel = list(dataframe)
+  for hoja in paginas_excel:
+    main_df = dataframe[hoja]
+    atributos = list(main_df)
+    
+    lista_salida = []
+    # * Corregir Valores cambiados en el programa
+    lista_clasif = []
+    lista_volumen = []
+    lista_copia = []
+    lista_clasif_completa = []
+    # lista_encabeza = []
+    for elem in lista_orden:
+      index = elem['indice']
+      lista_clasif.append(lista_datos[index]['clasif'])
+      lista_volumen.append(lista_datos[index]['volumen'])
+      lista_copia.append(lista_datos[index]['copia'])
+      lista_clasif_completa.append(elem['clas'])
+      # lista_encabeza.append(lista_datos[index]['encabeza'])
+
+    # * Crear listas de datos dentro del excel
+    for atributo in atributos:
+      lista_aux = []
+      # Corregir Clasificación
+      if atributo == 'Clasificación': 
+        lista_salida.append(lista_clasif)
+        continue
+      # Corregir Volumen
+      if atributo == 'Volumen': 
+        lista_salida.append(lista_volumen)
+        continue
+      # Corregir Copia
+      if atributo == 'Copia':
+        lista_salida.append(lista_copia)
+        continue
+
+      # Crear lista de Atributo X
+      for elem in lista_orden:
+        index = elem['indice']
+        lista_aux.append(main_df[atributo][index])
+      
+      lista_salida.append(lista_aux)
+    
+    # Agregar clasificacion completa
+    lista_salida.append(lista_clasif_completa)
+
+    
+    # * Creamos el diccionario de Salida para Excel
+    data_frame = {}
+    for index, atributo in enumerate(atributos):
+        data_frame[atributo] = lista_salida[index]
+    data_frame['Clasificación Completa'] = lista_salida[-1]
+    return data_frame
+
+def escribir_excel(dataframe, hoja, ruta_folder, nombre):
+    '''Usando un dataframe escribe un Excel'''
+    excel_writer_path = f'{ruta_folder}/{nombre}.xlsx'
+    excel_writer = pd.ExcelWriter(excel_writer_path)
+
+    df = pd.DataFrame(dataframe)
+    atributos = list(df)
+    df = df[atributos]
+    df.to_excel(excel_writer, sheet_name=hoja, index=False)
+    excel_writer.save()
 
 # TODO Crear archivo para el correcto ordenamiento de los libros
+
+
 
 # TODO Crear reporte de modificaciones de clasificaciones
 

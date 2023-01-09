@@ -259,6 +259,7 @@ def ventana_principal():
   # Variables para guardar rutas de archivos
   ruta_archivo = ""
   ruta_folder = ""
+  nombre_archivo = ""
 
   # Manejo Principal de Tabla
   tabla_principal = []
@@ -497,15 +498,19 @@ def ventana_principal():
     #* Ejecutar el programa
     elif event == 'Ejecutar':
       # ? Checar si se ha puesto un archivo
-      if values['EXCEL_FILE'] == '':
+      ruta_folder = values['FOLDER']
+      ruta_archivo = values['EXCEL_FILE']
+      nombre_archivo = values['NAME']
+
+      if ruta_archivo == '':
         pop.warning_excel_file()
         continue
       
-      if values['FOLDER'] == '':
+      if ruta_folder == '':
         pop.warning_folder()
         continue
       
-      if values['NAME'] == '':
+      if nombre_archivo == '':
         pop.warning_name()
         continue
       
@@ -535,13 +540,17 @@ def ventana_principal():
         salida_ordenada = mainif.ordenar_libros_atributo(salida)
         print(*salida_ordenada, sep='\n')
         
+        # Sección para ordenar
+        dataframe_salida = mainif.crear_excel_ordenado(salida_ordenada, tabla_datos, ruta_archivo)
+        print(*dataframe_salida, sep='\n')
+        mainif.escribir_excel(dataframe_salida, 'Prueba', ruta_folder, nombre_archivo)
       # prog_status = inter.main_posible(
       #   data=tabla_datos_principal, excel_file=values['EXCEL_FILE'],
       #   folder_path=values['FOLDER'], name_file=values['NAME'],
       #   report_config=prog_config, modif_list=tabla_modify
       # )
       pop.success_program()
-      # if prog_status: pop_success_program()
+      # if prog_status: pop_success_program
       # else: pop_error_excel_file()
     
     elif event == 'Licencia': pop.info_license()
