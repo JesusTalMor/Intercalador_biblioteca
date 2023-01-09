@@ -1,9 +1,10 @@
+
 import numpy as np
 import PySimpleGUI as sg
 
-import Main_Intercarlador as inter
-from ApoyoSTRLIST import *
-from pop_ups import *
+import main_inter_functions as mainif
+import pop_ups as pop
+import string_helper as sh
 
 #* Tema principal de las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
@@ -22,141 +23,59 @@ sg.theme('MyCreatedTheme')
 # * Configuración de la tabla
 colum = ["Clasificación", "PIPE_A", "PIPE_B", "STATUS"]
 col_width = [25, 15, 15, 10]
+col_just = ['c', 'l', 'l', 'c']
+
+# TODO Agregar Ventana de Configuracion
+
+#? Menu superior de opciones
+menu_opciones = [
+  ['Programa', ['Salir']],
+  ['Ayuda', ['Tutoriales','Licencia','Acerca de...']],
+]
 
 
+def ventana_principal():
+  # ! Variables del programa no Modificar
+  # Variables para guardar rutas de archivos
+  ruta_archivo = ""
+  ruta_folder = ""
 
-# ? Ventanas de apoyo y configuraciones
-def ventana_modify(STR_clas_f: str, STR_clas:str, volumen:str, copia:str, name:str, cb:str):
-  # Eliminar Volumen y Copia de la clasificación
-  volumen = volumen.replace('V.', '') if 'V.' in volumen else volumen
-  STR_clas = STR_cutter(STR_clas, 'V.') if 'V.' in STR_clas else STR_clas
-  STR_clas = STR_cutter(STR_clas, 'C.') if 'C.' in STR_clas else STR_clas
-  add_flag = False
-
-  # * Seccion de Layout de la Ventana
-  pipe_a = [
-    [sg.Text( text="PIPE A", font=("Open Sans", 14, "bold"), background_color="#FFFFFF", justification="center", pad=5,)],
-    [sg.In(default_text="ESPERA", size=(14, 1), font=("Open Sans", 12), justification="center", key="PIPE_A", disabled=True,)],
-  ]
-  pipe_b = [
-    [sg.Text(text="PIPE B", font=("Open Sans", 14, "bold"), background_color="#FFFFFF", justification="center", pad=5, )],
-    [sg.In(default_text="MODIFICAR", size=(12, 1), font=("Open Sans", 12), justification="center", key="PIPE_B", disabled=True, )],
-  ]
-  indi_layout = [
-    [sg.Text(text="Modif. Clasificación", font=("Open Sans", 14, "bold"), background_color="#FFFFFF", justification="center",)],
-    [sg.In(default_text= STR_clas, size=(28, 1), enable_events=True, key="CLAS", font=("Open Sans", 12), justification="center", pad=(15, 5), )],
-    [
-      sg.Text(text="VOL", font=("Open Sans", 14, "bold"),background_color="#FFFFFF", justification="center",),
-      sg.In(default_text= volumen,size=(2, 1), enable_events=True, key="VOL", font=("Open Sans", 12), justification="center",),
-      sg.Text(text="COP", font=("Open Sans", 14, 'bold'), background_color="#FFFFFF", justification="center",),
-      sg.In(default_text= copia, size=(2, 1), enable_events=True, key="COP", font=("Open Sans", 12), justification="center",),
-    ],
-    [
-      sg.Column(layout=pipe_a, background_color="#FFFFFF", element_justification="c"),
-      sg.VSeperator(),
-      sg.Column(layout=pipe_b, background_color="#FFFFFF", element_justification="c"),
-    ],
-  ]
-  layout = [
-    [sg.Text(text="Modificar Clasificación", font=("Open Sans", 16, "bold", "italic"), background_color="#FFFFFF", justification="center", pad=(0, (0, 15)),)],
-    [sg.Text(text=STR_clas_f, font=("Open Sans", 16, "bold"), background_color="#FFFFFF", justification="center", key="TEXT",)],
-    [sg.HorizontalSeparator(color="#000000", pad=(0, (10, 6)))],
-    [sg.Frame("",layout=indi_layout, background_color="#FFFFFF", element_justification="c",)],
-    [sg.HorizontalSeparator(color="#000000", pad=(0, (6, 10)))],
-    [
-      sg.Button("Cancelar", font=("Open Sans", 14, "bold")),
-      sg.Button("Modificar", font=("Open Sans", 14, "bold")),
-    ],
-  ]
-  main_layout = [
-    [sg.Frame("", layout, background_color="#FFFFFF", element_justification="c", pad=0)]
-  ]
-
-  # * Creacion de la ventana
-  window = sg.Window("Modificar una Etiqueta", main_layout, element_justification="c", icon="Assets/ticket_icon.ico")
-
-  while True:
-    event, values = window.read()
-
-    # print('-'*50)
-    # print(f'Eventos que suceden {event}')
-    # print(f'Valores guardaros {values}')
-    # print('-'*50 + '\n')
-
-    if event in (sg.WINDOW_CLOSED, "Exit", "Cancelar"):
-      break
-
-    # * Modificar clase
-    elif event in ("CLAS",'VOL','COP') :
-      if len(str(values["CLAS"])) > 5:
-        clas = str(values["CLAS"])
-        if revisarSep(clas) and revisarPipeB(clas):
-          pos_div, sum = buscarPIPE(clas)
-          if pos_div != 0:
-            pipe_a_str = clas[:pos_div]
-            pipe_b_str = clas[pos_div + sum :]
-            window["PIPE_A"].update(pipe_a_str)
-            window["PIPE_B"].update(pipe_b_str)
-            temp_vol = f'V.{values["VOL"]}' if values["VOL"] != '' else ''
-            STR_clas = clas_maker(values["CLAS"], temp_vol, values["COP"])  # Genera la clasificacion completa
-            window["TEXT"].update(STR_clas)  # Actualiza la etiqueta en la GUI
-            add_flag = True  # ? Bandera Verdadera
-        else:
-          window["PIPE_A"].update("NO")
-          window["PIPE_B"].update("APLICA")
-          add_flag = False  # ? Bandera Falsa
-
-    # * Modifica la etiqueta y cierra la ventana
-    elif event == "Modificar" and add_flag:
-      temp_vol = f'V.{values["VOL"]}' if values["VOL"] != '' else ''
-      STR_clas = clas_maker(values["CLAS"], temp_vol, values["COP"])  # Genera la clasificacion completa
-      window.close()
-      tabla_apariencia = [STR_clas, values["PIPE_A"], values["PIPE_B"], "True"]
-      tabla_datos = {'clasi': values['CLAS'], 'copia': values['COP'], 'volum': temp_vol, 'titulo': name, 'cb': cb}
-
-      return tabla_apariencia, tabla_datos
-  window.close()
-  return [], []
-
-
-def main():
-  #? Manejo Principal del elemento tabla
+  # Manejo Principal de Tabla
   tabla_principal = []
-  tabla_datos_principal = []
   main_dicc = {}
   row_color_array = []
 
-  #? Variables para manejo de modificacion
+  # Manejo de datos de los libros para modificar
+  tabla_datos = []
+  tabla_modify = []
+  
+  # Variables para manejo de modificacion
   modify_flag = False
   modify_index = 0
+  modify_status = ""
 
-  #? Tabla para manejo de modificaciones
-  tabla_modify = []
-
-  #? Bandera de status_clas
+  # ? Bandera de status_clas
   status_clas_flag = False
-
-
-  #? Menu superior de opciones
-  menu_opciones = [
-    ['Programa', ['Salir']],
-    ['Ayuda', ['Tutoriales','Licencia','Acerca de...']],
-  ]
 
   #? Layout para cargar archivo de Excel
   excel_layout = [
     [
       sg.FileBrowse(
-        'Abrir', size=(7,1),
+        'Abrir', size=(7,1), font=('Open Sans', 12),
         file_types=(('Excel File','*.xlsx'),('Todos los archivos','*.*')), 
-        font=('Open Sans', 12)
-        ),
-      sg.In(size=(50,1), key='EXCEL_FILE', font=('Open Sans', 9), justification='c')
+      ),
+      sg.In(
+        default_text= ruta_archivo, size=(50,1), 
+        key='EXCEL_FILE', font=('Open Sans', 9), justification='c'
+      )
     ],
     #* Abrir Carpeta y Ruta
     [
       sg.FolderBrowse('Guardar', font=('Open Sans', 12)), 
-      sg.In(size=(50,1), key='FOLDER', font=('Open Sans', 9), justification='c')
+      sg.In(
+        default_text= ruta_folder, size=(50,1), 
+        key='FOLDER', font=('Open Sans', 9), justification='c'
+      )
     ],
     [sg.Button('Cargar', font=('Open Sans', 12, 'bold'))],
   ]
@@ -244,47 +163,54 @@ def main():
     # print(f'Valores guardaros {values}')
     # print('-'*50 + '\n')
     if event in (sg.WINDOW_CLOSED, 'Exit', 'Salir'): break
-    #* Cargar Datos a la tabla
+    
+    # * Cargar Datos a la tabla
     elif event == 'Cargar':
+      ruta_archivo = values["EXCEL_FILE"]
+      ruta_folder = values["FOLDER"]
+      
       # Checar si se tiene un archivo excel
-      if values['EXCEL_FILE']  == '':
-        pop_warning_excel_file()
+      if len(ruta_archivo) == 0:
+        pop.warning_excel_file()
         continue
+      
       # Checar si se tiene una carpeta para guardar
-      if values['FOLDER'] == '':
-        pop_warning_folder()
+      if len(ruta_folder) == 0:
+        pop.warning_folder()
+        continue
+      
+      # Sacar datos de clasificacion de etiquetas
+      temp_etiquetas, excel_flag = mainif.generar_etiquetas_libros(ruta_archivo)
+      # Sacamos la tabla de titulo de libro y de QRO
+      temp_informacion = mainif.generar_informacion_libros(ruta_archivo)  
+
+      # ? Se cargaron etiquetas
+      if not temp_etiquetas[0]:
+        pop.error_excel_file()
         continue
 
-      # * Cargar Columna Clasificacion a la tabla
-      tabla_aux, tabla_datos = inter.cargar_etiquetas(values['EXCEL_FILE'])
-
-      # ? No se cargo ni una etiqueta
-      if len(tabla_aux) == 0: 
-        pop_error_excel_file()
-        continue
+      # ? Algunas etiquetas tienen errores
+      if excel_flag: pop.warning_excel_file_data_error()
 
       # * Generamos la tabla de datos para el Excel
-      for ind in range(len(tabla_aux)):
-        status = tabla_aux[ind][3]
+      for ind in range(len(temp_etiquetas)):
+        status = temp_etiquetas[ind][3]
         main_dicc[len(tabla_principal) + ind] = status
         if status == "False": row = ((len(tabla_principal) + ind), "#F04150")
         else: row = ((len(tabla_principal) + ind), "#32A852")
         row_color_array.append(row)
 
-      # ? Se cargaron algunas etiquetas pero otras no contienen información
-      # if excel_flag: pop_warning_excel_file_data_error()
-
-      # ? Concatenamos los nuevos datos a los antiguos
+      #  * Concatenamos los nuevos datos a los antiguos
       if len(tabla_principal) != 0:
-        tabla_principal = np.concatenate((np.array(tabla_principal), np.array(tabla_aux)), axis=0)
+        tabla_principal = np.concatenate((np.array(tabla_principal), np.array(temp_etiquetas)), axis=0)
         tabla_principal = tabla_principal.tolist()
 
-        tabla_datos_principal = np.concatenate((np.array(tabla_datos_principal), np.array(tabla_datos)), axis=0)
-        tabla_datos_principal = tabla_datos_principal.tolist()
+        tabla_datos = np.concatenate((np.array(tabla_datos), np.array(temp_informacion)), axis=0)
+        tabla_datos = tabla_datos.tolist()
       # ? No tenemos aun datos en la tabla 
       else: 
-        tabla_principal = tabla_aux
-        tabla_datos_principal = tabla_datos
+        tabla_principal = temp_etiquetas
+        tabla_datos = temp_informacion
       
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
 
@@ -393,4 +319,4 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  ventana_principal()
