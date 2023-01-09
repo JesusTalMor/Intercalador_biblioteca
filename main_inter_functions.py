@@ -160,9 +160,140 @@ def crear_reporte_modificados(lista, ruta, fecha):
 
 # TODO Realizar el cambio a valores de Atributos de las Clasificaciones
 
+def sacar_atributos(clasif_basica, copia='1', volumen='A0', clasif_completa='A0', numero=1):
+  ''' Saca los atributos de una clasificacion'''
+  letras_array = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+  Dic = {"indice":numero, "clase":"A0", "subdecimal":"A0", "temaesp":"A0", "autor":"A0", "anio":"1000", "vol":volumen, "cop":copia, "clas":clasif_completa}
+  cortar_pipe, diferencia = sh.buscar_pipe(clasif_basica)
+  
+  # Se puede cortar en PIPE A y B
+  if cortar_pipe == 0:
+    print("Caso Extraño: ", clasif_completa)
+    return Dic
+  
+  PIPE_A = clasif_basica[:cortar_pipe]
+  PIPE_B = clasif_basica[cortar_pipe + diferencia:]
+
+  # print(PIPE_A,' + ', PIPE_B)
+
+  # Separar usando atributo de split
+
+  atributos_pipe_a = PIPE_A.split('.') if '.' in PIPE_A else PIPE_A.split(' ')
+  atributos_pipe_b = PIPE_B.split(' ') if ' ' in PIPE_B else PIPE_B.split('.')
+
+  # print(atributos_pipe_a)
+  # print(atributos_pipe_b)
+
+  # Rellenar en diccionario
+  for index, elem in enumerate(atributos_pipe_a):
+    if index == 0: Dic['clase'] = elem
+    elif index == 1: Dic['subdecimal'] = elem
+    elif index == 2: Dic['temaesp'] = elem
+  
+  for index, elem in enumerate(atributos_pipe_b):
+    if index == 0: Dic['autor'] = elem
+    elif index == 1: Dic['anio'] = elem
+
+  # Revisar los casos especiales
+  # ? Autor no tiene letra 
+  if Dic["autor"][0] not in letras_array: 
+    Dic['anio'] = Dic['autor']
+    Dic['autor'] = 'A0'
+
+
+  return Dic 
+
+def separar_atributos_libros(lista):
+  ''' Toma una lista de diccionarios y le saca los atributos para clasificación'''
+  lista_salida = []
+  for index, elem in enumerate(lista):
+    clasif_basica = elem['clasif']
+    volumen = elem['volumen']
+    copia = elem['copia']
+    
+    encabezado = elem['encabeza'] + ' ' if elem['encabeza'] != '' else ''
+    clasif_completa = encabezado + sh.creador_clasificacion(clasif_basica, volumen, copia)
+    
+    temp_dicc = sacar_atributos(clasif_basica, copia, volumen, clasif_completa, index)
+    lista_salida.append(temp_dicc)
+  
+  return lista_salida
+
+def limpiar_atributos_libros(lista):
+  '''
+  Toma una lista de dicccionarios y limpia de caracteres no deseados
+  Limpia los siguientes atributos:
+  'Clase': clase, 'Subdecimal':subdecimal, 'Tema_especial':temaesp, 'Autor':autor
+  '''
+  llaves_dicc = list(lista[0])
+  dicc_largos = {'clase': 0, 'subdecimal': 0, 'temaesp': 0, 'autor': 0}
+  for index, dicc in enumerate(lista):
+    for ind, llave in enumerate(llaves_dicc):
+      if ind == 5: break
+      elif ind == 0: continue
+      temp_string = sh.limpiar_cadena(dicc[llave])
+      dicc_largos[llave] = sh.checar_maximo(dicc_largos[llave], len(temp_string))
+      lista[index][llave] = temp_string
+  return lista, dicc_largos
+
+def estandarizar_atributos_libros(lista, largos):
+  '''Toma una lista y un diccionario de largos para estandarizar dicha lista a los largos'''
+  llaves_dicc = list(lista[0])
+  for index, dicc in enumerate(lista):
+    for ind, llave in enumerate(llaves_dicc):
+      if ind == 5: break
+      elif ind == 0: continue
+      temp_string = sh.estandarizar_cadena(dicc[llave], largos[llave])
+      lista[index][llave] = temp_string
+  return lista
+
+
 # TODO Ordenar las clasificaciones usando los atributos
 
-# TODO Crear en caso de que se cumpla el largo un nuevo excel con los nuevos datos y correcciones
+def ordenar_lista_semi(lisMain,llaves,i):
+    '''
+        Funcion que recibe una lista de diccionarios semiordenados y 
+        los ordena por llaves
+    '''
+    lenght = len(lisMain)
+    lista_ORD = []
+    # Crea Grupos de Temas
+    start_index = 0
+    while start_index < lenght:
+        final_index = sh.sacar_grupos(lisMain,llaves[i],start_index)
+        lista_aux = lisMain[start_index : final_index+1]
+        if len(lista_aux) == 1:
+            # Si se recibe una lista de un solo elemento ya esta ordenada
+            lista_ORD.append(lista_aux[0])
+        else:
+            if i + 1 < len(llaves):
+                # Se ordena la sublista y se agrega al resultado
+                lista_aux = sorted(lista_aux, key=lambda llave : llave[llaves[i+1]])
+                #Parte Recursiva
+                lista_aux = ordenar_lista_semi(lista_aux,llaves,i+1)
+            for elem in lista_aux:
+                lista_ORD.append(elem)
+        start_index = final_index + 1
+    return lista_ORD
+
+
+def ordenar_libros_atributo(lista):
+  '''
+  Ordena las clasficaciones de los libros con base a sus atributos siguiendo
+  el siguiente orden
+  "Clase" -> "Subdecimal" -> "Tema Esp." -> "Autor" -> Año -> Volumen -> Copia
+  '''
+  llaves_dicc = list(lista[0])
+  
+  lista_salida = sorted(lista, key=lambda llave : llave[llaves_dicc[1]])
+  lista_salida = ordenar_lista_semi(lista_salida,llaves_dicc,1)
+  return lista_salida
+
+
+# TODO Crear nuevo excel corregido
+
+def crear_nuevo_excel(lista, dataframe):
+  pass
 
 # TODO Crear archivo para el correcto ordenamiento de los libros
 
