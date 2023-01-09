@@ -174,7 +174,7 @@ def cortar_string(STR:str, char:str) -> str:
   return STR[:posicion_corte]
 
 
-def sacarGrupos(lisMain,llave,main_index):
+def sacar_grupos(lisMain,llave,main_index):
   '''
     Funcion para sacar grupos con el mismo valor
     Recibe una lista y cuenta los grupos que se repitan
