@@ -519,13 +519,22 @@ def ventana_principal():
           status_clas_flag = True
           break
       
-      if status_clas_flag:
-        status_clas_flag = False
-        pop.warning_clas()
-        continue
+      # if status_clas_flag:
+      #   status_clas_flag = False
+      #   pop.warning_clas()
+      #   continue
       
       prog_config = [values['REPORT'],values['EXCEL_ORD'],values['EXCEL_ERR_ORD']]
       # TODO Mandar llamar funcion para partir y organizar
+      if values['EXCEL_ORD']:
+        salida = mainif.separar_atributos_libros(tabla_datos)
+        salida, largos = mainif.limpiar_atributos_libros(salida)
+        salida = mainif.estandarizar_atributos_libros(salida, largos)
+        print(*salida, sep='\n\n')
+        print(largos)
+        salida_ordenada = mainif.ordenar_libros_atributo(salida)
+        print(*salida_ordenada, sep='\n')
+        
       # prog_status = inter.main_posible(
       #   data=tabla_datos_principal, excel_file=values['EXCEL_FILE'],
       #   folder_path=values['FOLDER'], name_file=values['NAME'],
