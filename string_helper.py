@@ -162,7 +162,7 @@ def creador_clasificacion(clas:str, vol:str, cop:str):
   return str_clasificacion_completa
 
 
-def limitador_string(STR:str, size:int) -> str:
+def limitador_string(STR:str, size=40) -> str:
   ''' Limitar el tamaño de un string'''
   if len(STR) > size: return STR[:size] + '...'
   else: return STR

@@ -1,5 +1,7 @@
 
 # Implementacion de librerias necesarias
+import os
+
 import pandas as pd
 
 import string_helper as sh
@@ -362,10 +364,239 @@ def escribir_excel(dataframe, hoja, ruta_folder, nombre):
 
 # TODO Crear archivo para el correcto ordenamiento de los libros
 
+def marcar_condiciones_libros(lista_ordenada, lista_no_ordenada):
+  '''Checar y asigna una condicion a cada libro dependido de su situacion'''
+  lisSAL = []
+  for ind in range(len(lista_ordenada)):
+    # * Comparar indices de entrada y salida
+    entry_INDX = lista_no_ordenada[ind]["indice"]
+    out_INDX = lista_ordenada[ind]["indice"]
+    entry_clas = lista_no_ordenada[ind]["clas"]
+    
+    # * Revisar coinciden los indices
+    if entry_INDX == out_INDX:
+      lisSAL.append([entry_INDX, 'correcto', entry_clas])
+      continue
+    
+    # * Indices no coinciden
+    if (ind - 1) >= 0 or (ind + 1) < len(lista_ordenada):
+      # Erroneo por completo
+      cond = 'erroneo'
+      # Condicionado Anterior
+      if (ind - 1) >= 0: 
+        cond_INDX = lista_ordenada[ind - 1]["indice"]
+        if entry_INDX == cond_INDX: cond = 'con_ant'
+      # Condicionado Posterior
+      if (ind + 1) < len(lista_ordenada):
+        cond_INDX = lista_ordenada[ind + 1]["indice"]
+        if entry_INDX == cond_INDX: cond = 'con_pos'
+      
+      lisSAL.append([entry_INDX, cond, entry_clas])
+  # print(*lisSAL, sep='\n')
+  
+  # * Solucionar casos con condicionales
+  while True:
+    cond_flag = False
+    for index in range(len(lisSAL)):
+      # Si el elemento es condicionado Anterior
+      if lisSAL[index][1] == 'con_ant' and index - 1 >= 0 and lisSAL[index - 1][1] == 'erroneo':
+        lisCOPY = lisSAL[index - 1].copy()
+        lisSAL[index - 1] = lisSAL[index]
+        lisSAL[index - 1][1] = 'correcto'
 
+        lisSAL[index] = lisCOPY
+        lisSAL[index][1] = 'erroneo'
+      
+      # Si el elemento es condicionado Siguiente
+      if lisSAL[index][1] == 'con_pos' and index + 1 < len(lisSAL) and lisSAL[index + 1][1] == 'erroneo':
+        lisCOPY = lisSAL[index + 1].copy()
+        lisSAL[index + 1] = lisSAL[index]
+        lisSAL[index + 1][1] = 'correcto'
+
+        lisSAL[index] = lisCOPY
+        lisSAL[index][1] = 'erroneo'
+          
+      for elem in lisSAL:
+        if elem[1] == 'con_pos' or elem[1] == 'con_ant': 
+          cond_flag = True
+          break
+      
+    # * Revisar si ya se solucionaron casos condicionados
+    if not cond_flag: break
+  
+  # print(*lisSAL, sep='\n')
+  return lisSAL
+
+
+def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_folder):
+  '''
+    Genera un TXT con instrucciones para organizar libros
+    
+    PARAMETROS:
+      :param lisORD: Es una lista de diccionarios ya ordenada con los parametros
+      :param lisDIC: Es una lista de diccionarios que no esta ordenada
+      :param lisNAME: Es una lista que contiene todos los nombres de los libros
+      :param txt_file: Es un objeto para escribir en un archivo tipo txt
+  '''
+  
+  # txt_file = open(f'{ruta_folder}/prueba.txt', 'w', encoding="utf-8")s
+  # reporte_txt_writer.close()
+
+  # * Checar si los datos son muy pequeños
+  if len(lista_ordenada) <= 5:
+      txt_file.write('='*50 + '\n')
+      txt_file.write("MUESTRA MUY PEQUEÑA DE LIBROS\n")
+      txt_file.write("POR FAVOR INTERCALA MANUALMENTE\n")
+      txt_file.write('='*50 + '\n')
+      return
+
+  # * Si ambos diccionarios no son iguales no se procede
+  if len(lista_ordenada) != len(lista_no_ordenada):
+    txt_file.write("Fallo en intentar generar instrucciones \n")
+    return
+
+  # * Llenar lista de las condiciones de libros y solucionar condicionados
+  lista_condiciones = marcar_condiciones_libros(lista_ordenada, lista_no_ordenada)
+  len_lista = len(lista_condiciones)
+  # print(*lista_condiciones, sep='\n')
+
+  # * LLenar lista de libros erroneos y correctos
+  lisERROR, lisCORR = [], []
+  for elem in lista_condiciones: 
+      if elem[1] == 'erroneo': lisERROR.append(elem[0])
+      else: lisCORR.append(elem[0])
+
+  # * Casos sin errores no se puede acomodar
+  if len(lisERROR) == 0:
+    # txt_file.write('='*50 + '\n')
+    # txt_file.write("\t SIN CASOS PARA INTERCALAR\n")
+    # txt_file.write("LIBROS CORRECTAMENTE INTERCALADOS\n")
+    # txt_file.write("FELICIDADES EL STAND ESTA CORRECTAMENTE INTERCALADO\n")
+    # txt_file.write('='*50 + '\n')
+    return
+  
+  
+  # * Texto inicial del programa
+  error_porcent = sh.obtener_porcentaje(len(lisERROR), len_lista)
+  print(f'Procentaje de libros erroneos: {error_porcent}%')
+  # txt_file.write('='*85 + '\n')
+  # txt_file.write(f'\t El Total {len(lista_no_ordenada)}, tiene {len(lisERROR)}, que equivale al: {error_porcent}%\n')
+  # txt_file.write('='*85 + '\n')
+  # txt_file.write("\tPROCESO PARA ORGANIZAR LIBROS\n")
+  # txt_file.write("\tPASO 1. RETIRE LOS SIGUIENTES LIBROS\n")
+  # txt_file.write('='*85 + '\n')
+  
+  # * Sacar pocos libros erroneos
+  # Se sacan los libros como aparecen
+  if error_porcent < 60 and len(lisERROR) < 20:
+    lista_retirar = []
+    for error_index in lisERROR:
+      # * Sacar datos de libro erroneo
+      diccio_temporal = {'libro': '', 'anterior':'', 'siguiente':''}
+      clasif_error = lista_no_ordenada[error_index]['clas']
+      nombre_error = sh.limitador_string(lista_datos[error_index]['titulo'])
+      diccio_temporal['libro'] = (clasif_error, nombre_error)
+      print(diccio_temporal['libro'])
+
+      # *Sacar datos de libros correctos
+      # * Buscar libro anterior correcto
+      for corr_index in range(error_index-1, -1, -1):
+        if corr_index not in lisCORR: continue
+        clasif_ant = lista_no_ordenada[corr_index]['clas']
+        nombre_ant = sh.limitador_string(lista_datos[corr_index]['titulo'])
+        diccio_temporal['anterior'] = (clasif_ant, nombre_ant)
+        print(diccio_temporal['anterior'])
+        break
+      print('\n')
+      lista_retirar.append(diccio_temporal)
+  # * Caso común
+  # Sacar los libros en el orden en el que se van a meter
+  else:
+    lista_retirar = []
+    # * Ordenar lista de errores
+    ordenar_retirar = []
+    for index in range(len_lista):
+      if lista_ordenada[index]['indice'] in lisERROR:
+        ordenar_retirar.append(lista_ordenada[index]['indice'])
+    
+    # * Sacar los libros
+    for error_index in ordenar_retirar:
+      # * Sacar datos de libro erroneo
+      diccio_temporal = {'libro': '', 'anterior':'', 'siguiente':''}
+      clasif_error = lista_no_ordenada[error_index]['clas']
+      nombre_error = sh.limitador_string(lista_datos[error_index]['titulo'])
+      diccio_temporal['libro'] = (clasif_error, nombre_error)
+      print(diccio_temporal['libro'])
+
+      # * Sacar datos de libros correctos
+      # * Buscar libro anterior correcto
+      for corr_index in range(error_index-1, -1, -1):
+        if corr_index not in lisCORR: continue
+        clasif_ant = lista_no_ordenada[corr_index]['clas']
+        nombre_ant = sh.limitador_string(lista_datos[corr_index]['titulo'])
+        diccio_temporal['anterior'] = (clasif_ant, nombre_ant)
+        print(diccio_temporal['anterior'])
+        break
+      # * Buscar libro siguiente correcto
+      for corr_index in range(error_index+1, len_lista, +1):
+        if corr_index not in lisCORR: continue
+        clasif_ant = lista_no_ordenada[corr_index]['clas']
+        nombre_ant = sh.limitador_string(lista_datos[corr_index]['titulo'])
+        diccio_temporal['siguiente'] = (clasif_ant, nombre_ant)
+        print(diccio_temporal['siguiente'])
+        break
+      print('\n')
+      lista_retirar.append(diccio_temporal)
+  
+  
+  # * Colocar libros
+  print('Colocar Libros')
+  # txt_file.write('\n\n\n')
+  # txt_file.write('='*90 + '\n')
+  # txt_file.write("\tPASO 2. INFORMACION PARA INTERCALAR LIBROS \n")
+  # txt_file.write('='*90 + '\n')
+  lista_colocar = []
+  for index in range(len_lista):
+    # Buscar libro erroneo en lista ordenada
+    indice_error = lista_ordenada[index]['indice']
+    if indice_error not in lisERROR: continue
+
+    # Sacar datos libro erroneo
+    diccio_temporal = {'libro':'', 'anterior':'', 'siguiente':''}
+    clasif_error = lista_ordenada[index]['clas']
+    nombre_error = sh.limitador_string(lista_datos[indice_error]['titulo'])
+    diccio_temporal['libro'] = (clasif_error, nombre_error)
+    print(diccio_temporal['libro'])
+
+    # * Sacar datos de libros correctos
+    # * Buscar libro anterior correcto
+    for corr_index in range(index-1, -1, -1):
+      indice_correcto = lista_ordenada[corr_index]['indice']
+      if indice_correcto not in lisCORR: continue
+      clasif_ant = lista_ordenada[corr_index]['clas']
+      nombre_ant = sh.limitador_string(lista_datos[indice_correcto]['titulo'])
+      diccio_temporal['anterior'] = (clasif_ant, nombre_ant)
+      print(diccio_temporal['anterior'])
+      break
+    for corr_index in range(index+1, len_lista, +1):
+      indice_correcto = lista_ordenada[corr_index]['indice']
+      if indice_correcto not in lisCORR: continue
+      clasif_ant = lista_ordenada[corr_index]['clas']
+      nombre_ant = sh.limitador_string(lista_datos[indice_correcto]['titulo'])
+      diccio_temporal['siguiente'] = (clasif_ant, nombre_ant)
+      print(diccio_temporal['siguiente'])
+      break
+    print('\n')
+    lista_colocar.append(diccio_temporal)
+
+  os.system('cls')
+  print(*lista_retirar, sep='\n')
+  print('\n')
+  print(*lista_colocar, sep='\n')
 
 # TODO Crear reporte de modificaciones de clasificaciones
 
+def crear_reporte_modificaciones()
 
 def main_posible(excel_file:str, folder_path:str, name_file:str, report_config:list, data:list, modif_list:list):
   '''
