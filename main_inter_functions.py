@@ -1,6 +1,6 @@
 
 # Implementacion de librerias necesarias
-import os
+# import os
 
 import pandas as pd
 
@@ -326,7 +326,7 @@ def crear_excel_ordenado(lista_orden, lista_datos, dataframe):
 def escribir_excel(dataframe_escritura, hoja, ruta_folder, nombre):
     '''Usando un dataframe escribe un Excel de solo una hoja'''
     excel_writer_path = f'{ruta_folder}/{nombre}.xlsx'
-    excel_writer = pd.ExcelWriter(excel_writer_path)
+    excel_writer = pd.ExcelWriter(excel_writer_path, mode='a')
 
     df = pd.DataFrame(dataframe_escritura)
     atributos = list(df)
@@ -595,7 +595,7 @@ def crear_reporte(len_archivo:int, modificados:list, ruta_folder:str, nombre:str
   len_sep = 50 # largo de separadores de caracteres
   len_correctos = len_archivo - len(modificados)
   # Escribir en el archivo
-  archivo_txt = open(txt_path, 'w', encoding="utf-8")
+  archivo_txt = open(txt_path, 'a', encoding="utf-8")
   archivo_txt.write('='*len_sep + '\n')
   archivo_txt.write(f'\t Reporte de {hoja} \n')
   archivo_txt.write('='*len_sep + '\n\n')
@@ -621,17 +621,17 @@ def crear_reporte(len_archivo:int, modificados:list, ruta_folder:str, nombre:str
         if index == 0: diferencia = 40 - len(elem) if len(elem) < 40 else 0
         else: diferencia = 0
         archivo_txt.write(sh.limitador_string(elem) + ' '*diferencia + ' | ')
-      archivo_txt.write('\n')
+      archivo_txt.write('\n\n\n')
   else:
     archivo_txt.write('*'*len_sep + '\n')
-    archivo_txt.write('Sin casos Modificados')
-    archivo_txt.write('*'*len_sep + '\n')
+    archivo_txt.write('Sin casos Modificados\n')
+    archivo_txt.write('*'*len_sep + '\n\n\n')
   archivo_txt.close()
 
   if modificados:
     # Crear archivo txt con los codigo de barras modificados
     txt_modif = f'{ruta_folder}/{nombre}_modificados.txt'
-    archivo_txt = open(txt_modif, 'w', encoding="utf-8")
+    archivo_txt = open(txt_modif, 'a', encoding="utf-8")
     for target in modificados: archivo_txt.write(target[1] + '\n')
     archivo_txt.close()
 

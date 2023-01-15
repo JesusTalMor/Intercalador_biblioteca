@@ -550,7 +550,7 @@ def ventana_principal():
       # print(*tabla_modify, sep='\n')
       if values['REPORT']: mainif.crear_reporte(len(tabla_datos), tabla_modify, ruta_folder, nombre_archivo, ruta_archivo, hoja_actual)
 
-      if not (values['EXCEL_ORD'] and values['EXCEL_ERR_ORD']): 
+      if not (values['EXCEL_ORD'] or values['EXCEL_ERR_ORD']):
         pop.success_program()
         continue
 
