@@ -585,26 +585,55 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_f
 
 # TODO Crear reporte de modificaciones de clasificaciones
 
-def crear_reporte_modificaciones(): pass
-
-def crear_reporte_archivo():
-  lineas_sep = 50
-  
-def crear_reporte_modificados(lista, ruta, fecha):
+def crear_reporte(len_archivo:int, modificados:list, ruta_folder:str, nombre:str, ruta_archivo:str, hoja:str):
   '''Genera un reporte en un txt de libros modificados'''
   
-  txt_path = f'{ruta}/{str(fecha)}_modificados.txt'
+  txt_path = f'{ruta_folder}/{nombre}_reporte.txt'
   
-  if len(lista) == 0: return # Revisar si tenemos datos
+  if len_archivo == 0: return # Revisar si tenemos datos
   
-  modif_file = open(txt_path, 'w', encoding="utf-8")
-  modif_file.write(f'Lista de Clasificaciones Modificadas\n')
-  for target in lista:
-    for elem in target:
-      if len(elem) > 40: modif_file.write(f'{elem[:40]}... | ')
-      else: modif_file.write(f'{elem} | ')
-    modif_file.write('\n')
-  modif_file.close()
+  len_sep = 50 # largo de separadores de caracteres
+  len_correctos = len_archivo - len(modificados)
+  # Escribir en el archivo
+  archivo_txt = open(txt_path, 'w', encoding="utf-8")
+  archivo_txt.write('='*len_sep + '\n')
+  archivo_txt.write(f'\t Reporte de {hoja} \n')
+  archivo_txt.write('='*len_sep + '\n\n')
+  archivo_txt.write(f'Archivo Utilizado:\n{ruta_archivo}\n\n')
+  archivo_txt.write('='*len_sep + '\n')
+  archivo_txt.write(f'\t\t\t Registro de Analisis Estandar LC \n')
+  archivo_txt.write('='*len_sep + '\n')
+  archivo_txt.write(f'Clasificaciones cargadas: {len_archivo} | 100%\n')
+  archivo_txt.write(f'Clasificaciones con Estandar LC: {len_correctos} | {sh.obtener_porcentaje(len_correctos, len_archivo)}%\n')
+  archivo_txt.write(f'Clasificaciones modificadas: {len(modificados)} | {sh.obtener_porcentaje(len(modificados), len_archivo)}&\n')
+  archivo_txt.write('='*len_sep + '\n\n')
+  
+  # * Tenemos casos con modificaciones
+  if modificados:
+    archivo_txt.write(f'''NOTA:
+    En el archivo: {nombre}_modificados.txt encontraras
+    los codigos de barras para cargarlos a Sierra \n\n'''
+    )
+    archivo_txt.write(f'\t\tLista de Clasificaciones Modificadas\n')
+    archivo_txt.write('='*len_sep + '\n')
+    for target in modificados:
+      for index, elem in enumerate(target):
+        if index == 0: diferencia = 40 - len(elem) if len(elem) < 40 else 0
+        else: diferencia = 0
+        archivo_txt.write(sh.limitador_string(elem) + ' '*diferencia + ' | ')
+      archivo_txt.write('\n')
+  else:
+    archivo_txt.write('*'*len_sep + '\n')
+    archivo_txt.write('Sin casos Modificados')
+    archivo_txt.write('*'*len_sep + '\n')
+  archivo_txt.close()
+
+  if modificados:
+    # Crear archivo txt con los codigo de barras modificados
+    txt_modif = f'{ruta_folder}/{nombre}_modificados.txt'
+    archivo_txt = open(txt_modif, 'w', encoding="utf-8")
+    for target in modificados: archivo_txt.write(target[1] + '\n')
+    archivo_txt.close()
 
 
 if __name__ == '__main__':

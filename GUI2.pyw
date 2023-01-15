@@ -546,27 +546,29 @@ def ventana_principal():
       # TODO Contemplar las posibilidad de hacer multi hojas pero por partes
       # ! Actualmente solo funciona para 1 sola hoja de excel, si se implementa más resultados desconocidos
 
+      # * Seccion para realizar el reporte
+      # print(*tabla_modify, sep='\n')
+      if values['REPORT']: mainif.crear_reporte(len(tabla_datos), tabla_modify, ruta_folder, nombre_archivo, ruta_archivo, hoja_actual)
+
+      if not (values['EXCEL_ORD'] and values['EXCEL_ERR_ORD']): 
+        pop.success_program()
+        continue
+
       lista_no_ordenada = mainif.separar_atributos_libros(tabla_datos)
       lista_no_ordenada, largos = mainif.limpiar_atributos_libros(lista_no_ordenada)
       lista_no_ordenada = mainif.estandarizar_atributos_libros(lista_no_ordenada, largos)
-      # print(*salida, sep='\n\n')
-      # print(largos)
+      # # print(*salida, sep='\n\n')
+      # # print(largos)
       lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
-      # print(*salida_ordenada, sep='\n')
-      # * Sección para crear instrucciones ordenar
-      mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos, ruta_folder, nombre_archivo)
-      # * Sección para crear excel ordenado
-      dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, ruta_archivo)
-      # print(*dataframe_salida, sep='\n')
-      mainif.escribir_excel(dataframe_salida, 'Prueba', ruta_folder, nombre_archivo)
-      # prog_status = inter.main_posible(
-      #   data=tabla_datos_principal, excel_file=values['EXCEL_FILE'],
-      #   folder_path=values['FOLDER'], name_file=values['NAME'],
-      #   report_config=prog_config, modif_list=tabla_modify
-      # )
+      # # print(*salida_ordenada, sep='\n')
+      # # * Sección para crear instrucciones ordenar
+      if values['EXCEL_ERR_ORD']: mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos, ruta_folder, nombre_archivo)
+      # # * Sección para crear excel ordenado
+      if values['EXCEL_ORD']:
+        dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, main_dataframe)
+        # print(*dataframe_salida, sep='\n')
+        mainif.escribir_excel(dataframe_salida, hoja_actual, ruta_folder, nombre_archivo)      
       pop.success_program()
-      # if prog_status: pop_success_program
-      # else: pop_error_excel_file()
     
     elif event == 'Licencia': pop.info_license()
     
