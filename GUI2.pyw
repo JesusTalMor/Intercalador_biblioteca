@@ -1,4 +1,3 @@
-
 import numpy as np
 import PySimpleGUI as sg
 
@@ -275,6 +274,11 @@ def ventana_principal():
   modify_index = 0
   modify_status = ""
 
+  excel_completo = {}
+  hojas_excel = []
+  main_dataframe = {}
+  hoja_actual = ''
+
   # ? bandera para manejo de datos
   status_clas_flag = False
 
@@ -391,19 +395,27 @@ def ventana_principal():
       ruta_folder = values["FOLDER"]
       
       # Checar si se tiene un archivo excel
-      if len(ruta_archivo) == 0:
+      if not ruta_archivo:
         pop.warning_excel_file()
         continue
       
       # Checar si se tiene una carpeta para guardar
-      if len(ruta_folder) == 0:
+      if not ruta_folder:
         pop.warning_folder()
         continue
       
+      if excel_completo: 
+        continue
+
+      # Sacar datos de dataframe del excel
+      excel_completo = mainif.cargar_excel(ruta_archivo)
+      hojas_excel  = list(excel_completo)
+      hoja_actual = hojas_excel[0]
+      main_dataframe = excel_completo[hoja_actual]
       # Sacar datos de clasificacion de etiquetas
-      temp_etiquetas, excel_flag = mainif.generar_etiquetas_libros(ruta_archivo)
+      temp_etiquetas = mainif.generar_etiquetas_libros(main_dataframe)
       # Sacamos la tabla de titulo de libro y de QRO
-      temp_informacion = mainif.generar_informacion_libros(ruta_archivo)  
+      temp_informacion = mainif.generar_informacion_libros(main_dataframe)  
 
       # ? Se cargaron etiquetas
       if not temp_etiquetas[0]:
@@ -411,7 +423,7 @@ def ventana_principal():
         continue
 
       # ? Algunas etiquetas tienen errores
-      if excel_flag: pop.warning_excel_file_data_error()
+      # if excel_flag: pop.warning_excel_file_data_error()
 
       # * Generamos la tabla de datos para el Excel
       for ind in range(len(temp_etiquetas)):
@@ -502,15 +514,15 @@ def ventana_principal():
       ruta_archivo = values['EXCEL_FILE']
       nombre_archivo = values['NAME']
 
-      if ruta_archivo == '':
+      if not ruta_archivo:
         pop.warning_excel_file()
         continue
       
-      if ruta_folder == '':
+      if not ruta_folder:
         pop.warning_folder()
         continue
       
-      if nombre_archivo == '':
+      if not nombre_archivo:
         pop.warning_name()
         continue
       
@@ -529,23 +541,24 @@ def ventana_principal():
         pop.warning_clas()
         continue
       
-      prog_config = [values['REPORT'],values['EXCEL_ORD'],values['EXCEL_ERR_ORD']]
+      
       # TODO Mandar llamar funcion para partir y organizar
       # TODO Contemplar las posibilidad de hacer multi hojas pero por partes
       # ! Actualmente solo funciona para 1 sola hoja de excel, si se implementa más resultados desconocidos
-      if values['EXCEL_ORD']:
-        salida = mainif.separar_atributos_libros(tabla_datos)
-        salida, largos = mainif.limpiar_atributos_libros(salida)
-        salida = mainif.estandarizar_atributos_libros(salida, largos)
-        # print(*salida, sep='\n\n')
-        # print(largos)
-        salida_ordenada = mainif.ordenar_libros_atributo(salida)
-        # print(*salida_ordenada, sep='\n')
-        mainif.instrucciones_ordenar(salida_ordenada, salida, tabla_datos, ruta_folder)
-        # Sección para ordenar
-        dataframe_salida = mainif.crear_excel_ordenado(salida_ordenada, tabla_datos, ruta_archivo)
-        # print(*dataframe_salida, sep='\n')
-        mainif.escribir_excel(dataframe_salida, 'Prueba', ruta_folder, nombre_archivo)
+
+      lista_no_ordenada = mainif.separar_atributos_libros(tabla_datos)
+      lista_no_ordenada, largos = mainif.limpiar_atributos_libros(lista_no_ordenada)
+      lista_no_ordenada = mainif.estandarizar_atributos_libros(lista_no_ordenada, largos)
+      # print(*salida, sep='\n\n')
+      # print(largos)
+      lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
+      # print(*salida_ordenada, sep='\n')
+      # * Sección para crear instrucciones ordenar
+      mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos, ruta_folder, nombre_archivo)
+      # * Sección para crear excel ordenado
+      dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, ruta_archivo)
+      # print(*dataframe_salida, sep='\n')
+      mainif.escribir_excel(dataframe_salida, 'Prueba', ruta_folder, nombre_archivo)
       # prog_status = inter.main_posible(
       #   data=tabla_datos_principal, excel_file=values['EXCEL_FILE'],
       #   folder_path=values['FOLDER'], name_file=values['NAME'],
