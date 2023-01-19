@@ -629,7 +629,8 @@ def crear_reporte(len_archivo:int, modificados:list, archivo_info:dict, hoja:str
         if index == 0: diferencia = 40 - len(elem) if len(elem) < 40 else 0
         else: diferencia = 0
         archivo_txt.write(sh.limitador_string(elem) + ' '*diferencia + ' | ')
-      archivo_txt.write('\n\n\n')
+      archivo_txt.write('\n')
+    archivo_txt.write('\n\n\n')
   else:
     archivo_txt.write('*'*len_sep + '\n')
     archivo_txt.write('Sin casos Modificados\n')
