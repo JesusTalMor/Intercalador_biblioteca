@@ -272,12 +272,12 @@ def ventana_principal():
   # Variables para manejo de modificacion
   modify_flag = False
   modify_index = 0
-  modify_status = ""
 
   excel_completo = {}
   hojas_excel = []
   main_dataframe = {}
   hoja_actual = ''
+  index_hoja = 0
 
   # ? bandera para manejo de datos
   status_clas_flag = False
@@ -313,11 +313,11 @@ def ventana_principal():
     [sg.Text(text="Rellene los siguientes parametros:", font=("Open Sans", 14, "bold"), background_color="#FFFFFF", justification="c",)],
     [sg.HorizontalSeparator(pad=(0,(30,20)))],
     [sg.Frame('', layout=excel_layout, background_color='#FFFFFF', element_justification='r')],
-    [sg.HorizontalSeparator(pad=(0,(20,20)))],
+    [sg.HorizontalSeparator(pad=(0,(20,30)))],
     # Nombre del archivo de salida
     [
-      sg.Text(text='Nombre', font=('Open Sans', 14, 'bold'),background_color='#FFFFFF'),
-      sg.In(size=(25,1), key='NAME', font=('Open Sans', 12), justification='c')
+      sg.Text(text='Nombre', font=('Open Sans', 14, 'bold'),background_color='#FFFFFF', pad=(0,(0,20))),
+      sg.In(size=(25,1), key='NAME', font=('Open Sans', 12), justification='c',  pad=(0,(0,20)))
     ],
     #* Casillas de opciones
     [
@@ -366,7 +366,12 @@ def ventana_principal():
         key="TABLE",
       )
     ],
-    [sg.Button("Ejecutar", font=("Open Sans", 12, "bold"))],
+    [
+      sg.Button("Ejecutar", font=("Open Sans", 14, "bold", "italic")),
+      sg.Text(text="0/0", background_color="#FFFFFF", font=("Open", 16, "bold", "italic"), key='PAGE'),
+      sg.Button("Limpiar", font=("Open Sans", 14)),
+      sg.Button("Actualizar", visible=False)
+    ],
   ]
 
 
@@ -389,7 +394,6 @@ def ventana_principal():
     # print('-'*50 + '\n')
     if event in (sg.WINDOW_CLOSED, 'Exit', 'Salir'): break
     
-    # * Cargar Datos a la tabla
     elif event == 'Cargar':
       ruta_archivo = values["EXCEL_FILE"]
       ruta_folder = values["FOLDER"]
@@ -410,7 +414,7 @@ def ventana_principal():
       # Sacar datos de dataframe del excel
       excel_completo = mainif.cargar_excel(ruta_archivo)
       hojas_excel  = list(excel_completo)
-      hoja_actual = hojas_excel[0]
+      hoja_actual = hojas_excel[index_hoja]
       main_dataframe = excel_completo[hoja_actual]
       # Sacar datos de clasificacion de etiquetas
       temp_etiquetas = mainif.generar_etiquetas_libros(main_dataframe)
@@ -422,9 +426,6 @@ def ventana_principal():
         pop.error_excel_file()
         continue
 
-      # ? Algunas etiquetas tienen errores
-      # if excel_flag: pop.warning_excel_file_data_error()
-
       # * Generamos la tabla de datos para el Excel
       for ind in range(len(temp_etiquetas)):
         status = temp_etiquetas[ind][3]
@@ -434,20 +435,12 @@ def ventana_principal():
         row_color_array.append(row)
 
       #  * Concatenamos los nuevos datos a los antiguos
-      if len(tabla_principal) != 0:
-        tabla_principal = np.concatenate((np.array(tabla_principal), np.array(temp_etiquetas)), axis=0)
-        tabla_principal = tabla_principal.tolist()
-
-        tabla_datos = np.concatenate((np.array(tabla_datos), np.array(temp_informacion)), axis=0)
-        tabla_datos = tabla_datos.tolist()
-      # ? No tenemos aun datos en la tabla 
-      else: 
-        tabla_principal = temp_etiquetas
-        tabla_datos = temp_informacion
+      tabla_principal = temp_etiquetas
+      tabla_datos = temp_informacion
       
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
+      window["PAGE"].update(f'{index_hoja+1}/{len(hojas_excel)}')
 
-    # * Eventos dentro de la tabla
     if event == "TABLE":
       if values["TABLE"] != []:
         index_value = int(values["TABLE"][0])  # * elemento a seleccionar
@@ -507,12 +500,17 @@ def ventana_principal():
       
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
 
-    #* Ejecutar el programa
     elif event == 'Ejecutar':
       # ? Checar si se ha puesto un archivo
       ruta_folder = values['FOLDER']
       ruta_archivo = values['EXCEL_FILE']
       nombre_archivo = values['NAME']
+      archivo_info = {'folder': ruta_folder, 'archivo':ruta_archivo, 'nombre':nombre_archivo}
+
+      # Revisar si aun quedan hojas
+      if index_hoja >= len(hojas_excel):
+        pop.success_program()
+        continue
 
       if not ruta_archivo:
         pop.warning_excel_file()
@@ -541,17 +539,17 @@ def ventana_principal():
         pop.warning_clas()
         continue
       
-      
       # TODO Mandar llamar funcion para partir y organizar
       # TODO Contemplar las posibilidad de hacer multi hojas pero por partes
       # ! Actualmente solo funciona para 1 sola hoja de excel, si se implementa más resultados desconocidos
 
       # * Seccion para realizar el reporte
       # print(*tabla_modify, sep='\n')
-      if values['REPORT']: mainif.crear_reporte(len(tabla_datos), tabla_modify, ruta_folder, nombre_archivo, ruta_archivo, hoja_actual)
+      
+      if values['REPORT']: mainif.crear_reporte(len(tabla_datos), tabla_modify, archivo_info, hoja_actual, index_hoja)
 
       if not (values['EXCEL_ORD'] or values['EXCEL_ERR_ORD']):
-        pop.success_program()
+        window['Actualizar'].click()
         continue
 
       lista_no_ordenada = mainif.separar_atributos_libros(tabla_datos)
@@ -561,18 +559,84 @@ def ventana_principal():
       # # print(largos)
       lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
       # # print(*salida_ordenada, sep='\n')
-      # # * Sección para crear instrucciones ordenar
-      if values['EXCEL_ERR_ORD']: mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos, ruta_folder, nombre_archivo)
-      # # * Sección para crear excel ordenado
+      # * Sección para crear instrucciones ordenar
+      if values['EXCEL_ERR_ORD']: mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos, archivo_info, hoja_actual, index_hoja)
+      # * Sección para crear excel ordenado
       if values['EXCEL_ORD']:
         dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, main_dataframe)
         # print(*dataframe_salida, sep='\n')
-        mainif.escribir_excel(dataframe_salida, hoja_actual, ruta_folder, nombre_archivo)      
-      pop.success_program()
+        mainif.escribir_excel(dataframe_salida, archivo_info, hoja_actual, index_hoja)
+
+      window['Actualizar'].click()
     
     elif event == 'Licencia': pop.info_license()
     
     elif event == 'Acerca de...': pop.info_about()
+
+    elif event == 'Limpiar':
+      # Reinciar valores del programa
+      tabla_principal = []
+      main_dicc = {}
+      row_color_array = []
+      tabla_datos = []
+      tabla_modify = []
+      excel_completo = {}
+      hojas_excel = []
+      main_dataframe = {}
+      hoja_actual = ''
+      index_hoja = 0
+      window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
+      window["PAGE"].update(f'0/0')
+
+    elif event == 'Actualizar':
+      # * Realizar proceso de actualización a nueva hoja
+      
+      index_hoja += 1
+      if index_hoja > len(hojas_excel)-1: 
+        pop.success_program()
+        continue
+      
+      main_dicc = {}
+      row_color_array = []
+      tabla_modify = []
+      main_dataframe = {}
+      tabla_datos = []
+      tabla_principal = []
+      
+      print('Vamos a actualizar datos')
+      print(index_hoja, hojas_excel[index_hoja])
+
+      hoja_actual = hojas_excel[index_hoja]
+      main_dataframe = excel_completo[hoja_actual]
+      print(main_dataframe)
+      # Sacar datos de clasificacion de etiquetas
+      temp_etiquetas = mainif.generar_etiquetas_libros(main_dataframe)
+      # Sacamos la tabla de titulo de libro y de QRO
+      temp_informacion = mainif.generar_informacion_libros(main_dataframe)  
+
+      # ? Se cargaron etiquetas
+      if not temp_etiquetas[0]:
+        pop.error_excel_file()
+        continue
+
+      # * Generamos la tabla de datos para el Excel
+      for ind in range(len(temp_etiquetas)):
+        status = temp_etiquetas[ind][3]
+        main_dicc[len(tabla_principal) + ind] = status
+        if status == "False": row = ((len(tabla_principal) + ind), "#F04150")
+        else: row = ((len(tabla_principal) + ind), "#32A852")
+        row_color_array.append(row)
+
+      #  * Concatenamos los nuevos datos a los antiguos
+      tabla_principal = temp_etiquetas
+      tabla_datos = temp_informacion
+      
+      window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
+      window["PAGE"].update(f'{index_hoja+1}/{len(hojas_excel)}')
+
+
+
+
 
   window.close()
 

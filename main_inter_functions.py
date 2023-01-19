@@ -323,10 +323,11 @@ def crear_excel_ordenado(lista_orden, lista_datos, dataframe):
   dataframe_salida['Clasificación Completa'] = lista_salida[-1]
   return dataframe_salida
 
-def escribir_excel(dataframe_escritura, hoja, ruta_folder, nombre):
+def escribir_excel(dataframe_escritura, archivo_info, hoja, num_hoja):
     '''Usando un dataframe escribe un Excel de solo una hoja'''
+    ruta_folder, nombre = archivo_info['folder'], archivo_info['nombre']
     excel_writer_path = f'{ruta_folder}/{nombre}.xlsx'
-    excel_writer = pd.ExcelWriter(excel_writer_path, mode='a')
+    excel_writer = pd.ExcelWriter(excel_writer_path, mode='a') if num_hoja != 0 else pd.ExcelWriter(excel_writer_path, mode='w')
 
     df = pd.DataFrame(dataframe_escritura)
     atributos = list(df)
@@ -400,7 +401,7 @@ def marcar_condiciones_libros(lista_ordenada, lista_no_ordenada):
   return lisSAL
 
 
-def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_folder, nombre):
+def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archivo_info:dict, hoja, num_hoja):
   '''
     Genera un TXT con instrucciones para organizar libros
     
@@ -410,9 +411,13 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_f
       :param lisNAME: Es una lista que contiene todos los nombres de los libros
       :param txt_file: Es un objeto para escribir en un archivo tipo txt
   '''
-  
-  txt_file = open(f'{ruta_folder}/{nombre}_instrucciones.txt', 'w', encoding="utf-8")
+  ruta_folder, nombre = archivo_info['folder'], archivo_info['nombre']
+  txt_path = f'{ruta_folder}/{nombre}_instrucciones.txt'
+  txt_file = open(txt_path, 'a', encoding="utf-8") if num_hoja != 0 else open(txt_path, 'w', encoding="utf-8")
   # reporte_txt_writer.close()
+  txt_file.write('='*50 + '\n')
+  txt_file.write(f'\t Reporte de {hoja} \n')
+  txt_file.write('='*50 + '\n\n')
 
   # * Checar si los datos son muy pequeños
   if len(lista_ordenada) <= 5:
@@ -420,11 +425,13 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_f
       txt_file.write("MUESTRA MUY PEQUEÑA DE LIBROS\n")
       txt_file.write("POR FAVOR INTERCALA MANUALMENTE\n")
       txt_file.write('='*50 + '\n')
+      txt_file.close()
       return
 
   # * Si ambos diccionarios no son iguales no se procede
   if len(lista_ordenada) != len(lista_no_ordenada):
     txt_file.write("Fallo en intentar generar instrucciones \n")
+    txt_file.close()
     return
 
   # * Llenar lista de las condiciones de libros y solucionar condicionados
@@ -445,6 +452,7 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_f
     txt_file.write("LIBROS CORRECTAMENTE INTERCALADOS\n")
     txt_file.write("FELICIDADES EL STAND ESTA CORRECTAMENTE INTERCALADO\n")
     txt_file.write('='*50 + '\n')
+    txt_file.close()
     return
   
   
@@ -533,7 +541,7 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_f
       lista_retirar.append(diccio_temporal)
 
   # * Colocar libros
-  print('Colocar Libros')
+  # print('Colocar Libros')
   txt_file.write('\n\n\n')
   txt_file.write('='*90 + '\n')
   txt_file.write("\tPASO 2. INFORMACION PARA INTERCALAR LIBROS \n")
@@ -585,9 +593,9 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, ruta_f
 
 # TODO Crear reporte de modificaciones de clasificaciones
 
-def crear_reporte(len_archivo:int, modificados:list, ruta_folder:str, nombre:str, ruta_archivo:str, hoja:str):
+def crear_reporte(len_archivo:int, modificados:list, archivo_info:dict, hoja:str, num_hoja:int):
   '''Genera un reporte en un txt de libros modificados'''
-  
+  ruta_folder, ruta_archivo, nombre = archivo_info['folder'], archivo_info['archivo'], archivo_info['nombre']
   txt_path = f'{ruta_folder}/{nombre}_reporte.txt'
   
   if len_archivo == 0: return # Revisar si tenemos datos
@@ -595,13 +603,13 @@ def crear_reporte(len_archivo:int, modificados:list, ruta_folder:str, nombre:str
   len_sep = 50 # largo de separadores de caracteres
   len_correctos = len_archivo - len(modificados)
   # Escribir en el archivo
-  archivo_txt = open(txt_path, 'a', encoding="utf-8")
+  archivo_txt = open(txt_path, 'a', encoding="utf-8") if num_hoja != 0 else open(txt_path, 'w', encoding="utf-8")
   archivo_txt.write('='*len_sep + '\n')
   archivo_txt.write(f'\t Reporte de {hoja} \n')
   archivo_txt.write('='*len_sep + '\n\n')
   archivo_txt.write(f'Archivo Utilizado:\n{ruta_archivo}\n\n')
   archivo_txt.write('='*len_sep + '\n')
-  archivo_txt.write(f'\t\t\t Registro de Analisis Estandar LC \n')
+  archivo_txt.write(f'\t Registro de Analisis Estandar LC \n')
   archivo_txt.write('='*len_sep + '\n')
   archivo_txt.write(f'Clasificaciones cargadas: {len_archivo} | 100%\n')
   archivo_txt.write(f'Clasificaciones con Estandar LC: {len_correctos} | {sh.obtener_porcentaje(len_correctos, len_archivo)}%\n')
@@ -631,7 +639,7 @@ def crear_reporte(len_archivo:int, modificados:list, ruta_folder:str, nombre:str
   if modificados:
     # Crear archivo txt con los codigo de barras modificados
     txt_modif = f'{ruta_folder}/{nombre}_modificados.txt'
-    archivo_txt = open(txt_modif, 'a', encoding="utf-8")
+    archivo_txt = open(txt_modif, 'a', encoding="utf-8") if num_hoja != 0 else open(txt_modif, 'w', encoding="utf-8")
     for target in modificados: archivo_txt.write(target[1] + '\n')
     archivo_txt.close()
 
