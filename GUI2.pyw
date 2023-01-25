@@ -33,11 +33,16 @@ menu_opciones = [
 ]
 
 
-def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volumen:str, copia:str, encabezado:str):
+def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
   '''Modifica el contenido y parametros de una etiqueta'''
   bandera_agregar = False
   
   # * Actualizar el Volumen a standard
+  clasif = dicc_info['clasif']
+  volumen = dicc_info['volumen']
+  copia = dicc_info['copia']
+  encabezado = dicc_info['encabeza']
+  titulo = sh.limitador_string(dicc_info['titulo']) 
   volumen = volumen[volumen.index('V.') + 2] if 'V.' in volumen else ''
 
   # * Seccion de Layout de la Ventana
@@ -75,7 +80,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
   indi_layout = [
     [
       sg.Text(
-        text="Modif. Clasificación", 
+        text="Clasificación", 
         font=("Open Sans", 14, "bold"), 
         background_color="#FFFFFF", 
         justification="center",
@@ -84,7 +89,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
     [
       sg.In(
         default_text=clasif, 
-        size=(28, 1), 
+        size=(25, 1), 
         enable_events=True,
         key="CLAS",
         font=("Open Sans", 12), 
@@ -157,12 +162,13 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
   layout = [
     [
       sg.Text(
-        text="Modificar una Etiqueta",
+        text="Modificar Etiqueta",
         font=("Open Sans", 18, "bold", "italic"),
         background_color="#FFFFFF",
         justification="center",
-        pad=(0, (0, 15)),
-      )
+        pad=(0, (0, 10)),
+      ),
+      sg.Button(image_source='Assets/info_icon.png', image_subsample=10, border_width=0, key='INFO', pad=(5,(0,10)))
     ],
     [
       sg.Text(
@@ -184,8 +190,8 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
     ],
     [sg.HorizontalSeparator(color="#000000", pad=(0, (6, 10)))],
     [
-      sg.Button("Cancelar", font=("Open Sans", 14, "bold")),
-      sg.Button("Modificar", font=("Open Sans", 14, "bold")),
+      sg.Button("Cancelar", font=("Open Sans", 12, "bold")),
+      sg.Button("Modificar", font=("Open Sans", 12, "bold")),
     ],
   ]
   main_layout = [
@@ -195,7 +201,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
   ]
 
   # * Creacion de la ventana
-  window = sg.Window("Modificar una Etiqueta", main_layout, element_justification="c", icon="Assets/ticket_icon.ico")
+  window = sg.Window("Modificar una Etiqueta", main_layout, element_justification="c", icon="Assets/book_icon.ico")
 
   while True:
     event, values = window.read()
@@ -203,6 +209,8 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
     # print(f'Eventos que suceden {event}')
     # print(f'Valores guardaros {values}')
     # print('-'*50 + '\n')
+
+    if event in (sg.WINDOW_CLOSED, "Exit", "Cancelar"): return [False],[False]
 
     # * Actualizar clasificacion
     clasif = str(values["CLAS"])
@@ -215,11 +223,9 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
     clasificacion_completa = encabezado + sh.creador_clasificacion(clasif, volumen, copia)
     window['TEXT'].update(clasificacion_completa)
 
-    if event in (sg.WINDOW_CLOSED, "Exit", "Cancelar"):
-      break
 
     # * Modificar clase
-    elif event == "CLAS":
+    if event == "CLAS":
       if len(str(values["CLAS"])) > 5:
         clasif = str(values["CLAS"])
         if sh.revisar_corte_pipe(clasif) and sh.revisar_pipeB(clasif):
@@ -249,6 +255,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, clasif:str, volu
       window.close()
       return [clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado]
 
+    elif event == 'INFO': pop.show_info_libro(titulo)
   window.close()
   return [False],[False]
 
@@ -470,12 +477,7 @@ def ventana_principal():
       # Manda llamar la ventana para modificar
       # TODO Agregar ventana modificacion
       modif_principal, modif_datos = ventana_modificar_clasificacion(
-        clasificacion_completa= tabla_principal[modify_index][0],
-        clasif= tabla_datos[modify_index]['clasif'],
-        copia= tabla_datos[modify_index]['copia'],
-        volumen= tabla_datos[modify_index]['volumen'],
-        encabezado= tabla_datos[modify_index]['encabeza']
-      )
+        clasificacion_completa= tabla_principal[modify_index][0], dicc_info=tabla_datos[modify_index])
       
       #* Se checa si se realizaron cambios
       if not modif_principal[0] :continue

@@ -49,6 +49,10 @@ def info_about():
   msg = f'Programa Generador de Etiquetas\n Por: Jesus Talamantes Morales 2022'
   messagebox.showinfo("About", msg)
 
+def show_info_libro(titulo:str):
+  msg = f'Título del Libro:\n {titulo}'
+  messagebox.showinfo("Book Info", msg)
+
 # # ? POP_up de OkCancel Ask (askokcancel)
 ##########################################################
 def check_images():
