@@ -4,6 +4,7 @@
 
 import pandas as pd
 
+import pop_ups as pop
 import string_helper as sh
 
 # from AuxIntercalado import *
@@ -401,7 +402,7 @@ def marcar_condiciones_libros(lista_ordenada, lista_no_ordenada):
   return lisSAL
 
 
-def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archivo_info:dict, hoja, num_hoja):
+def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos):
   '''
     Genera un TXT con instrucciones para organizar libros
     
@@ -411,28 +412,16 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
       :param lisNAME: Es una lista que contiene todos los nombres de los libros
       :param txt_file: Es un objeto para escribir en un archivo tipo txt
   '''
-  ruta_folder, nombre = archivo_info['folder'], archivo_info['nombre']
-  txt_path = f'{ruta_folder}/{nombre}_instrucciones.txt'
-  txt_file = open(txt_path, 'a', encoding="utf-8") if num_hoja != 0 else open(txt_path, 'w', encoding="utf-8")
-  # reporte_txt_writer.close()
-  txt_file.write('='*50 + '\n')
-  txt_file.write(f'\t Reporte de {hoja} \n')
-  txt_file.write('='*50 + '\n\n')
 
   # * Checar si los datos son muy pequeños
   if len(lista_ordenada) <= 5:
-      txt_file.write('='*50 + '\n')
-      txt_file.write("MUESTRA MUY PEQUEÑA DE LIBROS\n")
-      txt_file.write("POR FAVOR INTERCALA MANUALMENTE\n")
-      txt_file.write('='*50 + '\n')
-      txt_file.close()
-      return
+    pop.not_enough_books()
+    return [False], [False]
 
   # * Si ambos diccionarios no son iguales no se procede
   if len(lista_ordenada) != len(lista_no_ordenada):
-    txt_file.write("Fallo en intentar generar instrucciones \n")
-    txt_file.close()
-    return
+    pop.error_manual_order()
+    return [False], [False]
 
   # * Llenar lista de las condiciones de libros y solucionar condicionados
   lista_condiciones = marcar_condiciones_libros(lista_ordenada, lista_no_ordenada)
@@ -447,37 +436,31 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
 
   # * Casos sin errores no se puede acomodar
   if len(lisERROR) == 0:
-    txt_file.write('='*50 + '\n')
-    txt_file.write("\t SIN CASOS PARA INTERCALAR\n")
-    txt_file.write("LIBROS CORRECTAMENTE INTERCALADOS\n")
-    txt_file.write("FELICIDADES EL STAND ESTA CORRECTAMENTE INTERCALADO\n")
-    txt_file.write('='*50 + '\n')
-    txt_file.close()
-    return
+    pop.success_manual_order()
+    return [False], [False]
   
   
   # * Texto inicial del programa
   error_porcent = sh.obtener_porcentaje(len(lisERROR), len_lista)
-  print(f'Procentaje de libros erroneos: {error_porcent}%')
-  txt_file.write('='*85 + '\n')
-  txt_file.write(f'\t Con {len_lista} libros, {len(lisERROR)} estan mal colocados, que equivale al {error_porcent}%\n')
-  txt_file.write('='*85 + '\n')
+  # print(f'Procentaje de libros erroneos: {error_porcent}%')
+  # txt_file.write('='*85 + '\n')
+  # txt_file.write(f'\t Con {len_lista} libros, {len(lisERROR)} estan mal colocados, que equivale al {error_porcent}%\n')
+  # txt_file.write('='*85 + '\n')
   
-  txt_file.write("\n\n\tPROCESO PARA ORGANIZAR LIBROS\n")
-  txt_file.write("\tPASO 1. RETIRE LOS SIGUIENTES LIBROS\n")
-  txt_file.write('#'*85 + '\n')
+  # txt_file.write("\n\n\tPROCESO PARA ORGANIZAR LIBROS\n")
+  # txt_file.write("\tPASO 1. RETIRE LOS SIGUIENTES LIBROS\n")
+  # txt_file.write('#'*85 + '\n')
   
   # * Sacar pocos libros erroneos
   # Se sacan los libros como aparecen
+  lista_retirar = []
   if error_porcent < 60 and len(lisERROR) < 20:
-    lista_retirar = []
     for error_index in lisERROR:
       # * Sacar datos de libro erroneo
-      diccio_temporal = {'libro': '', 'anterior':'', 'siguiente':''}
+      diccio_temporal = {'libro': ('',''), 'anterior':('',''), 'siguiente':('','')}
       clasif_error = lista_no_ordenada[error_index]['clas']
       nombre_error = sh.limitador_string(lista_datos[error_index]['titulo'])
       diccio_temporal['libro'] = (clasif_error, nombre_error)
-      print(diccio_temporal['libro'])
 
       # *Sacar datos de libros correctos
       # * Buscar libro anterior correcto
@@ -486,20 +469,12 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
         clasif_ant = lista_no_ordenada[corr_index]['clas']
         nombre_ant = sh.limitador_string(lista_datos[corr_index]['titulo'])
         diccio_temporal['anterior'] = (clasif_ant, nombre_ant)
-        print(diccio_temporal['anterior'])
-        txt_file.write(f'Libro a anterior correcto: {clasif_ant} | {nombre_ant} \n')
         break
-      print('\n')
-
       
-      txt_file.write('seguido a este libro se encuentra el libro a retirar. \n')
-      txt_file.write(f'Libro a retirar: {clasif_error} | {nombre_error} \n')
-      txt_file.write('+'*85 + '\n')
       lista_retirar.append(diccio_temporal)
   # * Caso común
   # Sacar los libros en el orden en el que se van a meter
   else:
-    lista_retirar = []
     # * Ordenar lista de errores
     ordenar_retirar = []
     for index in range(len_lista):
@@ -509,13 +484,10 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
     # * Sacar los libros
     for error_index in ordenar_retirar:
       # * Sacar datos de libro erroneo
-      diccio_temporal = {'libro': '', 'anterior':'', 'siguiente':''}
+      diccio_temporal = {'libro': ('',''), 'anterior':('',''), 'siguiente':('','')}
       clasif_error = lista_no_ordenada[error_index]['clas']
       nombre_error = sh.limitador_string(lista_datos[error_index]['titulo'])
       diccio_temporal['libro'] = (clasif_error, nombre_error)
-      print(diccio_temporal['libro'])
-      txt_file.write(f'Libro a retirar: {clasif_error} | {nombre_error}')
-      txt_file.write('este libro se encuentra entre los siguientes libros. \n')
 
       # * Sacar datos de libros correctos
       # * Buscar libro anterior correcto
@@ -524,8 +496,6 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
         clasif_ant = lista_no_ordenada[corr_index]['clas']
         nombre_ant = sh.limitador_string(lista_datos[corr_index]['titulo'])
         diccio_temporal['anterior'] = (clasif_ant, nombre_ant)
-        print(diccio_temporal['anterior'])
-        txt_file.write(f'Libro a anterior correcto: {clasif_ant} | {nombre_ant} \n')
         break
       # * Buscar libro siguiente correcto
       for corr_index in range(error_index+1, len_lista, +1):
@@ -533,19 +503,10 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
         clasif_ant = lista_no_ordenada[corr_index]['clas']
         nombre_ant = sh.limitador_string(lista_datos[corr_index]['titulo'])
         diccio_temporal['siguiente'] = (clasif_ant, nombre_ant)
-        print(diccio_temporal['siguiente'])
-        txt_file.write(f'Libro a siguiente correcto: {clasif_ant} | {nombre_ant} \n')
         break
-      print('\n')
-      txt_file.write('+'*85 + '\n')
       lista_retirar.append(diccio_temporal)
 
   # * Colocar libros
-  # print('Colocar Libros')
-  txt_file.write('\n\n\n')
-  txt_file.write('='*90 + '\n')
-  txt_file.write("\tPASO 2. INFORMACION PARA INTERCALAR LIBROS \n")
-  txt_file.write('='*90 + '\n')
   lista_colocar = []
   for index in range(len_lista):
     # Buscar libro erroneo en lista ordenada
@@ -553,13 +514,10 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
     if indice_error not in lisERROR: continue
 
     # Sacar datos libro erroneo
-    diccio_temporal = {'libro':'', 'anterior':'', 'siguiente':''}
+    diccio_temporal = {'libro': ('',''), 'anterior':('',''), 'siguiente':('','')}
     clasif_error = lista_ordenada[index]['clas']
     nombre_error = sh.limitador_string(lista_datos[indice_error]['titulo'])
     diccio_temporal['libro'] = (clasif_error, nombre_error)
-    print(diccio_temporal['libro'])
-    txt_file.write(f'Libro a colocar: {clasif_error} | {nombre_error}')
-    txt_file.write('este libro se va entre los siguientes libros. \n')
 
     # * Sacar datos de libros correctos
     # * Buscar libro anterior correcto
@@ -569,8 +527,6 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
       clasif_ant = lista_ordenada[corr_index]['clas']
       nombre_ant = sh.limitador_string(lista_datos[indice_correcto]['titulo'])
       diccio_temporal['anterior'] = (clasif_ant, nombre_ant)
-      print(diccio_temporal['anterior'])
-      txt_file.write(f'Libro a anterior correcto: {clasif_ant} | {nombre_ant} \n')
       break
     for corr_index in range(index+1, len_lista, +1):
       indice_correcto = lista_ordenada[corr_index]['indice']
@@ -578,19 +534,10 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos, archiv
       clasif_ant = lista_ordenada[corr_index]['clas']
       nombre_ant = sh.limitador_string(lista_datos[indice_correcto]['titulo'])
       diccio_temporal['siguiente'] = (clasif_ant, nombre_ant)
-      print(diccio_temporal['siguiente'])
-      txt_file.write(f'Libro a siguiente correcto: {clasif_ant} | {nombre_ant} \n')
       break
-    print('\n')
-    txt_file.write('+'*85 + '\n')
     lista_colocar.append(diccio_temporal)
 
-  # os.system('cls')
-  # print(*lista_retirar, sep='\n')
-  # print('\n')
-  # print(*lista_colocar, sep='\n')
-  txt_file.close()
-
+  return lista_retirar, lista_colocar
 # TODO Crear reporte de modificaciones de clasificaciones
 
 def crear_reporte(len_archivo:int, modificados:list, archivo_info:dict, hoja:str, num_hoja:int):

@@ -33,13 +33,25 @@ def warning_clas():
 def error_excel_file():
   msg = f'!Fallo!\n Ninguna Etiqueta se cargo'
   messagebox.showerror("Excel File Error", msg)
+
+def error_manual_order():
+  msg = f'!Fallo!\n No se puede ordenar'
+  messagebox.showerror("", msg)
 ##########################################################
 
 # # ? POP_up de Informacion (Info)
 ##########################################################
 def success_program():
   msg = f'Felicidades\n El programa finalizó con exito'
-  messagebox.showinfo("Finalize", msg)
+  messagebox.showinfo('', msg)
+
+def not_enough_books():
+  msg = f'Poca Cantidad de Libros \n Itercale a manualmente'
+  messagebox.showinfo('', msg)
+
+def success_manual_order():
+  msg = f'Felicidades\n Librero Ordenado Correctamente'
+  messagebox.showinfo('', msg)
 
 def info_license():
   msg = f'Programa Bajo Licencia del Tecnológico de Monterrey\n !No reproducir sin permiso!'

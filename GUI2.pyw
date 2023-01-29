@@ -1,4 +1,4 @@
-import numpy as np
+
 import PySimpleGUI as sg
 
 import main_inter_functions as mainif
@@ -210,7 +210,9 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
     # print(f'Valores guardaros {values}')
     # print('-'*50 + '\n')
 
-    if event in (sg.WINDOW_CLOSED, "Exit", "Cancelar"): return [False],[False]
+    if event in (sg.WINDOW_CLOSED, "Exit", "Cancelar"):
+      window.close() 
+      return [False],[False]
 
     # * Actualizar clasificacion
     clasif = str(values["CLAS"])
@@ -240,7 +242,6 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
           window["PIPE_A"].update("NO")
           window["PIPE_B"].update("APLICA")
           bandera_agregar = False  # ? Bandera Falsa
-
     
     # * Modifica la etiqueta y cierra la ventana
     elif event == "Modificar" and bandera_agregar:
@@ -256,8 +257,201 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       return [clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado]
 
     elif event == 'INFO': pop.show_info_libro(titulo)
-  window.close()
-  return [False],[False]
+
+
+def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, nombre_archivo:str):
+  # Sacar datos de libros
+  lista_main = [lista_colocar, lista_retirar]
+  main_index = 0
+  libro_erroneo = lista_main[0][main_index]['libro'] 
+  libro_ant_corr = lista_main[0][main_index]['anterior']
+  libro_pos_corr = lista_main[0][main_index]['siguiente']
+  instruc_index = 0
+  action = ('RETIRAR', 'ORDENAR')
+  len_listas = (len(lista_colocar), len(lista_retirar))
+
+  title_frame = [
+    [
+      sg.Text(
+        text=f'{nombre_archivo} - {hoja}', 
+        font=('Open Sans', 18, 'bold', 'italic'), 
+        background_color='#FFFFFF',
+        justification='c',
+        pad=0
+      ),
+    ],
+    [
+      sg.Text(
+        text=f'pasos para ordenar:', 
+        font=('Open Sans', 14, 'italic'), 
+        background_color='#FFFFFF',
+        justification='c',
+        pad=0
+      ),
+    ],
+
+  ]
+  instruction_frame = [
+    [
+      sg.Text(
+        text='Instrucción:',
+        font=('Open Sans', 18, 'bold'),
+        background_color='#FFFFFF',
+        justification='c',
+        pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{action[0]}',
+        font=('Arial', 18, 'bold'),
+        background_color='#FFFFFF',
+        justification='c',
+        key='INSTRUCT',
+        pad=0
+      )
+    ]
+  ]
+  libro_erroneo_frame = [
+    [
+      sg.Text(
+        text='Información Libro Erróneo',
+        font=('Open Sans', 14, 'bold', 'italic'),
+        background_color='#FFFFFF',
+        justification='c',
+        pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{libro_erroneo[0]} | {libro_erroneo[1]}',
+        font=('Open Sans', 12, 'italic'),
+        background_color='#FFFFFF',
+        justification='c',
+        key='LIBRO',
+        pad=0
+      )
+    ]
+  ]
+  libro_anterior_corr = [
+    [
+      sg.Text(
+        text='Libro Anterior Correcto',
+        font=('Open Sans', 14, 'bold', 'italic'),
+        background_color='#FFFFFF',
+        justification='c',
+        pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{libro_ant_corr[0]} | {libro_ant_corr[1]}',
+        font=('Open Sans', 12, 'italic'),
+        background_color='#FFFFFF',
+        justification='c',
+        key='ANT',
+        pad=0
+      )
+    ]
+  ]
+  libro_posterior_corr = [
+    [
+      sg.Text(
+        text='Libro Posterior Correcto',
+        font=('Open Sans', 14, 'bold', 'italic'),
+        background_color='#FFFFFF',
+        justification='c',
+        pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{libro_pos_corr[0]} | {libro_pos_corr[1]}',
+        font=('Open Sans', 12, 'italic'),
+        background_color='#FFFFFF',
+        justification='c',
+        key='POS',
+        pad=0
+      )
+    ]
+  ]
+  boton_count = [
+    [
+      sg.Text(
+        text=f'{main_index+1}/{len_listas[0]}',
+        font=('Open Sans', 18, 'bold', 'italic'),
+        background_color='#FFFFFF',
+        justification='c',
+        key='COUNT',
+        pad=0
+      )
+    ],
+    [
+      sg.Button(
+        button_text='Siguiente',
+        font=('Open Sans', 18, 'bold', 'italic'),
+        pad=0
+      )
+    ],
+  ]
+  left_column = [
+    [sg.Frame('', libro_erroneo_frame, background_color='#FFFFFF', element_justification='l', border_width=0, pad=(15,(20,10)))],
+    [sg.Frame('', libro_anterior_corr, background_color='#FFFFFF', element_justification='l', border_width=4, pad=(15,(5,5)))],
+    [sg.Frame('', libro_posterior_corr, background_color='#FFFFFF', element_justification='l', border_width=4, pad=(15,(5,5))),],
+  ]
+  right_column = [
+    [sg.Frame('', boton_count, background_color='#FFFFFF', element_justification='c', border_width=0, pad=0)]
+  ]
+  
+  main_layout = [
+    [
+      sg.Frame('', title_frame, background_color='#FFFFFF', element_justification='c', border_width=0, pad=((10,200), (10,20))),
+      sg.Frame('', instruction_frame, background_color='#FFFFFF', element_justification='c', border_width=0, pad=((0,10), (10,10)))
+    ],
+    [sg.HorizontalSeparator(color='#000000', pad=0)],
+    [
+      sg.Column(layout=left_column, background_color='#FFFFFF', element_justification='l'),
+      sg.Column(layout=right_column, background_color='#FFFFFF', element_justification='c', pad=((40,10), (140,10)))
+    ]
+  ]
+
+  layout = [[sg.Frame('', main_layout, background_color='#FFFFFF', element_justification='l', pad=0)]]
+  window = sg.Window('Salida', layout, element_justification='c', icon='Assets/book_icon.ico')
+
+  while True:
+    event, values = window.read()
+    # print('-'*50)
+    # print(f'Eventos que suceden {event}')
+    # print(f'Valores guardaros {values}')
+    # print('-'*50 + '\n')
+
+    if event in (sg.WINDOW_CLOSED, "Exit"): 
+      window.close()
+      return
+    
+    if event == 'Siguiente':
+      # print('Cambio de libro')
+      # * Revisar si se terminaron los libros
+      main_index += 1
+      if main_index >= len_listas[instruc_index]: 
+        if instruc_index != 0: 
+          pop.success_manual_order()
+          window.close()
+          return
+        instruc_index = 1
+        main_index = 0
+        window['INSTRUCT'].update(f'{action[instruc_index]}')
+      
+      # * Sacar datos
+      libro_erroneo = lista_main[instruc_index][main_index]['libro'] 
+      libro_ant_corr = lista_main[instruc_index][main_index]['anterior']
+      libro_pos_corr = lista_main[instruc_index][main_index]['siguiente']
+
+      # * Actualizar datos
+      window['LIBRO'].update(f'{libro_erroneo[0]} | {libro_erroneo[1]}')
+      window['ANT'].update(f'{libro_ant_corr[0]} | {libro_ant_corr[1]}')
+      window['POS'].update(f'{libro_pos_corr[0]} | {libro_pos_corr[1]}')
+      window['COUNT'].update(f'{main_index+1}/{len_listas[0]}')
 
 
 def ventana_principal():
@@ -365,7 +559,7 @@ def ventana_principal():
         justification="l",
         expand_y=False,
         enable_events=True,
-        right_click_menu=["Etiqueta", ["Modificar"]],
+        right_click_menu=["Etiqueta", ["Modificar", 'Imprimir']],
         alternating_row_color="#FFFFFF",
         background_color="#FFFFFF",
         header_border_width=2,
@@ -437,8 +631,8 @@ def ventana_principal():
       for ind in range(len(temp_etiquetas)):
         status = temp_etiquetas[ind][3]
         main_dicc[len(tabla_principal) + ind] = status
-        if status == "False": row = ((len(tabla_principal) + ind), "#F04150")
-        else: row = ((len(tabla_principal) + ind), "#32A852")
+        if status == "False": row = ((len(tabla_principal) + ind), "#B00020")
+        else: row = ((len(tabla_principal) + ind), "#FFFFFF")
         row_color_array.append(row)
 
       #  * Concatenamos los nuevos datos a los antiguos
@@ -467,7 +661,7 @@ def ventana_principal():
         elif status == "Modify":
           main_dicc[index_value] = "False"
           tabla_principal[index_value][3] = "False"
-          row_color_array[index_value] = (int(index_value), "#F04150")
+          row_color_array[index_value] = (int(index_value), "#B00020")
           modify_flag = False
 
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
@@ -561,13 +755,18 @@ def ventana_principal():
       # # print(largos)
       lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
       # # print(*salida_ordenada, sep='\n')
-      # * Sección para crear instrucciones ordenar
-      if values['EXCEL_ERR_ORD']: mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos, archivo_info, hoja_actual, index_hoja)
       # * Sección para crear excel ordenado
       if values['EXCEL_ORD']:
         dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, main_dataframe)
         # print(*dataframe_salida, sep='\n')
         mainif.escribir_excel(dataframe_salida, archivo_info, hoja_actual, index_hoja)
+      # * Sección para crear instrucciones ordenar
+      if values['EXCEL_ERR_ORD']: 
+        lista_retirar, lista_colocar = mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos)
+        if not lista_retirar[0]: 
+          window['Actualizar'].click()
+          continue
+        ventana_instruc_ordenar(lista_retirar, lista_colocar, hoja_actual, nombre_archivo)
 
       window['Actualizar'].click()
     
@@ -605,12 +804,12 @@ def ventana_principal():
       tabla_datos = []
       tabla_principal = []
       
-      print('Vamos a actualizar datos')
-      print(index_hoja, hojas_excel[index_hoja])
+      # print('Vamos a actualizar datos')
+      # print(index_hoja, hojas_excel[index_hoja])
 
       hoja_actual = hojas_excel[index_hoja]
       main_dataframe = excel_completo[hoja_actual]
-      print(main_dataframe)
+      # print(main_dataframe)
       # Sacar datos de clasificacion de etiquetas
       temp_etiquetas = mainif.generar_etiquetas_libros(main_dataframe)
       # Sacamos la tabla de titulo de libro y de QRO
