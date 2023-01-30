@@ -689,7 +689,7 @@ def ventana_principal():
       # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
       tabla_principal[modify_index] = modif_principal
-      row_color_array[modify_index] = (int(modify_index), "#FFFFFF")
+      row_color_array[modify_index] = (int(modify_index), "#32A852")
       modify_flag = False
 
       # * Actualizar valores de tabla de datos
@@ -717,6 +717,13 @@ def ventana_principal():
       ICP = {'PW':0, 'PH':0, 'TW':4.8, 'TH':3.7, 'PR':0, 'PC':0} 
       ticket.ticket_maker_main([lista_imprimir], str(modify_index), ruta_folder, ICP, (None,None))
 
+      # * Actualizamos la apariencia del elemento en la tabla
+      main_dicc[modify_index] = "True"
+      tabla_principal[modify_index] = modif_principal
+      row_color_array[modify_index] = (int(modify_index), "#FFFFFF")
+      modify_flag = False
+
+      window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
 
     elif event == 'Ejecutar':
       # ? Checar si se ha puesto un archivo
@@ -846,8 +853,8 @@ def ventana_principal():
       for ind in range(len(temp_etiquetas)):
         status = temp_etiquetas[ind][3]
         main_dicc[len(tabla_principal) + ind] = status
-        if status == "False": row = ((len(tabla_principal) + ind), "#F04150")
-        else: row = ((len(tabla_principal) + ind), "#32A852")
+        if status == "False": row = ((len(tabla_principal) + ind), "#B00020")
+        else: row = ((len(tabla_principal) + ind), "#FFFFFF")
         row_color_array.append(row)
 
       #  * Concatenamos los nuevos datos a los antiguos
