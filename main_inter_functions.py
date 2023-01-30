@@ -401,7 +401,6 @@ def marcar_condiciones_libros(lista_ordenada, lista_no_ordenada):
   # print(*lisSAL, sep='\n')
   return lisSAL
 
-
 def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos):
   '''
     Genera un TXT con instrucciones para organizar libros
@@ -538,6 +537,8 @@ def instrucciones_ordenar(lista_ordenada, lista_no_ordenada, lista_datos):
     lista_colocar.append(diccio_temporal)
 
   return lista_retirar, lista_colocar
+
+
 # TODO Crear reporte de modificaciones de clasificaciones
 
 def crear_reporte(len_archivo:int, modificados:list, archivo_info:dict, hoja:str, num_hoja:int):
@@ -590,7 +591,6 @@ def crear_reporte(len_archivo:int, modificados:list, archivo_info:dict, hoja:str
     archivo_txt = open(txt_modif, 'a', encoding="utf-8") if num_hoja != 0 else open(txt_modif, 'w', encoding="utf-8")
     for target in modificados: archivo_txt.write(target[1] + '\n')
     archivo_txt.close()
-
 
 if __name__ == '__main__':
   pass

@@ -473,6 +473,7 @@ def ventana_principal():
   # Variables para manejo de modificacion
   modify_flag = False
   modify_index = 0
+  modify_status = ''
 
   excel_completo = {}
   hojas_excel = []
@@ -643,26 +644,28 @@ def ventana_principal():
       window["PAGE"].update(f'{index_hoja+1}/{len(hojas_excel)}')
 
     if event == "TABLE":
-      if values["TABLE"] != []:
-        index_value = int(values["TABLE"][0])  # * elemento a seleccionar
-        status = main_dicc[index_value]  # * Revisar el status del elemento
+      if len(values['TABLE']) == 0: continue
+      index_value = int(values["TABLE"][0])  # * elemento a seleccionar
+      status = main_dicc[index_value]  # * Estatus elemento
 
-        # * Seleccionar casilla para modfiicar
-        if status == "False" and not modify_flag:
-          # Tomar datos de la casilla
-          modify_flag = True
-          modify_index = index_value
-          # Modificar casilla visualmente
-          main_dicc[index_value] = "Modify"
-          tabla_principal[index_value][3] = "Modify"
-          row_color_array[index_value] = (int(index_value), "#E8871E")
+      # * Seleccionar casilla para modificar
+      if status in ("False", 'True') and not modify_flag:
+        # Tomar datos de la casilla
+        modify_flag = True
+        modify_status = status
+        modify_index = index_value
+        # Modificar casilla visualmente
+        main_dicc[index_value] = 'Selected'
+        tabla_principal[index_value][3] = 'Selected'
+        row_color_array[index_value] = (int(index_value), "#FCAB10")
 
-        # * Quitar casilla de modificar
-        elif status == "Modify":
-          main_dicc[index_value] = "False"
-          tabla_principal[index_value][3] = "False"
-          row_color_array[index_value] = (int(index_value), "#B00020")
-          modify_flag = False
+      # * Quitar casilla de modificar
+      elif status == "Selected":
+        main_dicc[index_value] = modify_status
+        tabla_principal[index_value][3] = modify_status
+        if modify_status =='True': row_color_array[index_value] = (int(index_value), "#FFFFFF")
+        else: row_color_array[index_value] = (int(index_value), "#B00020")
+        modify_flag = False
 
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
     
@@ -695,6 +698,9 @@ def ventana_principal():
       tabla_datos[modify_index]['encabeza'] = modif_datos[3]
       
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
+
+    if event == 'Imprimir' and modify_flag == True and modify_status != 'False':
+      print('Vamos a imprimir')
 
     elif event == 'Ejecutar':
       # ? Checar si se ha puesto un archivo
