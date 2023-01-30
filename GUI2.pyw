@@ -4,6 +4,7 @@ import PySimpleGUI as sg
 import main_inter_functions as mainif
 import pop_ups as pop
 import string_helper as sh
+import ticket_maker as ticket
 
 #* Tema principal de las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
@@ -688,7 +689,7 @@ def ventana_principal():
       # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
       tabla_principal[modify_index] = modif_principal
-      row_color_array[modify_index] = (int(modify_index), "#32A852")
+      row_color_array[modify_index] = (int(modify_index), "#FFFFFF")
       modify_flag = False
 
       # * Actualizar valores de tabla de datos
@@ -700,7 +701,22 @@ def ventana_principal():
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
 
     if event == 'Imprimir' and modify_flag == True and modify_status != 'False':
-      print('Vamos a imprimir')
+      ruta_folder = values['FOLDER']
+      if not ruta_folder:
+        pop.warning_folder()
+        continue
+
+      # Crear la lista de datos
+      encabezado = tabla_datos[modify_index]['encabeza']
+      clasif = tabla_datos[modify_index]['clasif']
+      volumen = tabla_datos[modify_index]['volumen']
+      copia = tabla_datos[modify_index]['copia']
+
+      lista_imprimir = [encabezado, clasif, volumen, copia]
+      # Individual Configuration Parameters
+      ICP = {'PW':0, 'PH':0, 'TW':4.8, 'TH':3.7, 'PR':0, 'PC':0} 
+      ticket.ticket_maker_main([lista_imprimir], str(modify_index), ruta_folder, ICP, (None,None))
+
 
     elif event == 'Ejecutar':
       # ? Checar si se ha puesto un archivo
