@@ -68,7 +68,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
   # Este comando extrae el número de una cadena. Ejemplo V.2 -> 2
   volumen = volumen[volumen.index('V.') + 2] if 'V.' in volumen else '0'
 
-  # * Seccion de Layout de la Ventana
+  # * Seccion de Estructura visual de la Ventana
   pipe_a = [
     [
       sg.Text(
@@ -256,7 +256,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
     if event == "CLAS":
       clasif = values["CLAS"]
 
-      # Revisa si se puede actualizar datos
+      # Revisa si se puede realiza la separación de datos
       if len(clasif) > 5:
         if sh.revisar_corte_pipe(clasif) and sh.revisar_pipeB(clasif):
           posicion_corte, diferencia = sh.buscar_pipe(clasif)
@@ -276,7 +276,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       encabezado = str(values['HEAD'])
       
       window.close()
-      print([clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado], sep='\n')
+      # print([clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado], sep='\n')
       return [clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado]
 
     elif event == 'INFO': pop.show_info_libro(titulo)

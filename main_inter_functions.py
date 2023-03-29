@@ -555,7 +555,7 @@ def crear_reporte(len_archivo:int, modificados:list, archivo_info:dict, hoja:str
   archivo_txt.write('='*len_sep + '\n')
   archivo_txt.write(f'Clasificaciones cargadas: {len_archivo} | 100%\n')
   archivo_txt.write(f'Clasificaciones con Estandar LC: {len_correctos} | {sh.obtener_porcentaje(len_correctos, len_archivo)}%\n')
-  archivo_txt.write(f'Clasificaciones modificadas: {len(modificados)} | {sh.obtener_porcentaje(len(modificados), len_archivo)}&\n')
+  archivo_txt.write(f'Clasificaciones modificadas: {len(modificados)} | {sh.obtener_porcentaje(len(modificados), len_archivo)}%\n')
   archivo_txt.write('='*len_sep + '\n\n')
   
   # * Tenemos casos con modificaciones
