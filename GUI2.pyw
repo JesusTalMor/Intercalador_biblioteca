@@ -44,9 +44,11 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
     Parametros:
       clasificacion_completa: Clasificación completa del libro a modificar
       Dicc_info:
+        titulo: Titulo del libro a modificar
+        cbarras: Codigo de Barras del Libro a modificar
         clasif: Clasificación Basica
         volumen: Volumen expresado en V.(Num)
-        copia: Copia expresado en C.(Num)
+        copia: Copia expresado en Num.
         encabeza: Encabezado anterior a Clasificación
     
         Retorna:
@@ -55,14 +57,14 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
   '''
   
   bandera_agregar = False
-  print('Clasificación Completa')
-  print('Entrada de datos', dicc_info, sep='\n')
+  # print('Clasificación Completa')
+  # print('Entrada de datos', dicc_info, sep='\n')
   # * Actualizar el Volumen a standard
   clasif = dicc_info['clasif']
   volumen = dicc_info['volumen']
   copia = dicc_info['copia']
   encabezado = dicc_info['encabeza']
-  titulo = sh.limitador_string(dicc_info['titulo']) 
+  titulo = dicc_info['titulo']
   volumen = volumen[volumen.index('V.') + 2] if 'V.' in volumen else '0'
 
   # * Seccion de Layout de la Ventana
@@ -270,16 +272,10 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
     
     # * Modifica la etiqueta y cierra la ventana
     elif event == "Modificar" and bandera_agregar:
-      # clasif = str(values["CLAS"])
-      # volumen = str(values['VOL'])
-      # copia = str(values['COP'])
-      # encabezado = str(values['HEAD'])
-
-      # volumen = 'V.' + volumen if volumen not in ('', '0') else ''
-      # clasificacion_completa = encabezado + ' ' + sh.creador_clasificacion(clasif, volumen, copia)
-
+      encabezado = str(values['HEAD'])
+      
       window.close()
-      print([clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado])
+      print([clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado], sep='\n')
       return [clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado]
 
     elif event == 'INFO': pop.show_info_libro(titulo)
