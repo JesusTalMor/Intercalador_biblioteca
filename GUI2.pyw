@@ -65,6 +65,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
   copia = dicc_info['copia']
   encabezado = dicc_info['encabeza']
   titulo = dicc_info['titulo']
+  # Este comando extrae el número de una cadena. Ejemplo V.2 -> 2
   volumen = volumen[volumen.index('V.') + 2] if 'V.' in volumen else '0'
 
   # * Seccion de Layout de la Ventana
