@@ -170,8 +170,20 @@ def limitador_string(STR:str, size=40) -> str:
 
 def cortar_string(STR:str, char:str) -> str:
   '''Corta la cadena a partir de un caracter especial'''
-  posicion_corte = STR.index(char)
-  return STR[:posicion_corte]
+  len_char = len(char)
+  posicion_corte = STR.index(char) - (len_char + 1)
+  return STR[:posicion_corte] if posicion_corte >= 0 else STR[:posicion_corte + len_char + 1]
+
+
+def limpiar_clasif(STR:str) -> str:
+  ''' Limpiar la clasificación del libro de Caracteres no Necesarios'''
+  # * Eliminar caracteres no deseados
+  if 'LX' in STR: STR = cortar_string(STR, 'LX')
+  if 'MAT' in STR: STR = cortar_string(STR, 'MAT')
+  if 'V.' in STR: STR = cortar_string(STR, 'V.')
+  if 'C.' in STR: STR = cortar_string(STR, 'C.')
+
+  return STR
 
 
 def sacar_grupos(lisMain,llave,main_index):

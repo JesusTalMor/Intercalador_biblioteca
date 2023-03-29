@@ -7,14 +7,9 @@ import pandas as pd
 import pop_ups as pop
 import string_helper as sh
 
-# from AuxIntercalado import *
-
-# from AtributeManager import *
-
-# TODO Falta contemplar la posibilidad de multiples hojas
 
 # ? Pasos para el programa 
-# TODO Cargar los datos de las clasificaciones desde el excel
+# ? Cargar los datos de las clasificaciones desde el excel
 def cargar_excel(path:str):
   '''Obtiene todo el dataframe de datos de un excel'''
   Datos = pd.read_excel(path, sheet_name=None)
@@ -22,7 +17,10 @@ def cargar_excel(path:str):
 
 
 def cargar_clasif_libros(dataframe):
-  ''' Carga los datos para generar clasificaciones'''
+  '''
+    Carga los datos para generar clasificaciones
+    NOTA: Unicamente carga los datos de las columnas de Excel, no realiza modificaciones
+  '''
   clasif = [False]
   volumen = [False]
   copia = [False]
@@ -39,7 +37,10 @@ def cargar_clasif_libros(dataframe):
 
 
 def cargar_informacion_libros(dataframe):
-  ''' Carga los datos de información de los libros'''
+  ''' 
+    Carga los datos de información de los libros
+    NOTA: Unicamente carga los datos de las columnas de Excel, no realiza modificaciones
+  '''
   titulo = [False]
   codigo_barras = [False]
   clasif = [False]
@@ -72,18 +73,16 @@ def generar_etiquetas_libros(dataframe):
   
   # * Inicia proceso de sacar todas las clasificaciones
   for i in range(len_data):
-    STR = CLAS[i]
+    STR = CLAS[i] # ya vienen como String por defecto
     STR_C = str(COP[i])
-    STR_V = VOL[i]
+    STR_V = VOL[i] # ya vienen como String por defecto
 
     # * Checar si el atributo CLAS esta vacio
     if pd.isna(STR):
       salida.append(['None', 'No', 'Aplica', 'False'])
       continue
 
-    # * Eliminar caracteres LX y MAT
-    if 'LX' in STR: STR = sh.cortar_string(STR, 'LX')
-    if 'MAT' in STR: STR = sh.cortar_string(STR, 'MAT')
+    STR = sh.limpiar_clasif(STR)
 
     # * Checar si el atributo VOL esta vacio
     if pd.isna(STR_V): STR_V = ''
@@ -93,11 +92,6 @@ def generar_etiquetas_libros(dataframe):
 
     STR_Clas = sh.creador_clasificacion(STR, STR_V, STR_C)
     
-    # * Revisar si tenemos Volumen o Copia donde no corresponden
-    if 'V.' in STR or 'C.' in STR:
-      salida.append([STR_Clas, 'No', 'Aplica', 'False'])
-      continue
-
     # * Revisamos si se puede dividir Pipe A y Pipe B
     if sh.revisar_corte_pipe(STR) and sh.revisar_pipeB(STR):
       pos_div, sum = sh.buscar_pipe(STR)
@@ -128,7 +122,7 @@ def generar_informacion_libros(dataframe):
     # * Rellenamos el diccionario
     temp_dicc['titulo'] = str(titu[index]) if titu[0] else ''
     temp_dicc['cbarras'] = str(cb[index]) if cb[0] else ''
-    temp_dicc['clasif'] = str(clas[index]) if clas[0] and not pd.isna(clas[index]) else ''
+    temp_dicc['clasif'] = str(sh.limpiar_clasif(clas[index])) if clas[0] and not pd.isna(clas[index]) else ''
     temp_dicc['volumen'] = str(vol[index]) if vol[0] and not pd.isna(vol[index]) else ''
     temp_dicc['copia'] = str(cop[index]) if cop[0] and not pd.isna(cop[index]) else ''
     temp_dicc['encabeza'] = str(enc[index]) if enc[0] else ''

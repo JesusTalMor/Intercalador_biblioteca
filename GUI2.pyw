@@ -1,4 +1,9 @@
 
+# Editor: Jesus Talamantes Morales
+# Fecha Ultima Mod: 29 de Marzo 2023
+# Versión: 2.0
+
+
 import PySimpleGUI as sg
 
 import main_inter_functions as mainif
@@ -6,7 +11,7 @@ import pop_ups as pop
 import string_helper as sh
 import ticket_maker as ticket
 
-#* Tema principal de las ventanas
+#? Tema principal tipo Tec para las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
   'BACKGROUND': '#3016F3',
   'TEXT': '#000000',
@@ -20,12 +25,10 @@ sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
 }
 sg.theme('MyCreatedTheme')
 
-# * Configuración de la tabla
+#? Configuración para tabla de Clasificación
 colum = ["Clasificación", "PIPE_A", "PIPE_B", "STATUS"]
 col_width = [25, 15, 15, 10]
 col_just = ['c', 'l', 'l', 'c']
-
-# TODO Agregar Ventana de Configuracion
 
 #? Menu superior de opciones
 menu_opciones = [
@@ -35,16 +38,32 @@ menu_opciones = [
 
 
 def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
-  '''Modifica el contenido y parametros de una etiqueta'''
-  bandera_agregar = False
+  '''
+    Modifica el contenido y parametros de una etiqueta
+
+    Parametros:
+      clasificacion_completa: Clasificación completa del libro a modificar
+      Dicc_info:
+        clasif: Clasificación Basica
+        volumen: Volumen expresado en V.(Num)
+        copia: Copia expresado en C.(Num)
+        encabeza: Encabezado anterior a Clasificación
+    
+        Retorna:
+          2 Listas con datos, en caso de finalizar correctamente.
+          Caso contrario regresa 2 listas de la siguiente manera [False],[False]
+  '''
   
+  bandera_agregar = False
+  print('Clasificación Completa')
+  print('Entrada de datos', dicc_info, sep='\n')
   # * Actualizar el Volumen a standard
   clasif = dicc_info['clasif']
   volumen = dicc_info['volumen']
   copia = dicc_info['copia']
   encabezado = dicc_info['encabeza']
   titulo = sh.limitador_string(dicc_info['titulo']) 
-  volumen = volumen[volumen.index('V.') + 2] if 'V.' in volumen else ''
+  volumen = volumen[volumen.index('V.') + 2] if 'V.' in volumen else '0'
 
   # * Seccion de Layout de la Ventana
   pipe_a = [
@@ -216,21 +235,26 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       return [False],[False]
 
     # * Actualizar clasificacion
-    clasif = str(values["CLAS"])
+    # Toma de datos de la pagina
+    clasif = values["CLAS"]
     volumen = str(values['VOL'])
     copia = str(values['COP'])
     encabezado = str(values['HEAD'])
 
-    encabezado = encabezado + ' ' if encabezado != '' else ''
+    # Adaptar datos para formato
+    encabezado = encabezado + ' ' if encabezado else ''
     volumen = 'V.' + volumen if volumen not in ('', '0') else ''
     clasificacion_completa = encabezado + sh.creador_clasificacion(clasif, volumen, copia)
+    # Actualizar datos en pagina
     window['TEXT'].update(clasificacion_completa)
 
 
-    # * Modificar clase
+    # * Modificar Clasificación Basica
     if event == "CLAS":
-      if len(str(values["CLAS"])) > 5:
-        clasif = str(values["CLAS"])
+      clasif = values["CLAS"]
+
+      # Revisa si se puede actualizar datos
+      if len(clasif) > 5:
         if sh.revisar_corte_pipe(clasif) and sh.revisar_pipeB(clasif):
           posicion_corte, diferencia = sh.buscar_pipe(clasif)
           if posicion_corte != 0:
@@ -255,6 +279,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       # clasificacion_completa = encabezado + ' ' + sh.creador_clasificacion(clasif, volumen, copia)
 
       window.close()
+      print([clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado])
       return [clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado]
 
     elif event == 'INFO': pop.show_info_libro(titulo)
@@ -611,6 +636,7 @@ def ventana_principal():
         pop.warning_folder()
         continue
       
+      # Checar si ya se cargó un excel
       if excel_completo: 
         continue
 
@@ -632,9 +658,9 @@ def ventana_principal():
       # * Generamos la tabla de datos para el Excel
       for ind in range(len(temp_etiquetas)):
         status = temp_etiquetas[ind][3]
-        main_dicc[len(tabla_principal) + ind] = status
-        if status == "False": row = ((len(tabla_principal) + ind), "#B00020")
-        else: row = ((len(tabla_principal) + ind), "#FFFFFF")
+        main_ind = len(tabla_principal) + ind 
+        main_dicc[main_ind] = status
+        row = ((main_ind), "#B00020") if status == "False" else ((main_ind), "#FFFFFF")
         row_color_array.append(row)
 
       #  * Concatenamos los nuevos datos a los antiguos
@@ -689,7 +715,7 @@ def ventana_principal():
       # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
       tabla_principal[modify_index] = modif_principal
-      row_color_array[modify_index] = (int(modify_index), "#32A852")
+      row_color_array[modify_index] = (int(modify_index), "#FFFFFF")
       modify_flag = False
 
       # * Actualizar valores de tabla de datos
@@ -719,8 +745,8 @@ def ventana_principal():
 
       # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
-      tabla_principal[modify_index] = modif_principal
-      row_color_array[modify_index] = (int(modify_index), "#FFFFFF")
+      tabla_principal[index_value][3] = 'True'
+      row_color_array[modify_index] = (int(modify_index), "#D8D8D8")
       modify_flag = False
 
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
