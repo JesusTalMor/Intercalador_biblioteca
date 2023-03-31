@@ -280,7 +280,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       
       window.close()
       # print([clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado], sep='\n')
-      return [clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "True"], [clasif, volumen, copia, encabezado]
+      return [clasificacion_completa, values["PIPE_A"], values["PIPE_B"], "Modified"], [clasif, volumen, copia, encabezado]
 
     elif event == 'INFO': pop.show_info_libro(titulo)
 
@@ -689,7 +689,7 @@ def ventana_principal():
       # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
       tabla_principal[modify_index] = modif_principal
-      row_color_array[modify_index] = (int(modify_index), "#FFFFFF")
+      row_color_array[modify_index] = (int(modify_index), "#D8D8D8")
       modify_flag = False
 
       # * Actualizar valores de tabla de datos
@@ -713,14 +713,15 @@ def ventana_principal():
       copia = tabla_datos[modify_index]['copia']
 
       lista_imprimir = [encabezado, clasif, volumen, copia]
+      print(lista_imprimir)
       # Individual Configuration Parameters
       ICP = {'PW':0, 'PH':0, 'TW':4.8, 'TH':3.7, 'PR':0, 'PC':0} 
       ticket.ticket_maker_main([lista_imprimir], str(modify_index), ruta_folder, ICP, (None,None))
 
       # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
-      tabla_principal[index_value][3] = 'True'
-      row_color_array[modify_index] = (int(modify_index), "#D8D8D8")
+      tabla_principal[index_value][3] = 'Printed'
+      row_color_array[modify_index] = (int(modify_index), "#7699D4")
       modify_flag = False
 
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)

@@ -11,29 +11,38 @@ import pop_ups as pop
 alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 
 def separar_STR(STR:str):
-  """ Separa un STR y retorna una lista"""
+  """ Separa un Clasificación y retorna una lista"""
   lista_salida = []
-  # * Separar por espacios
-  aux_list = STR.split(' ')
-  aux_list_2 = aux_list[0].split('.')
-  if aux_list_2[0][1] in alphabet:
-    aux_list_3 = [aux_list_2[0][:2], aux_list_2[0][2:]]
-  elif aux_list_2[0][0] in alphabet:
-    aux_list_3 = [aux_list_2[0][:1], aux_list_2[0][1:]]
-  
-  for elem in aux_list_3:
-    lista_salida.append(elem)
-  for index, elem in enumerate(aux_list_2):
-    if index != 0: lista_salida.append(elem)
-  for index, elem in enumerate(aux_list):
-    if index != 0: lista_salida.append(elem)
+  # * Separar por espacios separa PIPE A de PIPE B y la anterior en autor y año
+  space_list = STR.split(' ')  
+  # Ejemplo 'PQ7298.424.A76 .O744 2007' -> [PQ7298.424.A76] [.O744] [2007]
+  #* Separa el PIPE A en sus atributos: Categorias XD
+  pipe_a = space_list.pop(0) 
+  # Ejemplo [PQ7298.424.A76] [.O744] [2007] -> [PQ7298.424.A76] | [.O744] [2007]
+  pipe_a = pipe_a.split('.') 
+  # Ejemplo [PQ7298.424.A76] -> [PQ7298] [424] [A76]
+  letras_tema = pipe_a.pop(0)
+  # Ejemplo [PQ7298] [424] [A76] -> [PQ7298] | [424] [A76]
+  # print(space_list, pipe_a, letras_tema, sep='\n')
+  #* Trabajar en separar letras y numeros
+  letras_tema = [letras_tema[:2], letras_tema[2:]] if letras_tema[1] in alphabet else [letras_tema[0][:1], letras_tema[0][1:]]
+  # Ejemplo PQ7298 -> [PQ, 7298] si 2 letras otro caso P7298 -> [P, 7298]
+  # print(space_list, pipe_a, letras_tema, sep='\n')
+  #* Juntar todas las listas en la salida
+  lista_salida.extend(letras_tema)
+  lista_salida.extend(pipe_a)
+  lista_salida.extend(space_list)
+  # Ejemplo [PQ, 7298] + [424, A76] + [.O744, 2007] -> ['PQ', '7298', '424', 'A76', '.O744', '2007']
+  # print('Entrada', STR, sep='\n')
+  # print('Salida Final', lista_salida, sep='\n')
   return lista_salida
+
 
 def separate_list(str_list: list):
   """ Recibe una lista de strings y retorna una lista de listas """
   return_list = []
   for index, indiv_str in enumerate(str_list):
-    if index != 1 and indiv_str != '':
+    if index != 1 and indiv_str not in ('','1'):
       return_list.append(indiv_str)
     if index == 1:
       lista_temp = separar_STR(indiv_str)
@@ -47,7 +56,9 @@ def ticket_maker_main(str_list: list, date: str, root:str, config:dict, position
   
   Toma una lista de strings y genera imagenes ya sean formato PNG o PDF.
   
-  :param str_list: Es una lista que contiene las cadenas a imprimir
+  :param str_list: 
+    Es una lista que contiene las cadenas a imprimir
+    Ejemplo Entrada: ['ARVIZU', 'HG4551 .R8 2010', 'V.2', '2']
   :param date: Fecha para poder nombrar los archivos
   :param root: La ruta de guardado de los archivos generados
   :param config: La configuración de las imagenes que se generarán
@@ -60,7 +71,7 @@ def ticket_maker_main(str_list: list, date: str, root:str, config:dict, position
   
   # * Transforma una lista de strings a una lista de listas
   ticket = [separate_list(elem) for elem in str_list]
-  scale = 100  # * Escala de la etiqueta recomendado 100
+  scale = 100  #? Escala de la etiqueta recomendado 100
   
   # * (Individual) Medidas de Etiqueta
   Iwidth = int(scale * float(IW))
