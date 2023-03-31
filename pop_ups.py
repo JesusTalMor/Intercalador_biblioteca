@@ -57,8 +57,8 @@ def info_license():
   msg = f'Programa Bajo Licencia del Tecnológico de Monterrey\n !No reproducir sin permiso!'
   messagebox.showinfo("Licencia", msg)
 
-def info_about():
-  msg = f'Programa Generador de Etiquetas\n Por: Jesus Talamantes Morales 2022'
+def info_about(version):
+  msg = f'Programa Generador de Etiquetas\nVersión: {version}\nPor: Jesus Talamantes Morales 2022'
   messagebox.showinfo("About", msg)
 
 def show_info_libro(titulo:str):

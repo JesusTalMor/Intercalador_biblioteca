@@ -1,7 +1,7 @@
 
 # Editor: Jesus Talamantes Morales
 # Fecha Ultima Mod: 29 de Marzo 2023
-# Versión: 2.0
+# Versión: 2.1
 
 
 import PySimpleGUI as sg
@@ -10,6 +10,9 @@ import main_inter_functions as mainif
 import pop_ups as pop
 import string_helper as sh
 import ticket_maker as ticket
+
+#? Versión de programa
+version = '2.1'
 
 #? Tema principal tipo Tec para las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
@@ -298,18 +301,14 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
       sg.Text(
         text=f'{nombre_archivo} - {hoja}', 
         font=('Open Sans', 18, 'bold', 'italic'), 
-        background_color='#FFFFFF',
-        justification='c',
-        pad=0
+        background_color='#FFFFFF', justification='c', pad=0
       ),
     ],
     [
       sg.Text(
         text=f'pasos para ordenar:', 
         font=('Open Sans', 14, 'italic'), 
-        background_color='#FFFFFF',
-        justification='c',
-        pad=0
+        background_color='#FFFFFF', justification='c', pad=0
       ),
     ],
 
@@ -319,9 +318,7 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
       sg.Text(
         text='Instrucción:',
         font=('Open Sans', 18, 'bold'),
-        background_color='#FFFFFF',
-        justification='c',
-        pad=0
+        background_color='#FFFFFF', justification='c', pad=0
       )
     ],
     [
@@ -329,9 +326,7 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
         text=f'{action[0]}',
         font=('Arial', 18, 'bold'),
         background_color='#FFFFFF',
-        justification='c',
-        key='INSTRUCT',
-        pad=0
+        justification='c', key='INSTRUCT', pad=0
       )
     ]
   ]
@@ -340,19 +335,14 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
       sg.Text(
         text='Información Libro Erróneo',
         font=('Open Sans', 14, 'bold', 'italic'),
-        background_color='#FFFFFF',
-        justification='c',
-        pad=0
+        background_color='#FFFFFF', justification='c', pad=0
       )
     ],
     [
       sg.Text(
-        text=f'{libro_erroneo[0]} | {libro_erroneo[1]}',
+        text=f'{libro_erroneo[0]} \n {libro_erroneo[1]}',
         font=('Open Sans', 12, 'italic'),
-        background_color='#FFFFFF',
-        justification='c',
-        key='LIBRO',
-        pad=0
+        background_color='#FFFFFF', justification='c', key='LIBRO', pad=0
       )
     ]
   ]
@@ -361,19 +351,14 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
       sg.Text(
         text='Libro Anterior Correcto',
         font=('Open Sans', 14, 'bold', 'italic'),
-        background_color='#FFFFFF',
-        justification='c',
-        pad=0
+        background_color='#FFFFFF', justification='c', pad=0
       )
     ],
     [
       sg.Text(
-        text=f'{libro_ant_corr[0]} | {libro_ant_corr[1]}',
+        text=f'{libro_ant_corr[0]} \n {libro_ant_corr[1]}',
         font=('Open Sans', 12, 'italic'),
-        background_color='#FFFFFF',
-        justification='c',
-        key='ANT',
-        pad=0
+        background_color='#FFFFFF', justification='c', key='ANT', pad=0
       )
     ]
   ]
@@ -382,19 +367,14 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
       sg.Text(
         text='Libro Posterior Correcto',
         font=('Open Sans', 14, 'bold', 'italic'),
-        background_color='#FFFFFF',
-        justification='c',
-        pad=0
+        background_color='#FFFFFF', justification='c', pad=0
       )
     ],
     [
       sg.Text(
-        text=f'{libro_pos_corr[0]} | {libro_pos_corr[1]}',
+        text=f'{libro_pos_corr[0]} \n {libro_pos_corr[1]}',
         font=('Open Sans', 12, 'italic'),
-        background_color='#FFFFFF',
-        justification='c',
-        key='POS',
-        pad=0
+        background_color='#FFFFFF', justification='c', key='POS', pad=0
       )
     ]
   ]
@@ -403,10 +383,7 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
       sg.Text(
         text=f'{main_index+1}/{len_listas[0]}',
         font=('Open Sans', 18, 'bold', 'italic'),
-        background_color='#FFFFFF',
-        justification='c',
-        key='COUNT',
-        pad=0
+        background_color='#FFFFFF', justification='c', key='COUNT', pad=0
       )
     ],
     [
@@ -471,9 +448,9 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
       libro_pos_corr = lista_main[instruc_index][main_index]['siguiente']
 
       # * Actualizar datos
-      window['LIBRO'].update(f'{libro_erroneo[0]} | {libro_erroneo[1]}')
-      window['ANT'].update(f'{libro_ant_corr[0]} | {libro_ant_corr[1]}')
-      window['POS'].update(f'{libro_pos_corr[0]} | {libro_pos_corr[1]}')
+      window['LIBRO'].update(f'{libro_erroneo[0]} \n {libro_erroneo[1]}')
+      window['ANT'].update(f'{libro_ant_corr[0]} \n {libro_ant_corr[1]}')
+      window['POS'].update(f'{libro_pos_corr[0]} \n {libro_pos_corr[1]}')
       window['COUNT'].update(f'{main_index+1}/{len_listas[0]}')
 
 
@@ -824,7 +801,7 @@ def ventana_principal():
     
     elif event == 'Licencia': pop.info_license()
     
-    elif event == 'Acerca de...': pop.info_about()
+    elif event == 'Acerca de...': pop.info_about(version)
 
     elif event == 'Limpiar':
       # Reinciar valores del programa
