@@ -712,11 +712,12 @@ def ventana_principal():
       volumen = tabla_datos[modify_index]['volumen']
       copia = tabla_datos[modify_index]['copia']
 
-      lista_imprimir = [encabezado, clasif, volumen, copia]
-      print(lista_imprimir)
+      dict_format = {'HEAD':encabezado, 'CLASS':clasif, 'VOL':volumen, 'COP':copia}
+
+      print(dict_format)
       # Individual Configuration Parameters
       ICP = {'PW':0, 'PH':0, 'TW':4.8, 'TH':3.7, 'PR':0, 'PC':0} 
-      ticket.ticket_maker_main([lista_imprimir], str(modify_index), ruta_folder, ICP, (None,None))
+      ticket.ticket_maker_main([dict_format], str(modify_index), ruta_folder, ICP, (None,None))
 
       # * Actualizamos la apariencia del elemento en la tabla
       main_dicc[modify_index] = "True"
@@ -816,6 +817,7 @@ def ventana_principal():
       main_dataframe = {}
       hoja_actual = ''
       index_hoja = 0
+      modify_flag = False
       window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
       window["PAGE"].update(f'0/0')
 

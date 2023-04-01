@@ -9,6 +9,19 @@ import pop_ups as pop
 # TODO Queda pendiente PNG o PDF - Dejar en PNG etiquetas individuales
 
 alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+# * Tipografia de la etiquetas
+FONT_SIZE = 40
+MAIN_FONT = ImageFont.truetype("Assets/Khmer OS Muol.otf", size=FONT_SIZE)
+ESCALA = 100  #? Escala de la etiqueta recomendado 100
+COLOR = "rgb(0, 0, 0)"
+
+
+def max_len_list(lista: list) -> int:
+  max_len = 0
+  for texto in lista:
+    max_len = len(texto) if len(texto) > max_len else max_len
+  return max_len
+
 
 def separar_STR(STR:str):
   """ Separa un Clasificación y retorna una lista"""
@@ -38,20 +51,140 @@ def separar_STR(STR:str):
   return lista_salida
 
 
-def separate_list(str_list: list):
-  """ Recibe una lista de strings y retorna una lista de listas """
-  return_list = []
-  for index, indiv_str in enumerate(str_list):
-    if index != 1 and indiv_str not in ('','1'):
-      return_list.append(indiv_str)
-    if index == 1:
-      lista_temp = separar_STR(indiv_str)
-      for elem in lista_temp:
-        if elem != '': return_list.append(elem)
-  
-  return return_list
+def separate_list(str_dict: dict):
+  """ Recibe un diccionario y crea una lista para imprimir """
+  lista_salida = []
+  #* Usando un diccionario obtener todos los elementos
+  encabezado = [str_dict['HEAD']]
+  clasif = separar_STR(str_dict["CLASS"])
+  volumen = [str_dict['VOL']] if 'V.' in str_dict['VOL'] else ['']
+  copia = ['C.' + str_dict['COP']] if str_dict['COP'] not in ('1', '0', '', ' ') else ['']
+  #* Juntar todos los elementos
+  lista_salida.extend(encabezado)
+  lista_salida.extend(clasif)
+  lista_salida.extend(volumen)
+  lista_salida.extend(copia)
+  #* Limpiar elementos vacios
+  # lista_salida = [x for x in lista_salida if x != '']
+  # print('Entrada', str_dict, sep='\n')
+  # print('Salida', lista_salida, sep='\n')
+  return lista_salida
 
-def ticket_maker_main(str_list: list, date: str, root:str, config:dict, position:tuple):
+
+def imprimir_etiqueta(lista_a_imprimir: list, config: dict, ruta: str, titulo:str, num=0000):
+  ''' 
+    Genera una imagen PNG de la Etiqueta de un Libro
+    ! Sujeto a posibles cambios a futuro
+
+    NOTAS:
+    Sin modificar el FONT_SIZE de 40, en la etiqueta, común entran 8 filas, para una altura de 370 pxl.
+
+  '''
+  global FONT_SIZE
+  # TODO Podemos recibir los parametros y hacer la conversión aqui Me gusta mas esta
+  #* Configuración de la Etiqueta
+  IW, IH = config['TW'], config['TH']
+
+  #* Medidas en pixeles de la etiqueta
+  img_width = int(ESCALA * float(IW))
+  img_height = int(ESCALA * float(IH))
+  print('Medidas Etiqueta pxl. ', ('Alto', img_height), ('Ancho', img_width))
+  
+  max_len = max_len_list(lista_a_imprimir)
+  print('largo maximo a imprimir: ', max_len)
+  
+  #* Variables para posicionarse
+  limpiar_lista = [x for x in lista_a_imprimir if x != '']
+  FONT_SIZE = 35 if len(limpiar_lista) > 8 else 40 
+  real_font_size = (FONT_SIZE * 0.6) 
+  # row_diff = 8 - len(lista_a_imprimir)
+  jump_size = FONT_SIZE * 1.125
+  superior_border =  -(FONT_SIZE * 0.3)
+  
+  #* Posicion del cursor para escribir
+  Y_pos = superior_border
+  X_pos = (img_width/2) - ((max_len/2) * real_font_size)
+
+  #* Llenado de la etiqueta
+  main_img = Image.new("RGB", (img_width, img_height), color=(255, 255, 255))
+  image_draw = ImageDraw.Draw(main_img) # objeto para dibujar
+  #* Imprime todo el texto en una imagen
+  y_print = Y_pos # Posicion del encabeza
+  for texto in lista_a_imprimir:
+    image_draw.text((X_pos, y_print), texto, fill=COLOR, font=MAIN_FONT)
+    y_print += jump_size
+  #* Guardar la imagen
+  ruta_img = f'{ruta}/{num}_{titulo}.png'
+  main_img.show()
+  main_img.save(ruta_img)
+
+
+def imprimir_pagina(etiquetas_a_imprimir:list, lista_a_imprimir: list, config: dict, ruta: str, titulo:str):
+  fpdf = FPDF() # Objeto para crear pdfs
+  lista_imagenes_auxiliares = []
+  #? Llenado de la pagina
+  #* Generamos una nueva pagina en blanco
+  main_img = Image.new("RGB", (Pwidth, Pheight), color=(255, 255, 255))
+  image_draw = ImageDraw.Draw(main_img) # Objeto para dibujar en la imagen
+  
+  #* Posición inicial para el cursor
+  y, x = position
+  page_counter = 0
+  for etiqueta in etiquetas_a_imprimir:  
+    #* Cambio de Linea - Se terminan las columnas
+    if x == int(COL):  
+      x = 0
+      y += 1
+
+    #* Cambio de página - Se terminan las filas
+    if y == int(ROW):
+      ruta_img = f'{ruta}/{page_counter}_aux_image.png'
+      main_img.show()
+      main_img.save(ruta_img) # Guardar imagen actual
+      lista_imagenes_auxiliares.append(ruta_img) # Agregar imagen a cola de imagenes
+      
+      #* Generamos una nueva pagina en blanco
+      main_img = Image.new("RGB", (Pwidth, Pheight), color=(255, 255, 255))
+      image_draw = ImageDraw.Draw(main_img)
+
+      #* Nueva posición inicial para el cursor
+      y, x = 0, 0
+      page_counter += 1
+
+    #* Imprimir contenido de etiqueta
+    # Cursor para etiqueta individual
+    x_print = X_pos + (Iwidth * x)
+    y_print = Y_pos + (Iheight * y)
+    
+    for text in etiqueta:
+      image_draw.text((x_print, y_print), text, fill=COLOR, font=MAIN_FONT)
+      y_print += 45
+    #* Cambio de Columna
+    x += 1  
+
+  # * Muestreo de la Imagen (Guardar Imagen)
+  ruta_img = f'{ruta}/{page_counter}_aux_image.png'
+  main_img.show()
+  main_img.save(ruta_img) # Guardar imagen actual
+  lista_imagenes_auxiliares.append(ruta_img) # Agregar imagen a cola de imagenes
+  
+  
+  # Mostrar pop up de confirmación
+  answer = pop.check_images()
+  if answer:
+    for index in range(page_counter+1):
+      fpdf.add_page()
+      aux_image = f"{root}/{index}_aux_image.png"
+      fpdf.image(aux_image, 0,0, w=210)
+      os.remove(aux_image)
+    fpdf.output(root + "/" + str(date) + ".pdf")
+  else:
+    for index in range(page_counter+1):
+      aux_image = f"{root}/{index}_aux_image.png"
+      os.remove(aux_image)
+
+
+def ticket_maker_main(etiquetas_a_imprimir: list, titulo: str, ruta:str, config:dict, position:tuple):
   """
   
   Toma una lista de strings y genera imagenes ya sean formato PNG o PDF.
@@ -59,106 +192,46 @@ def ticket_maker_main(str_list: list, date: str, root:str, config:dict, position
   :param str_list: 
     Es una lista que contiene las cadenas a imprimir
     Ejemplo Entrada: ['ARVIZU', 'HG4551 .R8 2010', 'V.2', '2']
-  :param date: Fecha para poder nombrar los archivos
+  :param titulo: 
+    Nombre para ponerle al archivo de salida
   :param root: La ruta de guardado de los archivos generados
   :param config: La configuración de las imagenes que se generarán
   :param position: !Solo caso de Tamaño carta! Posición de inicio para imprimir
   """
-  # * Recibe la configuración para las etiquetas
-  PW, PH = config['PW'], config['PH'] 
-  IW, IH = config['TW'], config['TH']
+  
+  #* Tranforma la lista de diccionarios a una lista para imprimir
+  lista_a_imprimir = [separate_list(elem) for elem in etiquetas_a_imprimir]
+
+  # # * Recibe la configuración para las etiquetas
+  # PW, PH = config['PW'], config['PH'] 
+  # IW, IH = config['TW'], config['TH']
   COL, ROW = config['PC'], config['PR']
-  
-  # * Transforma una lista de strings a una lista de listas
-  ticket = [separate_list(elem) for elem in str_list]
-  scale = 100  #? Escala de la etiqueta recomendado 100
-  
-  # * (Individual) Medidas de Etiqueta
-  Iwidth = int(scale * float(IW))
-  Iheight = int(scale * float(IH))
-  # * Hoja Completa Medidas Hoja
-  Pwidth = int(scale * float(PW))
-  Pheight = int(scale * float(PH))
+    
+  # # * (Individual) Medidas de Etiqueta
+  # Iwidth = int(scale * float(IW))
+  # Iheight = int(scale * float(IH))
+  # # * Hoja Completa Medidas Hoja
+  # Pwidth = int(scale * float(PW))
+  # Pheight = int(scale * float(PH))
 
-  # * Margen en eje Y
-  Y_pos = int(0.6*scale) # Ajuste de margen ya definido
-  # * Calcular la posición del cursor en X
-  X_pos = int(Iwidth / 2) - 40
+  # # * Margen en eje Y
+  # Y_pos = int(0.6*scale) # Ajuste de margen ya definido
+  # # * Calcular la posición del cursor en X
+  # X_pos = int(Iwidth / 2) - 40
 
-  # * Escalado de la tipografia
-  font = ImageFont.truetype("Assets/Khmer OS Muol.otf", size=40)
 
   if int(COL) != 0:
-    # * Definicion y Escritura del mensaje en la imagen generada
-    fpdf = FPDF()
-    main_image = Image.new("RGB", (Pwidth, Pheight), color=(255, 255, 255))
-    image_draw = ImageDraw.Draw(main_image)
-    color = "rgb(0, 0, 0)"
-    # ? Print on a full Sheet of paper
-    y, x = position
-    page_counter = 0
-    for main_ticket in ticket:  # recibe una lista de una lista de listas
-      if x == int(COL):  # Si no podemos imprimir en la fila actual
-        x = 0
-        y += 1
-
-      if y == int(ROW):  # Si no podemos imprimir en la hoja
-        main_image.save(f"{root}/{page_counter}_aux_image.png")
-        os.system(f"powershell -c {root}/{page_counter}_aux_image.png")
-        # Generamos una imagen nueva en blanco
-        main_image = Image.new("RGB", (Pwidth, Pheight), color=(255, 255, 255))
-        image_draw = ImageDraw.Draw(main_image)
-        color = "rgb(0, 0, 0)"
-        # Actualizamos los contadores
-        y = 0
-        x = 0
-        page_counter += 1
-
-      # Imprimimos con las posiciones
-      x_print = X_pos + (Iwidth * x)
-      y_print = Y_pos + (Iheight * y)
-      for text in main_ticket:
-        image_draw.text((x_print, y_print), text, fill=color, font=font)
-        y_print += 45
-      x += 1  # Actualizamos valor de X despues de imprimir
-
-    # * Muestreo de la Imagen (Guardar Imagen)
-    # print(str(ID) + '_' + str(date) + '.png')
-    main_image.save(f"{root}/{page_counter}_aux_image.png")
-    os.system(f"powershell -c {root}/{page_counter}_aux_image.png")
-
-    
-    # Mostrar pop up de confirmación
-    answer = pop.check_images()
-    if answer:
-      for index in range(page_counter+1):
-        fpdf.add_page()
-        aux_image = f"{root}/{index}_aux_image.png"
-        fpdf.image(aux_image, 0,0, w=210)
-        os.remove(aux_image)
-      fpdf.output(root + "/" + str(date) + ".pdf")
-    else:
-      for index in range(page_counter+1):
-        aux_image = f"{root}/{index}_aux_image.png"
-        os.remove(aux_image)
-
-
+    pass
+  #? Imprimir etiquetas individuales
   else:
-    # ? Print individual ticket
-    for num, main_ticket in enumerate(ticket): 
-      main_image = Image.new("RGB", (Iwidth, Iheight), color=(255, 255, 255))
-      image_draw = ImageDraw.Draw(main_image)
-      color = "rgb(0, 0, 0)"
-      y_print = Y_pos
-      for text in main_ticket:
-        image_draw.text((X_pos, y_print), text, fill=color, font=font)
-        y_print += 45
+    for ind, etiqueta in enumerate(lista_a_imprimir):
+      imprimir_etiqueta(
+        lista_a_imprimir=etiqueta, config=config, ruta=ruta, 
+        titulo=titulo, num=ind)
 
-      # * Muestreo de la Imagen (Guardar Imagen)
-      main_image.save(root + "/" + str(num) + "_" + str(date) + ".png")
 
 
 if __name__ == "__main__":
-  main_list = ['SLAP', 'BF109.78.J89 .C791 2010', 'V.1', 'C.1']
+  main_list = {'HEAD': '', 'CLASS':'BF109.78.J89 .C791 2010', 'VOL':'', 'COP':'1'}
   print(separate_list(main_list))
   
