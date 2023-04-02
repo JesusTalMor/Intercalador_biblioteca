@@ -12,7 +12,7 @@ import string_helper as sh
 import ticket_maker as ticket
 
 #? Versión de programa
-version = '2.1'
+version = '0.4'
 
 #? Tema principal tipo Tec para las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
