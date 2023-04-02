@@ -68,8 +68,8 @@ def show_info_libro(titulo:str):
 # # ? POP_up de OkCancel Ask (askokcancel)
 ##########################################################
 def check_images():
-  msg = f'Imágenes Generadas\n Presione Aceptar para continuar con su PDF'
-  answer = messagebox.askokcancel("Confirmar", msg)
+  msg = f'Presione Aceptar para generar su PDF'
+  answer = messagebox.askokcancel("Generador IMG", msg)
   return answer
 
 if __name__ == "__main__":

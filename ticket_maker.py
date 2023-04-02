@@ -1,5 +1,6 @@
 import os
 
+import PySimpleGUI as sg
 from fpdf import FPDF
 from PIL import Image, ImageDraw, ImageFont
 
@@ -14,6 +15,21 @@ FONT_SIZE = 40
 MAIN_FONT = ImageFont.truetype("Assets/Khmer OS Muol.otf", size=FONT_SIZE)
 ESCALA = 100  #? Escala de la etiqueta recomendado 100
 COLOR = "rgb(0, 0, 0)"
+
+#? Tema principal tipo Tec para las ventanas
+sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
+  'BACKGROUND': '#000000',
+  'TEXT': '#000000',
+  'INPUT': '#DEE6F7',
+  'TEXT_INPUT': '#000000',
+  'SCROLL': '#DEE6F7',
+  'BUTTON': ('#000000', '#FFFFFF'),
+  'PROGRESS': ('#DEE6F7', '#DEE6F7'),
+  'BORDER': 2, 'SLIDER_DEPTH': 0,
+  'PROGRESS_DEPTH': 0,
+}
+sg.theme('MyCreatedTheme')
+
 
 
 def max_len_list(lista: list) -> int:
@@ -81,19 +97,15 @@ def imprimir_etiqueta(lista_a_imprimir: list, config: dict, ruta: str, titulo:st
 
   '''
   global FONT_SIZE
-  # TODO Podemos recibir los parametros y hacer la conversión aqui Me gusta mas esta
   #* Configuración de la Etiqueta
   IW, IH = config['TW'], config['TH']
 
   #* Medidas en pixeles de la etiqueta
   img_width = int(ESCALA * float(IW))
   img_height = int(ESCALA * float(IH))
-  print('Medidas Etiqueta pxl. ', ('Alto', img_height), ('Ancho', img_width))
-  
-  max_len = max_len_list(lista_a_imprimir)
-  print('largo maximo a imprimir: ', max_len)
   
   #* Variables para posicionarse
+  max_len = max_len_list(lista_a_imprimir)
   limpiar_lista = [x for x in lista_a_imprimir if x != '']
   FONT_SIZE = 35 if len(limpiar_lista) > 8 else 40 
   real_font_size = (FONT_SIZE * 0.6) 
@@ -115,22 +127,52 @@ def imprimir_etiqueta(lista_a_imprimir: list, config: dict, ruta: str, titulo:st
     y_print += jump_size
   #* Guardar la imagen
   ruta_img = f'{ruta}/{num}_{titulo}.png'
-  main_img.show()
   main_img.save(ruta_img)
+  return ruta_img
+  
 
 
-def imprimir_pagina(etiquetas_a_imprimir:list, lista_a_imprimir: list, config: dict, ruta: str, titulo:str):
+def imprimir_pagina(lista_a_imprimir:list, config: dict, ruta: str, titulo:str, position:tuple):
+  global FONT_SIZE
   fpdf = FPDF() # Objeto para crear pdfs
   lista_imagenes_auxiliares = []
+  #* Configuración de la Etiqueta
+  PW, PH = config['PW'], config['PH'] 
+  IW, IH = config['TW'], config['TH']
+  COL, ROW = config['PC'], config['PR']
+  
+  #* Medidas para etiqueta individual (Posible cambio)
+  img_width = int(ESCALA * float(IW))
+  img_height = int(ESCALA * float(IH))
+  #* Medidas para la hoja completa (Posible Cambio)
+  page_width = int(ESCALA * float(PW))
+  page_height = int(ESCALA * float(PH))
+
+
   #? Llenado de la pagina
   #* Generamos una nueva pagina en blanco
-  main_img = Image.new("RGB", (Pwidth, Pheight), color=(255, 255, 255))
+  main_img = Image.new("RGB", (page_width, page_height), color=(255, 255, 255))
   image_draw = ImageDraw.Draw(main_img) # Objeto para dibujar en la imagen
   
   #* Posición inicial para el cursor
   y, x = position
   page_counter = 0
-  for etiqueta in etiquetas_a_imprimir:  
+  #* Tomar datos de etiqueta
+  for etiqueta in lista_a_imprimir: 
+    #* Variables para posicionarse    
+    max_len = max_len_list(etiqueta)
+    limpiar_lista = [dato for dato in etiqueta if x != '']
+    FONT_SIZE = 35 if len(limpiar_lista) > 8 else 40 
+    real_font_size = (FONT_SIZE * 0.6) 
+    # row_diff = 8 - len(lista_a_imprimir)
+    jump_size = FONT_SIZE * 1.125
+    superior_border =  -(FONT_SIZE * 0.3)
+    
+    #* Posicion del cursor para escribir
+    Y_pos = superior_border # Se queda estatico
+    X_pos = (img_width/2) - ((max_len/2) * real_font_size) # Centrado dinamico
+
+
     #* Cambio de Linea - Se terminan las columnas
     if x == int(COL):  
       x = 0
@@ -139,12 +181,11 @@ def imprimir_pagina(etiquetas_a_imprimir:list, lista_a_imprimir: list, config: d
     #* Cambio de página - Se terminan las filas
     if y == int(ROW):
       ruta_img = f'{ruta}/{page_counter}_aux_image.png'
-      main_img.show()
       main_img.save(ruta_img) # Guardar imagen actual
       lista_imagenes_auxiliares.append(ruta_img) # Agregar imagen a cola de imagenes
       
       #* Generamos una nueva pagina en blanco
-      main_img = Image.new("RGB", (Pwidth, Pheight), color=(255, 255, 255))
+      main_img = Image.new("RGB", (page_width, page_height), color=(255, 255, 255))
       image_draw = ImageDraw.Draw(main_img)
 
       #* Nueva posición inicial para el cursor
@@ -153,35 +194,34 @@ def imprimir_pagina(etiquetas_a_imprimir:list, lista_a_imprimir: list, config: d
 
     #* Imprimir contenido de etiqueta
     # Cursor para etiqueta individual
-    x_print = X_pos + (Iwidth * x)
-    y_print = Y_pos + (Iheight * y)
+    x_print = X_pos + (img_width * x)
+    y_print = Y_pos + (img_height * y)
+    # print('Contadores', x, y, sep=' ')
+    # print('Posicion cursor', x_print, y_print, sep=' ')
     
     for text in etiqueta:
       image_draw.text((x_print, y_print), text, fill=COLOR, font=MAIN_FONT)
-      y_print += 45
+      y_print += jump_size
     #* Cambio de Columna
+    
     x += 1  
 
   # * Muestreo de la Imagen (Guardar Imagen)
   ruta_img = f'{ruta}/{page_counter}_aux_image.png'
-  main_img.show()
   main_img.save(ruta_img) # Guardar imagen actual
   lista_imagenes_auxiliares.append(ruta_img) # Agregar imagen a cola de imagenes
   
-  
-  # Mostrar pop up de confirmación
-  answer = pop.check_images()
+  #* Generar PDF
+  answer = image_viewer(lista_imagenes_auxiliares, True)
   if answer:
-    for index in range(page_counter+1):
+    for aux_image in reversed(lista_imagenes_auxiliares):
       fpdf.add_page()
-      aux_image = f"{root}/{index}_aux_image.png"
       fpdf.image(aux_image, 0,0, w=210)
       os.remove(aux_image)
-    fpdf.output(root + "/" + str(date) + ".pdf")
+    fpdf.output(f'{ruta}/{titulo}.pdf')
   else:
-    for index in range(page_counter+1):
-      aux_image = f"{root}/{index}_aux_image.png"
-      os.remove(aux_image)
+    for aux_ruta in lista_imagenes_auxiliares:
+      os.remove(aux_ruta)
 
 
 def ticket_maker_main(etiquetas_a_imprimir: list, titulo: str, ruta:str, config:dict, position:tuple):
@@ -199,39 +239,89 @@ def ticket_maker_main(etiquetas_a_imprimir: list, titulo: str, ruta:str, config:
   :param position: !Solo caso de Tamaño carta! Posición de inicio para imprimir
   """
   
-  #* Tranforma la lista de diccionarios a una lista para imprimir
+  #* Transforma la lista de diccionarios a una lista para imprimir
   lista_a_imprimir = [separate_list(elem) for elem in etiquetas_a_imprimir]
-
-  # # * Recibe la configuración para las etiquetas
-  # PW, PH = config['PW'], config['PH'] 
-  # IW, IH = config['TW'], config['TH']
-  COL, ROW = config['PC'], config['PR']
-    
-  # # * (Individual) Medidas de Etiqueta
-  # Iwidth = int(scale * float(IW))
-  # Iheight = int(scale * float(IH))
-  # # * Hoja Completa Medidas Hoja
-  # Pwidth = int(scale * float(PW))
-  # Pheight = int(scale * float(PH))
-
-  # # * Margen en eje Y
-  # Y_pos = int(0.6*scale) # Ajuste de margen ya definido
-  # # * Calcular la posición del cursor en X
-  # X_pos = int(Iwidth / 2) - 40
-
-
-  if int(COL) != 0:
-    pass
+  if position[0] != None:
+    imprimir_pagina(
+      config=config, lista_a_imprimir=lista_a_imprimir, position=position,
+      ruta=ruta, titulo=titulo)
   #? Imprimir etiquetas individuales
   else:
     for ind, etiqueta in enumerate(lista_a_imprimir):
-      imprimir_etiqueta(
+      lista_imagenes_auxiliares = []
+      ruta_aux = imprimir_etiqueta(
         lista_a_imprimir=etiqueta, config=config, ruta=ruta, 
         titulo=titulo, num=ind)
+      lista_imagenes_auxiliares.append(ruta_aux)
+    # Visualizar o Generar PDF
+    image_viewer(lista_imagenes_auxiliares, False)
 
+
+def image_viewer(lista_de_rutas: list, flag: bool):
+  #* Estandarizar tamaño de la imagen
+  divisor = 5 if flag else 2
+  cursor = 0
+  if not os.path.exists(lista_de_rutas[cursor]):
+    return False
+  image = Image.open(lista_de_rutas[cursor])
+  iw, ih = image.size
+  image.thumbnail((iw/divisor,ih/divisor))
+  image.save('temp.png')
+  
+  # * Formato de la Interfaz de Usuario
+  layout = [
+    #? Generar una imagen
+    [sg.Text('Muevase con las flechas del Teclado', font=('Open Sans', 16, 'bold', 'italic'), background_color='#FFFFFF', pad=0)],
+    [sg.Frame(title='', layout=[[sg.Image(filename='temp.png', key='IMAGEN', pad=0)]], background_color='#000000')],
+    [sg.Button('OK', font=('Open Sans', 12, 'bold'), pad=0)]
+  ]
+  main_layout = [[sg.Frame(title='',layout=layout, background_color="#FFFFFF", element_justification="c", pad=0)]]
+  
+  #* Inicializar Ventana
+  window = sg.Window(
+    'Visualizador Etiquetas', main_layout, element_justification='c', 
+    icon='Assets/book_icon.ico', finalize=True, return_keyboard_events=True)
+
+  #* Loop principal
+  while True:
+    event, values = window.read()
+    # print(event,values, sep=',')
+    #? Salir de la pestaña
+    if event in ('OK', 'Exit', sg.WINDOW_CLOSED):
+      window.close()
+      os.remove('temp.png')
+      if flag:
+        answer = pop.check_images()
+        return answer
+      else:
+        return False
+    
+    #? Esperar evento de teclado
+    else:
+      # * Avanzar imagen a la derecha
+      if 'Right' in event or 'Up' in event:
+        cursor = 0 if cursor+1 >= len(lista_de_rutas) else cursor + 1
+      elif 'Left' in event or 'Down' in event:
+        cursor = len(lista_de_rutas)-1 if cursor-1 < 0 else cursor - 1
+      
+      #* Revisa si existe el archivo
+      if not os.path.exists(lista_de_rutas[cursor]):
+        window.close()
+        os.remove('temp.png')
+        return False
+      
+      #* Abre la imagen y la cambia de tamaño
+      image = Image.open(lista_de_rutas[cursor])
+      iw, ih = image.size
+      image.thumbnail((iw/divisor,ih/divisor))
+      image.save('temp.png')
+      window['IMAGEN'].update(filename='temp.png')
 
 
 if __name__ == "__main__":
   main_list = {'HEAD': '', 'CLASS':'BF109.78.J89 .C791 2010', 'VOL':'', 'COP':'1'}
-  print(separate_list(main_list))
-  
+  main_list2 = {'HEAD': 'ARVIZU', 'CLASS':'BF109.78.J89 .C791 2010', 'VOL':'V.2', 'COP':'2'}
+  PCP = {'PW':21.59, 'PH':27.94, 'TW':2.69, 'TH':4.65, 'PR':6, 'PC':8} 
+  ruta = 'C:/Users/EQUIPO/Desktop/Proyecto_Intercalador/Pruebas/prueba_mario'
+  # print(separate_list(main_list))
+  ticket_maker_main(config=PCP, etiquetas_a_imprimir=[main_list, main_list2], position=(0,0), ruta=ruta, titulo='Prueba')
