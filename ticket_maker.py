@@ -54,7 +54,7 @@ def separar_STR(STR:str):
   # Ejemplo [PQ7298] [424] [A76] -> [PQ7298] | [424] [A76]
   # print(space_list, pipe_a, letras_tema, sep='\n')
   #* Trabajar en separar letras y numeros
-  letras_tema = [letras_tema[:2], letras_tema[2:]] if letras_tema[1] in alphabet else [letras_tema[0][:1], letras_tema[0][1:]]
+  letras_tema = [letras_tema[:2], letras_tema[2:]] if letras_tema[1] in alphabet else [letras_tema[:1], letras_tema[1:]]
   # Ejemplo PQ7298 -> [PQ, 7298] si 2 letras otro caso P7298 -> [P, 7298]
   # print(space_list, pipe_a, letras_tema, sep='\n')
   #* Juntar todas las listas en la salida
@@ -106,7 +106,7 @@ def imprimir_etiqueta(lista_a_imprimir: list, config: dict, ruta: str, titulo:st
   
   #* Variables para posicionarse
   max_len = max_len_list(lista_a_imprimir)
-  limpiar_lista = [x for x in lista_a_imprimir if x != '']
+  limpiar_lista = [x for ind, x in enumerate(lista_a_imprimir) if x != '' or ind == 0]
   FONT_SIZE = 35 if len(limpiar_lista) > 8 else 40 
   real_font_size = (FONT_SIZE * 0.6) 
   # row_diff = 8 - len(lista_a_imprimir)
@@ -122,14 +122,13 @@ def imprimir_etiqueta(lista_a_imprimir: list, config: dict, ruta: str, titulo:st
   image_draw = ImageDraw.Draw(main_img) # objeto para dibujar
   #* Imprime todo el texto en una imagen
   y_print = Y_pos # Posicion del encabeza
-  for texto in lista_a_imprimir:
+  for texto in limpiar_lista:
     image_draw.text((X_pos, y_print), texto, fill=COLOR, font=MAIN_FONT)
     y_print += jump_size
   #* Guardar la imagen
   ruta_img = f'{ruta}/{num}_{titulo}.png'
   main_img.save(ruta_img)
   return ruta_img
-  
 
 
 def imprimir_pagina(lista_a_imprimir:list, config: dict, ruta: str, titulo:str, position:tuple):
@@ -319,9 +318,10 @@ def image_viewer(lista_de_rutas: list, flag: bool):
 
 
 if __name__ == "__main__":
-  main_list = {'HEAD': '', 'CLASS':'BF109.78.J89 .C791 2010', 'VOL':'', 'COP':'1'}
-  main_list2 = {'HEAD': 'ARVIZU', 'CLASS':'BF109.78.J89 .C791 2010', 'VOL':'V.2', 'COP':'2'}
-  PCP = {'PW':21.59, 'PH':27.94, 'TW':2.69, 'TH':4.65, 'PR':6, 'PC':8} 
-  ruta = 'C:/Users/EQUIPO/Desktop/Proyecto_Intercalador/Pruebas/prueba_mario'
-  # print(separate_list(main_list))
-  ticket_maker_main(config=PCP, etiquetas_a_imprimir=[main_list, main_list2], position=(0,0), ruta=ruta, titulo='Prueba')
+  # main_list = {'HEAD': '', 'CLASS':'BF109.78.J89 .C791 2010', 'VOL':'', 'COP':'1'}
+  # main_list2 = {'HEAD': 'ARVIZU', 'CLASS':'BF109.78.J89 .C791 2010', 'VOL':'V.2', 'COP':'2'}
+  # PCP = {'PW':21.59, 'PH':27.94, 'TW':2.69, 'TH':4.65, 'PR':6, 'PC':8} 
+  # ruta = 'C:/Users/EQUIPO/Desktop/Proyecto_Intercalador/Pruebas/prueba_mario'
+  # # print(separate_list(main_list))
+  # ticket_maker_main(config=PCP, etiquetas_a_imprimir=[main_list, main_list2], position=(0,0), ruta=ruta, titulo='Prueba')
+  print(separar_STR('Q126.4 .E88 2019'))

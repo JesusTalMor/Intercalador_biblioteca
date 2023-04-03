@@ -13,7 +13,7 @@ import ticket_maker as ticket
 
 #? Versión de programa
 version = '0.4'
-
+# Para hacer el visualizador y las modificaciones a impresiones estuve chambeando 5 horas minimo 500 pesitos jajaja
 #? Tema principal tipo Tec para las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
   'BACKGROUND': '#3016F3',
