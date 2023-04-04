@@ -213,7 +213,7 @@ def imprimir_pagina(lista_a_imprimir:list, config: dict, ruta: str, titulo:str, 
   #* Generar PDF
   answer = image_viewer(lista_imagenes_auxiliares, True)
   if answer:
-    for aux_image in reversed(lista_imagenes_auxiliares):
+    for aux_image in lista_imagenes_auxiliares:
       fpdf.add_page()
       fpdf.image(aux_image, 0,0, w=210)
       os.remove(aux_image)

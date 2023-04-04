@@ -1,7 +1,7 @@
 
 # Editor: Jesus Talamantes Morales
-# Fecha Ultima Mod: 29 de Marzo 2023
-# Versión: 2.1
+# Fecha Ultima Mod: 2 de Abril 2023
+# Versión: 0.5.0
 
 
 import PySimpleGUI as sg
@@ -12,7 +12,7 @@ import string_helper as sh
 import ticket_maker as ticket
 
 #? Versión de programa
-version = '0.5.0'
+version = '0.5.2'
 # Para hacer el visualizador y las modificaciones a impresiones estuve chambeando 5 horas minimo 500 pesitos jajaja
 #? Tema principal tipo Tec para las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
@@ -77,14 +77,16 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       sg.Text(
         text="PIPE A", 
         font=("Open Sans", 12, "bold"),
-        background_color="#FFFFFF", 
-        justification="center", 
+        background_color="#FFFFFF", justification="center", 
         pad=5,
       )
     ],
     [
-      sg.In(default_text="ESPERA", size=(14, 1), font=("Open Sans", 10),
-      justification="center", key="PIPE_A", disabled=True,)
+      sg.In(
+        default_text="ESPERA", 
+        size=(14, 1), font=("Open Sans", 10),
+        justification="center", key="PIPE_A", disabled=True,
+      )
     ],
   ]
   pipe_b = [
@@ -92,15 +94,15 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       sg.Text(
         text="PIPE B", 
         font=("Open Sans", 12, "bold"),
-        background_color="#FFFFFF", 
-        justification="center", 
-        pad=5,
+        background_color="#FFFFFF", justification="center", pad=5,
       )
     ],
     [
-      sg.In(default_text="MODIFICAR", size=(12, 1),
-      font=("Open Sans", 10), justification="center",
-      key="PIPE_B", disabled=True,)
+      sg.In(
+        default_text="MODIFICAR", 
+        size=(12, 1), font=("Open Sans", 10), 
+        justification="center", key="PIPE_B", disabled=True,
+      )
     ],
   ]
   indi_layout = [
@@ -108,36 +110,29 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       sg.Text(
         text="Clasificación", 
         font=("Open Sans", 14, "bold"), 
-        background_color="#FFFFFF", 
-        justification="center",
+        background_color="#FFFFFF", justification="center",
       )
     ],
     [
       sg.In(
         default_text=clasif, 
-        size=(25, 1), 
-        enable_events=True,
-        key="CLAS",
-        font=("Open Sans", 12), 
-        justification="center", 
-        pad=(15, 5),
+        size=(25, 1), enable_events=True,
+        key="CLAS", font=("Open Sans", 12), 
+        justification="center", pad=(15, 5),
       )
     ],
     [
       sg.Text(
         text="Agregar Encabezado",
         font=("Open Sans", 12),
-        background_color="#FFFFFF",
-        justification="center",
+        background_color="#FFFFFF", justification="center",
       )
     ],
     [
       sg.In(
         default_text=encabezado, 
-        size=(18, 1),
-        enable_events=True,
-        key="HEAD",
-        font=("Open Sans", 10),
+        size=(18, 1), enable_events=True,
+        key="HEAD", font=("Open Sans", 10),
         justification="center",
       )
     ],
@@ -145,44 +140,30 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       sg.Text(
         text="Volumen",
         font=("Open Sans", 12),
-        background_color="#FFFFFF",
-        justification="center",
+        background_color="#FFFFFF", justification="center",
       ),
       sg.In(
         default_text=volumen, 
-        size=(2, 1),
-        enable_events=True,
-        key="VOL",
-        font=("Open Sans", 10),
+        size=(2, 1), enable_events=True,
+        key="VOL", font=("Open Sans", 10),
         justification="center",
       ),
       sg.Text(
         text="Copia",
         font=("Open Sans", 12),
-        background_color="#FFFFFF",
-        justification="center",
+        background_color="#FFFFFF", justification="center",
       ),
       sg.In(
         default_text=copia, 
-        size=(2, 1),
-        enable_events=True,
-        key="COP",
-        font=("Open Sans", 10),
+        size=(2, 1), enable_events=True,
+        key="COP", font=("Open Sans", 10),
         justification="center",
       ),
     ],
     [
-      sg.Column(
-        layout=pipe_a, 
-        background_color="#FFFFFF", 
-        element_justification="c"
-      ),
+      sg.Column(layout=pipe_a, background_color="#FFFFFF", element_justification="c"),
       sg.VSeperator(),
-      sg.Column(
-        layout=pipe_b, 
-        background_color="#FFFFFF", 
-        element_justification="c"
-      ),
+      sg.Column(layout=pipe_b, background_color="#FFFFFF", element_justification="c"),
     ],
   ]
   layout = [
@@ -190,8 +171,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       sg.Text(
         text="Modificar Etiqueta",
         font=("Open Sans", 18, "bold", "italic"),
-        background_color="#FFFFFF",
-        justification="center",
+        background_color="#FFFFFF", justification="center",
         pad=(0, (0, 10)),
       ),
       sg.Button(image_source='Assets/info_icon.png', image_subsample=10, border_width=0, key='INFO', pad=(5,(0,10)))
@@ -200,33 +180,21 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
       sg.Text(
         text=clasificacion_completa,
         font=("Open Sans", 16, "bold"),
-        background_color="#FFFFFF",
-        justification="center",
+        background_color="#FFFFFF", justification="center",
         key="TEXT",
       )
     ],
     [sg.HorizontalSeparator(color="#000000", pad=(0, (10, 6)))],
-    [
-      sg.Frame(
-        "",
-        layout=indi_layout,
-        background_color="#FFFFFF",
-        element_justification="c",
-      )
-    ],
+    [sg.Frame("", layout=indi_layout, background_color="#FFFFFF", element_justification="c",)],
     [sg.HorizontalSeparator(color="#000000", pad=(0, (6, 10)))],
     [
       sg.Button("Cancelar", font=("Open Sans", 12, "bold")),
       sg.Button("Modificar", font=("Open Sans", 12, "bold")),
     ],
   ]
-  main_layout = [
-    [
-      sg.Frame("", layout, background_color="#FFFFFF", element_justification="c", pad=0)
-    ]
-  ]
+  main_layout = [[sg.Frame("", layout, background_color="#FFFFFF", element_justification="c", pad=0)]]
 
-  # * Creacion de la ventana
+  #* Crear la ventana
   window = sg.Window("Modificar una Etiqueta", main_layout, element_justification="c", icon="Assets/book_icon.ico")
 
   while True:
@@ -672,8 +640,6 @@ def ventana_principal():
     
     if event == "Modificar" and modify_flag == True:
       # * Vamos a abrir una nueva pantalla para modificar el texto
-      # Manda llamar la ventana para modificar
-      # TODO Agregar ventana modificacion
       modif_principal, modif_datos = ventana_modificar_clasificacion(
         clasificacion_completa= tabla_principal[modify_index][0], dicc_info=tabla_datos[modify_index])
       
@@ -714,7 +680,7 @@ def ventana_principal():
 
       dict_format = {'HEAD':encabezado, 'CLASS':clasif, 'VOL':volumen, 'COP':copia}
 
-      print(dict_format)
+      # print(dict_format)
       # Individual Configuration Parameters
       ICP = {'PW':0, 'PH':0, 'TW':4.8, 'TH':3.7, 'PR':0, 'PC':0} 
       ticket.ticket_maker_main([dict_format], str(modify_index), ruta_folder, ICP, (None,None))
