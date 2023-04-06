@@ -26,6 +26,11 @@ def warning_option():
 def warning_clas():
   msg = f'!Advertencia!\n Algunas clasificaciones tienen error.\n Modifique para continuar'
   messagebox.showwarning("Some Clas Errors", msg)
+
+def warning_data():
+  msg = f'!Fallo!\n Cargue los datos porfavor.'
+  messagebox.showwarning("No Data", msg)
+
 ##########################################################
 
 # # ? POP_up de Error (Error)

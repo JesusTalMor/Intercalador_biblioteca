@@ -1,7 +1,7 @@
 
 # Editor: Jesus Talamantes Morales
 # Fecha Ultima Mod: 2 de Abril 2023
-# Versión: 0.5.0
+# Versión: 0.5.4
 
 
 import PySimpleGUI as sg
@@ -12,8 +12,9 @@ import string_helper as sh
 import ticket_maker as ticket
 
 #? Versión de programa
-version = '0.5.2'
+version = '0.5.4'
 # Para hacer el visualizador y las modificaciones a impresiones estuve chambeando 5 horas minimo 500 pesitos jajaja
+# Para pasar las mejoras al programa de etiquetas estuve chambeando minimo 4 horas
 #? Tema principal tipo Tec para las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
   'BACKGROUND': '#3016F3',
@@ -700,6 +701,10 @@ def ventana_principal():
       nombre_archivo = values['NAME']
       archivo_info = {'folder': ruta_folder, 'archivo':ruta_archivo, 'nombre':nombre_archivo}
 
+      # Revisar si se cargó un excel
+      if not excel_completo:
+        pop.warning_data()
+        continue
       # Revisar si aun quedan hojas
       if index_hoja >= len(hojas_excel):
         pop.success_program()
