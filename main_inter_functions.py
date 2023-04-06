@@ -328,7 +328,7 @@ def escribir_excel(dataframe_escritura, archivo_info, hoja, num_hoja):
     atributos = list(df)
     df = df[atributos]
     df.to_excel(excel_writer, sheet_name=hoja, index=False)
-    excel_writer.save()
+    excel_writer.close()
 
 # TODO Crear archivo para el correcto ordenamiento de los libros
 
