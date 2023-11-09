@@ -287,8 +287,8 @@ def crear_excel_ordenado(lista_orden, lista_datos, dataframe):
   # * Crear listas de datos dentro del excel
   for atributo in atributos:
     lista_aux = []
-    # Corregir Clasificación
-    if atributo == 'Clasificación': 
+    # Corregir Clasificación 
+    if atributo == 'Clasificación':
       lista_salida.append(lista_clasif)
       continue
     # Corregir Volumen
@@ -314,7 +314,7 @@ def crear_excel_ordenado(lista_orden, lista_datos, dataframe):
   # * Creamos el diccionario de Salida para Excel
   dataframe_salida = {}
   for index, atributo in enumerate(atributos):
-      dataframe_salida[atributo] = lista_salida[index]
+    dataframe_salida[atributo] = lista_salida[index]
   dataframe_salida['Clasificación Completa'] = lista_salida[-1]
   return dataframe_salida
 
