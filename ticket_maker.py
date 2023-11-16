@@ -1,4 +1,5 @@
 import os
+import sys
 
 import PySimpleGUI as sg
 from fpdf import FPDF
@@ -6,13 +7,24 @@ from PIL import Image, ImageDraw, ImageFont
 
 import pop_ups as pop
 
+
+#?#********** Función apoyo para relative path *********#
+def resource_path(relative_path):
+  """ Get absolute path to resource, works for dev and for PyInstaller """
+  try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    base_path = sys._MEIPASS
+  except Exception:
+    base_path = os.path.abspath(".")
+  return os.path.join(base_path, relative_path)
+
 # TODO Ajustar el encabezado 1 cm de margen, listo pero no me convence
 # TODO Queda pendiente PNG o PDF - Dejar en PNG etiquetas individuales
 
 alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 # * Tipografia de la etiquetas
 FONT_SIZE = 40
-MAIN_FONT = ImageFont.truetype("Assets/Khmer OS Muol.otf", size=FONT_SIZE)
+MAIN_FONT = ImageFont.truetype(resource_path("Assets/Khmer OS Muol.otf"), size=FONT_SIZE)
 ESCALA = 100  #? Escala de la etiqueta recomendado 100
 COLOR = "rgb(0, 0, 0)"
 
@@ -279,7 +291,7 @@ def image_viewer(lista_de_rutas: list, flag: bool):
   #* Inicializar Ventana
   window = sg.Window(
     'Visualizador Etiquetas', main_layout, element_justification='c', 
-    icon='Assets/book_icon.ico', finalize=True, return_keyboard_events=True)
+    icon=resource_path('Assets/book_icon.ico'), finalize=True, return_keyboard_events=True)
 
   #* Loop principal
   while True:

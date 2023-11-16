@@ -1,7 +1,6 @@
-
 # Editor: Jesus Talamantes Morales
 # Fecha Ultima Mod: 14 de Noviembre 2023
-# Version Antigua Modificaciones aun asi objetos
+# Version Antigua Modificaciones aun sin objetos
 ################################################
 
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
@@ -9,6 +8,9 @@ ALPHA = 0
 FUNCIONALIDAD = 5
 BUGS = 4
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
+
+import os
+import sys
 
 import PySimpleGUI as sg
 
@@ -31,16 +33,22 @@ sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
 }
 sg.theme('MyCreatedTheme')
 
-#? Configuración para tabla de Clasificación
-colum = ["Clasificación", "PIPE_A", "PIPE_B", "STATUS"]
-col_width = [25, 15, 15, 10]
-col_just = ['c', 'l', 'l', 'c']
-
 #? Menu superior de opciones
 menu_opciones = [
   ['Programa', ['Salir']],
   ['Ayuda', ['Tutoriales','Licencia','Acerca de...']],
 ]
+
+#?#********** Función apoyo para relative path *********#
+def resource_path(relative_path):
+  """ Get absolute path to resource, works for dev and for PyInstaller """
+  try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    base_path = sys._MEIPASS
+  except Exception:
+    base_path = os.path.abspath(".")
+  return os.path.join(base_path, relative_path)
+
 
 
 def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
@@ -177,7 +185,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
         background_color="#FFFFFF", justification="center",
         pad=(0, (0, 10)),
       ),
-      sg.Button(image_source='Assets/info_icon.png', image_subsample=10, border_width=0, key='INFO', pad=(5,(0,10)))
+      sg.Button(image_source=resource_path('Assets/info_icon.png'), image_subsample=10, border_width=0, key='INFO', pad=(5,(0,10)))
     ],
     [
       sg.Text(
@@ -198,7 +206,7 @@ def ventana_modificar_clasificacion(clasificacion_completa:str, dicc_info:dict):
   main_layout = [[sg.Frame("", layout, background_color="#FFFFFF", element_justification="c", pad=0)]]
 
   #* Crear la ventana
-  window = sg.Window("Modificar una Etiqueta", main_layout, element_justification="c", icon="Assets/book_icon.ico")
+  window = sg.Window("Modificar una Etiqueta", main_layout, element_justification="c", icon=resource_path("Assets/book_icon.ico"))
 
   while True:
     event, values = window.read()
@@ -387,7 +395,7 @@ def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, no
   ]
 
   layout = [[sg.Frame('', main_layout, background_color='#FFFFFF', element_justification='l', pad=0)]]
-  window = sg.Window('Salida', layout, element_justification='c', icon='Assets/book_icon.ico')
+  window = sg.Window('Salida', layout, element_justification='c', icon=resource_path('Assets/book_icon.ico'))
 
   while True:
     event, values = window.read()
@@ -481,7 +489,7 @@ def ventana_principal():
   #? Layout de la columna izquierda
   layout_izq = [
     #* Titulo de la Aplicación
-    [sg.Image(filename='Assets/LogoTecResize.png', background_color='#FFFFFF')],
+    [sg.Image(filename=resource_path('Assets/LogoTecResize.png'), background_color='#FFFFFF')],
     [sg.Text(text='Intercalador', font=('Open Sans', 20, 'bold', 'italic'), background_color='#FFFFFF')],
     [sg.Text(text="Rellene los siguientes parametros:", font=("Open Sans", 14, "bold"), background_color="#FFFFFF", justification="c",)],
     [sg.HorizontalSeparator(pad=(0,(30,20)))],
@@ -516,6 +524,9 @@ def ventana_principal():
   ]
 
   #? Layout Tabla de la columna derecha
+  colum = ["Clasificación", "PIPE_A", "PIPE_B", "STATUS"]
+  col_width = [25, 15, 15, 10]
+
   layout_der = [
     [sg.Text(text="Lista de Clasificaciones a Imprimir", background_color="#FFFFFF", font=("Open", 16, "bold", "italic"),)],
     [
@@ -557,7 +568,7 @@ def ventana_principal():
     ]
   ]
 
-  window = sg.Window('Intercalador', main_layout, element_justification='l', icon='Assets/book_icon.ico')
+  window = sg.Window('Intercalador', main_layout, element_justification='l', icon=resource_path('Assets/book_icon.ico'))
 
   while True:
     event,values = window.read()
@@ -846,6 +857,221 @@ def ventana_principal():
 
   window.close()
 
+class VentanaGeneral:
+  """ Ventana General del Programa """
+  titulo_ventana = 'INTERCALADOR'
+  def __init__(self) -> None:
+    self.ruta_archivo = ''
+    self.ruta_folder = ''
+    # self.table_manager = ManejoTabla()
+
+
+  def left_layout(self):
+    """ Layout de columna izquierda del programa
+
+    Llaves que Maneja
+    -----------------
+    UPLOAD : Boton para escoger un archivo excel
+    EXCEL_TEXT : Texto del nombre del archivo de excel
+    Cargar : Boton para cargar el archivo de excel
+    NAME : Nombre del archivo de salida
+    REPORT : Selecciona el reporte del archivo
+    EXCEL_INSTRUCT : Selecciona el generar instrucciones de libros
+    EXCEL_ORD : Selecciona un generar un excel ordenado
+    FOLDER : Ruta del folder de salida
+    EXCEL_FILE : Ruta del archivo de excel
+    Abrir : Boton de activacion para busqueda del archivo excel
+
+    Llaves que Hereda
+    -----------------
+    Niguna llave es heredada de otra funcion o clase
+    """
+
+    #?#********* LAYOUT PARA SELECCIONAR EL ARCHIVO DE EXCEL #?#*********
+    text_format = {
+      'font':("Open Sans", 14, "italic"), 
+      'background_color':"#FFFFFF",
+      'justification':"c",
+    }
+    ruta_excel = "Sin Archivo" if self.ruta_archivo == "" else self.ruta_archivo.split("/")[-1]    
+    SELECCIONAR_ARCHIVO = [
+      [sg.Button(
+        image_source=resource_path('Assets/subir_icon.png'), 
+        image_subsample=5, border_width=0, key='UPLOAD'
+      )],
+      [sg.Text(text=ruta_excel, key="EXCEL_TEXT", **text_format)],
+      [sg.HSep()], # Separador horizontal
+      [sg.Button("Cargar", font=("Open Sans", 14, 'bold'))],
+    ]
+
+    #?#********* LAYOUT OPCIONES DEL PROGRAMA #?#*********
+    text_format = {
+      'font':('Open Sans', 14, 'bold'),
+      'background_color':'#FFFFFF',
+    }
+    option_format = {
+      'font':('Open Sans', 14),
+      'background_color':'#FFFFFF',
+    }
+
+    SELECCIONAR_OPCIONES = [
+      #* Opciones del Programa
+      [sg.Checkbox('Reporte', 'G1', key='REPORT', **option_format)],
+      [sg.Checkbox('Orden Instrucciones', 'G1', key='EXCEL_INSTRUC', **option_format)],
+      [sg.Checkbox('Excel Orden', 'G1', key='EXCEL_ORD', **option_format)],
+    ]
+
+    #?#********* LAYOUT GENERAL DE COLUMNA IZQUIERDA #?#*********
+    title_format = {
+      'font':("Open Sans", 20, "italic", 'bold'), 
+      'background_color':"#FFFFFF",
+      'justification':"c",
+    }
+    text_format = {
+      'font':("Open Sans", 14, "bold"), 
+      'background_color':"#FFFFFF",
+      'justification':"c",
+    }    
+    frame_format = {
+      'background_color':"#FFFFFF",
+    }
+    GENERAL_LAYOUT = [
+      #* Logo del Tec de Monterrey
+      [sg.Image(filename=resource_path("Assets/LogoTecResize.png"), background_color='#FFFFFF')],
+      #* Titulo de la aplicacion y texto de pantalla
+      [sg.Text(text=self.titulo_ventana, **title_format)],
+      [sg.Text(text='Rellene los siguiente parametros:', **text_format)],
+      
+      #* Seleccion de archivo de Excel
+      [sg.HSep()], # Separador 
+      [
+        sg.Frame("",layout=SELECCIONAR_ARCHIVO, border_width=0, element_justification="c", **frame_format),
+        sg.Frame("",layout=SELECCIONAR_OPCIONES, border_width=0, element_justification="l",**frame_format)
+      ],
+      
+      #* Seleccion de opciones del programa
+      [sg.HSep()], # Separador 
+      #* Nombre del Archivo de Salida
+      [
+        sg.Text(text='Nombre', **text_format),
+        sg.In(size=(25,1), key='NAME', **text_format)
+      ],
+
+      
+      #* Layout Invisible para guardar el archivo
+      [
+        sg.Input(key="FOLDER", visible=False),
+        sg.FolderBrowse("Guardar", target='FOLDER', visible=False),
+      ],
+      
+      #* Layout Invisible para escoger archivo de excel
+      [
+        sg.In(key="EXCEL_FILE", visible=False),
+        sg.FileBrowse("Abrir", target='EXCEL_FILE',visible=False, file_types=(("Excel Files", "*.xlsx"),)),
+      ],
+    ]
+    return GENERAL_LAYOUT
+  def table_layout(self):
+    """ Layout columna izquierda del programa
+    
+    LLaves que Maneja
+    -----------------
+    TABLE : (Tabla) Manejo general de la tabla
+    Modificar : (Tabla/ Click Derecho) Modificar una etiqueta de la tabla
+    SELECT-ALL : (Boton) Seleccionar todas las etiquetas
+    LIMPIAR : (Boton) Reiniciar todo el programa
+    DESELECT-ALL : (Boton) Para deseleccionar todas las etiquetas
+    EXPORTAR : (Boton) Lanzar la siguiente parte del programa
+    
+    """
+    #?#********** DEFINIR VARIABLES UTILIZADAS #?#**********
+    # * Configuración de la tabla
+    colum = ["Clasificación", "PIPE_A", "PIPE_B", "STATUS"]
+    col_width = [25, 15, 15, 10]
+    tabla_principal = self.table_manager.tabla_principal
+    row_color_array = self.table_manager.formato_tabla
+    boton_font = {'font':("Open Sans", 12),}
+    LAYOUT = [
+      [sg.Text(text="Lista de Etiquetas", background_color="#FFFFFF",font=("Open", 18, "bold", "italic"),)],
+      [
+        sg.Table(
+          values=tabla_principal,
+          headings=colum,
+          font=("Open Sans", 9),
+          col_widths=col_width,
+          row_height=25,
+          num_rows=15,
+          auto_size_columns=False,
+          display_row_numbers=True,
+          justification="l",
+          expand_y=False,
+          enable_events=True,
+          right_click_menu=["Etiqueta", ["Modificar"]],
+          alternating_row_color="#FFFFFF",
+          background_color="#FFFFFF",
+          header_border_width=2,
+          row_colors=row_color_array,
+          key="TABLE",
+        )
+      ],
+      [
+        sg.Button("Seleccionar Todo",  pad=(0, 10), key="SELECT-ALL", **boton_font),
+        sg.Button("Limpiar", pad=(30, 10), key='LIMPIAR', **boton_font),
+        sg.Button("Deseleccionar", pad=(0, 10), key="DESELECT-ALL", **boton_font),
+      ],
+      [sg.Button("Exportar", font=("Open Sans", 12, "bold"), key='EXPORTAR')],
+    ]
+    return LAYOUT
+  def create_layout(self):
+    """ Crea el layout principal para esta ventana """
+    colum_format = {
+      'background_color':"#FFFFFF", 
+      'element_justification':"c", 
+      'pad':0
+    }
+    COL_IZQ_LAYOUT = self.left_layout()
+    # COL_DER_LAYOUT = self.table_layout()
+    LAYOUT = [
+      [
+        sg.Column(COL_IZQ_LAYOUT, **colum_format),
+        sg.VSep(pad=(5, 0)),
+        # sg.Column(COL_DER_LAYOUT, **colum_format),
+      ],
+    ]
+    return LAYOUT
+  
+  def create_window(self):
+    """ Genera un Objeto tipo Ventana de PySimpleGUI """
+    LAYOUT = self.create_layout()
+    MAIN_LAYOUT = [
+      #* Menu superior de la APP
+      [sg.Menu(menu_opciones, tearoff=False)],
+      [sg.Frame("",layout=LAYOUT, background_color='#FFFFFF', element_justification='c')],
+    ]
+    
+    window = sg.Window(self.titulo_ventana, MAIN_LAYOUT, element_justification="c", icon=resource_path("Assets/book_icon.ico"))  
+    return window
+  
+  #? FUNCIONAMIENTO PRINCIPAL DE LA VENTANA ***********************
+  def run_window(self, window):
+    #? MANEJO DE VARIABLES
+    
+    #? LOOP PRINCIPAL
+    while True:
+      event, values = window.read()
+      self.show_window_events(event, values)
+      #? ******** FUNCIONALIDAD BASICA VENTANA  ***************
+      #* Cerrar la aplicación
+      if event in (sg.WINDOW_CLOSED, "Exit", "__TIMEOUT__"):
+        window.close()
+        return
+
+def main():
+  """ Funcion principal para el manejo de la aplicacion """
+  VG = VentanaGeneral()
+  VG_window = VG.create_window()
+  VG.run_window(VG_window)
 
 if __name__ == '__main__':
   ventana_principal()
+  # main()

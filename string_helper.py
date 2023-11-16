@@ -144,7 +144,13 @@ def estandarizar_cadena(STR:str, maxLen:int) -> str:
   diferencia = maxLen - length
   #creamos una cadena llena de ceros para estandarizar
   cadena_ceros = '0' * diferencia
-  str_salida = STR + cadena_ceros 
+  str_salida = STR
+  for ind, char in enumerate(STR):
+    if not char.isalpha():
+      str_salida = STR[:ind] + cadena_ceros + STR[ind+1:]
+      break
+  # str_salida = STR + cadena_ceros 
+  print(str_salida)
   #Reemplaza el valor estadarizado en la lista
   return str_salida
 
