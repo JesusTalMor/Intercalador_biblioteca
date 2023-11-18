@@ -18,6 +18,8 @@ import main_inter_functions as mainif
 import pop_ups as pop
 import string_helper as sh
 import ticket_maker as ticket
+from managers import ManejoTabla
+from support_windows import VentanaModificar
 
 #? Tema principal tipo Tec para las ventanas
 sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
@@ -863,8 +865,7 @@ class VentanaGeneral:
   def __init__(self) -> None:
     self.ruta_archivo = ''
     self.ruta_folder = ''
-    # self.table_manager = ManejoTabla()
-
+    self.table_manager = ManejoTabla()
 
   def left_layout(self):
     """ Layout de columna izquierda del programa
@@ -899,7 +900,7 @@ class VentanaGeneral:
         image_source=resource_path('Assets/subir_icon.png'), 
         image_subsample=5, border_width=0, key='UPLOAD'
       )],
-      [sg.Text(text=ruta_excel, key="EXCEL_TEXT", **text_format)],
+      [sg.Text(size=(25,1), text=ruta_excel, key="EXCEL_TEXT", **text_format)],
       [sg.HSep()], # Separador horizontal
       [sg.Button("Cargar", font=("Open Sans", 14, 'bold'))],
     ]
@@ -943,14 +944,13 @@ class VentanaGeneral:
       [sg.Text(text='Rellene los siguiente parametros:', **text_format)],
       
       #* Seleccion de archivo de Excel
-      [sg.HSep()], # Separador 
+      [sg.HSep(pad=(0,(0,10)))], # Separador 
       [
         sg.Frame("",layout=SELECCIONAR_ARCHIVO, border_width=0, element_justification="c", **frame_format),
         sg.Frame("",layout=SELECCIONAR_OPCIONES, border_width=0, element_justification="l",**frame_format)
       ],
-      
       #* Seleccion de opciones del programa
-      [sg.HSep()], # Separador 
+      [sg.HSep(pad=(0,(10,20)))], # Separador 
       #* Nombre del Archivo de Salida
       [
         sg.Text(text='Nombre', **text_format),
@@ -1030,12 +1030,12 @@ class VentanaGeneral:
       'pad':0
     }
     COL_IZQ_LAYOUT = self.left_layout()
-    # COL_DER_LAYOUT = self.table_layout()
+    COL_DER_LAYOUT = self.table_layout()
     LAYOUT = [
       [
         sg.Column(COL_IZQ_LAYOUT, **colum_format),
         sg.VSep(pad=(5, 0)),
-        # sg.Column(COL_DER_LAYOUT, **colum_format),
+        sg.Column(COL_DER_LAYOUT, **colum_format),
       ],
     ]
     return LAYOUT
@@ -1055,6 +1055,9 @@ class VentanaGeneral:
   #? FUNCIONAMIENTO PRINCIPAL DE LA VENTANA ***********************
   def run_window(self, window):
     #? MANEJO DE VARIABLES
+    bandera_modificar = False
+    estatus_modificar = 'XXXXXX'
+    index_modificar = 0
     
     #? LOOP PRINCIPAL
     while True:
@@ -1065,6 +1068,248 @@ class VentanaGeneral:
       if event in (sg.WINDOW_CLOSED, "Exit", "__TIMEOUT__"):
         window.close()
         return
+      #* Mostrar licencia del Programa
+      elif event == "Licencia":
+        pop.info_license()
+      #* Mostrar version del Programa
+      elif event == "Acerca de...":
+        pop.info_about(VERSION)
+      
+      #? ********** FUNCIONALIDAD CARGAR ARCHIVO *******************
+      #* Cargar elementos desde un Excel
+      elif event == 'UPLOAD':
+        window["Abrir"].click() # Activar funcionalidad para abrir archivo
+        self.ruta_archivo = window['EXCEL_FILE'].get() # Actualizar ruta del archivo
+        # Actualizar nombre del archivo de la ventana
+        nombre_archivo = self.ruta_archivo.split('/')[-1] if len(self.ruta_archivo) != 0 else 'Sin Archivo'
+        window["EXCEL_TEXT"].update(nombre_archivo)
+      # * Cargar excel completo de un archivo
+      elif event == "Cargar":
+        self.cargar_excel(window)
+      
+      #?#********** FUNCIONALIDAD DE TABLA **********#?#
+      elif event == "LIMPIAR":
+        self.reset_window(window)
+        bandera_modificar = False
+      elif event == "SELECT-ALL":
+        bandera_modificar = False
+        self.select_all_table(window)
+      elif event == "DESELECT-ALL":
+        bandera_modificar = False
+        self.deselect_all_table(window)
+      elif event == "TABLE":
+        modify_object = (index_modificar, bandera_modificar, estatus_modificar)
+        index_modificar, bandera_modificar, estatus_modificar = self.table_management(window, values, modify_object)
+      elif event == "Modificar" and bandera_modificar is True:
+        bandera_modificar = self.modificar_elemento(window, index_modificar)
+
+      # TODO Revisar la parte de implementar las funcionalidades extras
+      elif event == 'Ejecutar':
+        continue
+        # ? Checar si se ha puesto un archivo
+        ruta_folder = values['FOLDER']
+        ruta_archivo = values['EXCEL_FILE']
+        nombre_archivo = values['NAME']
+        archivo_info = {'folder': ruta_folder, 'archivo':ruta_archivo, 'nombre':nombre_archivo}
+
+        # Revisar si se cargó un excel
+        if not excel_completo:
+          pop.warning_data()
+          continue
+        # Revisar si aun quedan hojas
+        if index_hoja >= len(hojas_excel):
+          pop.success_program()
+          continue
+
+        if not ruta_archivo:
+          pop.warning_excel_file()
+          continue
+        
+        if not ruta_folder:
+          pop.warning_folder()
+          continue
+        
+        if not nombre_archivo:
+          pop.warning_name()
+          continue
+        
+        if values['REPORT'] + values['EXCEL_ORD'] + values['EXCEL_ERR_ORD'] == 0:
+          pop.warning_option()
+          continue
+        
+      # * Checar si existe algun elemento erroneo
+        for ind in range(len(tabla_principal)):
+          if main_dicc[ind] == 'False':
+            status_clas_flag = True
+            break
+        
+        if status_clas_flag:
+          status_clas_flag = False
+          pop.warning_clas()
+          continue
+        
+        # TODO Mandar llamar funcion para partir y organizar
+        # TODO Contemplar las posibilidad de hacer multi hojas pero por partes
+        # ! Actualmente solo funciona para 1 sola hoja de excel, si se implementa más resultados desconocidos
+
+        # * Seccion para realizar el reporte
+        # print(*tabla_modify, sep='\n')
+        
+        if values['REPORT']: mainif.crear_reporte(len(tabla_datos), tabla_modify, archivo_info, hoja_actual, index_hoja)
+
+        if not (values['EXCEL_ORD'] or values['EXCEL_ERR_ORD']):
+          window['Actualizar'].click()
+          continue
+
+        lista_no_ordenada = mainif.separar_atributos_libros(tabla_datos)
+        lista_no_ordenada, largos = mainif.limpiar_atributos_libros(lista_no_ordenada)
+        lista_no_ordenada = mainif.estandarizar_atributos_libros(lista_no_ordenada, largos)
+        # # print(*salida, sep='\n\n')
+        # # print(largos)
+        lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
+        # # print(*salida_ordenada, sep='\n')
+        # * Sección para crear excel ordenado
+        if values['EXCEL_ORD']:
+          dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, main_dataframe)
+          # print(*dataframe_salida, sep='\n')
+          mainif.escribir_excel(dataframe_salida, archivo_info, hoja_actual, index_hoja)
+        # * Sección para crear instrucciones ordenar
+        if values['EXCEL_ERR_ORD']: 
+          lista_retirar, lista_colocar = mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos)
+          if not lista_retirar[0]: 
+            window['Actualizar'].click()
+            continue
+          ventana_instruc_ordenar(lista_retirar, lista_colocar, hoja_actual, nombre_archivo)
+
+        window['Actualizar'].click()
+  #? MOSTRAR ELEMENTOS DEL VENTANA **********
+  def show_window_events(self, event, values):
+    print(f"""
+      Imprimiendo Eventos de Suceden
+      {'-'*50}
+      Eventos que suceden {event}
+      Valores guardados {values}
+      {'-'*50}
+    """)
+
+  #? CARGAR ELEMENTOS DESDE EXCEL *************
+  def cargar_excel(self, window):
+    # Revisar que tengamos un archivo excel
+    if len(self.ruta_archivo) == 0:
+      pop.warning_excel_file()
+      return False
+
+    # Crear tabla de datos    
+    self.table_manager.crear_tabla(self.ruta_archivo)
+    #* Actualizar apariencia de la tabla
+    window["TABLE"].update(
+      values=self.table_manager.tabla_principal, 
+      row_colors=self.table_manager.formato_tabla
+    )
+
+  #? FUNCIONALIDAD MANEJO DE TABLA *************
+  def reset_window(self, window):
+    """ Reiniciar todos los valores de la tabla que se trabaja """
+    self.table_manager.reset_tabla()
+    
+    #* Actualizar tabla
+    window["TABLE"].update(
+      values=self.table_manager.tabla_principal, 
+      row_colors=self.table_manager.formato_tabla
+    )
+
+  def select_all_table(self, window):
+    #* Selecciona toda la tabla
+    self.table_manager.seleccionar_tabla()
+
+    #* Actualizar tabla
+    window["TABLE"].update(
+      values=self.table_manager.tabla_principal, 
+      row_colors=self.table_manager.formato_tabla)
+  
+  def deselect_all_table(self, window):
+    #* Selecciona toda la tabla
+    self.table_manager.deseleccionar_tabla()
+
+    window["TABLE"].update(
+      values=self.table_manager.tabla_principal, 
+      row_colors=self.table_manager.formato_tabla)
+
+  def table_management(self, window, values, modify_object):
+    modify_index, modify_flag, modify_status = modify_object
+    # print(modify_index, modify_flag, modify_status)
+    #* Manejar excepcion con respecto a datos inexistentes
+    if len(values["TABLE"]) == 0: return modify_index, modify_flag, modify_status
+    
+    index_value = int(values["TABLE"][0])  # * elemento a seleccionar
+    print('Libro seleccionado:', index_value)
+    estatus = self.table_manager.lista_libros[index_value].estatus
+    print('Estatus libro seleccionado', estatus)
+
+    # * Seleccionar una casilla valida
+    if estatus == "Valid":
+      # Cambias el estatus de ese elemento a seleccionado
+      self.table_manager.actualizar_estatus_elemento(index_value, "Selected")
+
+    # * Seleccionar casilla para modificar
+    elif estatus in ("Selected", "Error") and modify_flag is False:
+      #* Actualizar datos de modificacion
+      modify_status = estatus
+      modify_flag = True
+      modify_index = index_value
+      #* Modificar elemento visualmente
+      self.table_manager.actualizar_estatus_elemento(index_value, "Modify")
+
+    # * Quitar casilla de modificar
+    elif estatus == "Modify":
+      #? Cambiar elemento modificado/seleccionado a Normal
+      if modify_status == "Selected":
+        self.table_manager.actualizar_estatus_elemento(index_value, "Valid")
+      #? Cambiar elemento modificado/error a Error
+      elif modify_status == "Error":
+        self.table_manager.actualizar_estatus_elemento(index_value, "Error")
+      modify_flag = False
+
+    # * Regresar casilla a normalidad
+    elif estatus == "Selected" and modify_flag is True:
+      self.table_manager.actualizar_estatus_elemento(index_value, "Valid")
+    
+    #* Actualizar tabla
+    window["TABLE"].update(
+      values=self.table_manager.tabla_principal, 
+      row_colors=self.table_manager.formato_tabla)
+    
+    return modify_index, modify_flag, modify_status
+
+  def modificar_elemento(self, window, modify_index):
+    #* Sacar los datos de esa etiqueta
+    libro_a_modificar = self.table_manager.lista_libros[modify_index]
+    clasif_libro_a_modificar = libro_a_modificar.etiqueta.clasif_completa
+    #* Mandar llamar ventana modificar
+    VM = VentanaModificar(libro_a_modificar)
+    estatus, libro_modificado = VM.run_window()
+    del VM
+
+    print('Se modifico? ', estatus)
+    #* Checar si hubieron cambios
+    if estatus is False: return True
+    
+    # * Agregamos elemento a una tabla de modificaciones
+    self.table_manager.agregar_elemento_modificado(modify_index, libro_modificado, clasif_libro_a_modificar)
+
+    # * Actualizar valores de tabla de datos
+    self.table_manager.actualizar_elemento(modify_index, libro_modificado)
+
+    # * Cambiamos la apariencia del elemento en la tabla
+    self.table_manager.actualizar_estatus_elemento(modify_index, 'Valid')
+    
+    #* Actualizar apariencia de la tabla
+    window["TABLE"].update(
+      values=self.table_manager.tabla_principal, 
+      row_colors=self.table_manager.formato_tabla
+    )
+    return False
+
 
 def main():
   """ Funcion principal para el manejo de la aplicacion """
@@ -1073,5 +1318,5 @@ def main():
   VG.run_window(VG_window)
 
 if __name__ == '__main__':
-  ventana_principal()
-  # main()
+  # ventana_principal()
+  main()
