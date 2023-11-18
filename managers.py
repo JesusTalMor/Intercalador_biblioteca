@@ -267,6 +267,13 @@ class ManejoTabla:
       if estatus != "Error":
         self.actualizar_estatus_elemento(num_libro,"Valid")
 
+  def revisar_tabla(self):
+    # recorrer tabla por completo
+    for num_libro in range(self.tabla_len):
+      if self.lista_libros[num_libro].estatus == 'Error':
+        return False
+    return True
+
   def reset_tabla(self):
     """ Reiniciar datos de la tabla por completo """
     self.tabla_principal = []
@@ -332,6 +339,35 @@ class ManejoTabla:
         modif_file.write('\n')
     modif_file.close()
     return True
+
+  def crear_reporte_general(self, path:str, nombre_salida:str, nombre_archivo:str):
+    '''Genera un reporte en un txt de libros modificados'''
+    txt_path = f'{path}/{str(nombre_salida)}_reporte.txt'
+    
+    separador = 50*'=' # largo de separadores de caracteres
+    len_correctos = self.tabla_len - len(self.lista_modificados)
+    #* Escribir en el archivo
+    report_file = open(txt_path, 'w', encoding="utf-8") 
+    report_file.write(f'{separador}\n')
+    report_file.write(f'\t Reporte para {nombre_archivo} \n')
+    report_file.write(f'{separador}\n\n')
+    report_file.write(f'\t Registro de Analisis Estandar LC \n')
+    report_file.write(f'{separador}\n')
+    report_file.write(f'Clasificaciones cargadas: {self.tabla_len} | 100%\n')
+    report_file.write(f'Clasificaciones con Estandar LC: {len_correctos} | {sh.obtener_porcentaje(len_correctos, self.tabla_len)}%\n')
+    report_file.write(f'Clasificaciones modificadas: {len(self.lista_modificados)} | {sh.obtener_porcentaje(len(self.lista_modificados), self.tabla_len)}%\n')
+    report_file.write(f'{separador}\n\n')
+    '''Genera un reporte en un txt de libros modificados'''
+    if not self.lista_modificados: 
+      report_file.close()
+      return False 
+    
+    for libro, clasif_anterior in self.lista_modificados.values():
+      titulo_comprimido = libro.titulo[:40] if len(libro.titulo) > 40 else libro.titulo + (' '*(40 - len(libro.titulo)))
+      texto_libro = f"{titulo_comprimido} | {libro.etiqueta.clasif_completa} | {clasif_anterior} | {libro.cbarras}"
+      report_file.write(texto_libro)
+      report_file.write('\n')
+    report_file.close()    
 
   @property
   def tabla_len(self): return self._tabla_len

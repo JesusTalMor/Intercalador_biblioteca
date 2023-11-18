@@ -110,7 +110,7 @@ class VentanaGeneral:
     SELECCIONAR_OPCIONES = [
       #* Opciones del Programa
       [sg.Checkbox('Reporte', 'G1', key='REPORT', **option_format)],
-      [sg.Checkbox('Orden Instrucciones', 'G1', key='EXCEL_INSTRUC', **option_format)],
+      [sg.Checkbox('Orden Instrucciones', 'G1', key='EXCEL_INSTRUCT', **option_format)],
       [sg.Checkbox('Excel Orden', 'G1', key='EXCEL_ORD', **option_format)],
     ]
 
@@ -182,7 +182,7 @@ class VentanaGeneral:
     col_width = [25, 15, 15, 10]
     tabla_principal = self.table_manager.tabla_principal
     row_color_array = self.table_manager.formato_tabla
-    boton_font = {'font':("Open Sans", 12),}
+    boton_font = {'font':("Open Sans", 14),}
     LAYOUT = [
       [sg.Text(text="Lista de Etiquetas", background_color="#FFFFFF",font=("Open", 18, "bold", "italic"),)],
       [
@@ -207,11 +207,11 @@ class VentanaGeneral:
         )
       ],
       [
-        sg.Button("Seleccionar Todo",  pad=(0, 10), key="SELECT-ALL", **boton_font),
-        sg.Button("Limpiar", pad=(30, 10), key='LIMPIAR', **boton_font),
-        sg.Button("Deseleccionar", pad=(0, 10), key="DESELECT-ALL", **boton_font),
+      sg.Button("Ejecutar", font=("Open Sans", 14, "bold", "italic")),
+      # sg.Text(text="0/0", background_color="#FFFFFF", font=("Open", 16, "bold", "italic"), key='PAGE'),
+      sg.Button("Limpiar", font=("Open Sans", 14)),
+      sg.Button("Actualizar", visible=False)
       ],
-      [sg.Button("Exportar", font=("Open Sans", 12, "bold"), key='EXPORTAR')],
     ]
     return LAYOUT
   def create_layout(self):
@@ -283,12 +283,6 @@ class VentanaGeneral:
       elif event == "LIMPIAR":
         self.reset_window(window)
         bandera_modificar = False
-      elif event == "SELECT-ALL":
-        bandera_modificar = False
-        self.select_all_table(window)
-      elif event == "DESELECT-ALL":
-        bandera_modificar = False
-        self.deselect_all_table(window)
       elif event == "TABLE":
         modify_object = (index_modificar, bandera_modificar, estatus_modificar)
         index_modificar, bandera_modificar, estatus_modificar = self.table_management(window, values, modify_object)
@@ -297,83 +291,7 @@ class VentanaGeneral:
 
       # TODO Revisar la parte de implementar las funcionalidades extras
       elif event == 'Ejecutar':
-        continue
-        # ? Checar si se ha puesto un archivo
-        ruta_folder = values['FOLDER']
-        ruta_archivo = values['EXCEL_FILE']
-        nombre_archivo = values['NAME']
-        archivo_info = {'folder': ruta_folder, 'archivo':ruta_archivo, 'nombre':nombre_archivo}
-
-        # Revisar si se cargó un excel
-        if not excel_completo:
-          pop.warning_data()
-          continue
-        # Revisar si aun quedan hojas
-        if index_hoja >= len(hojas_excel):
-          pop.success_program()
-          continue
-
-        if not ruta_archivo:
-          pop.warning_excel_file()
-          continue
-        
-        if not ruta_folder:
-          pop.warning_folder()
-          continue
-        
-        if not nombre_archivo:
-          pop.warning_name()
-          continue
-        
-        if values['REPORT'] + values['EXCEL_ORD'] + values['EXCEL_ERR_ORD'] == 0:
-          pop.warning_option()
-          continue
-        
-      # * Checar si existe algun elemento erroneo
-        for ind in range(len(tabla_principal)):
-          if main_dicc[ind] == 'False':
-            status_clas_flag = True
-            break
-        
-        if status_clas_flag:
-          status_clas_flag = False
-          pop.warning_clas()
-          continue
-        
-        # TODO Mandar llamar funcion para partir y organizar
-        # TODO Contemplar las posibilidad de hacer multi hojas pero por partes
-        # ! Actualmente solo funciona para 1 sola hoja de excel, si se implementa más resultados desconocidos
-
-        # * Seccion para realizar el reporte
-        # print(*tabla_modify, sep='\n')
-        
-        if values['REPORT']: mainif.crear_reporte(len(tabla_datos), tabla_modify, archivo_info, hoja_actual, index_hoja)
-
-        if not (values['EXCEL_ORD'] or values['EXCEL_ERR_ORD']):
-          window['Actualizar'].click()
-          continue
-
-        lista_no_ordenada = mainif.separar_atributos_libros(tabla_datos)
-        lista_no_ordenada, largos = mainif.limpiar_atributos_libros(lista_no_ordenada)
-        lista_no_ordenada = mainif.estandarizar_atributos_libros(lista_no_ordenada, largos)
-        # # print(*salida, sep='\n\n')
-        # # print(largos)
-        lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
-        # # print(*salida_ordenada, sep='\n')
-        # * Sección para crear excel ordenado
-        if values['EXCEL_ORD']:
-          dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, main_dataframe)
-          # print(*dataframe_salida, sep='\n')
-          mainif.escribir_excel(dataframe_salida, archivo_info, hoja_actual, index_hoja)
-        # * Sección para crear instrucciones ordenar
-        if values['EXCEL_ERR_ORD']: 
-          lista_retirar, lista_colocar = mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos)
-          if not lista_retirar[0]: 
-            window['Actualizar'].click()
-            continue
-          ventana_instruc_ordenar(lista_retirar, lista_colocar, hoja_actual, nombre_archivo)
-
-        window['Actualizar'].click()
+        self.ejecutar_programa(window, values)
       elif event == 'Imprimir' and bandera_modificar == True and estatus_modificar != 'False':
         continue
         ruta_folder = values['FOLDER']
@@ -482,23 +400,6 @@ class VentanaGeneral:
       row_colors=self.table_manager.formato_tabla
     )
 
-  def select_all_table(self, window):
-    #* Selecciona toda la tabla
-    self.table_manager.seleccionar_tabla()
-
-    #* Actualizar tabla
-    window["TABLE"].update(
-      values=self.table_manager.tabla_principal, 
-      row_colors=self.table_manager.formato_tabla)
-  
-  def deselect_all_table(self, window):
-    #* Selecciona toda la tabla
-    self.table_manager.deseleccionar_tabla()
-
-    window["TABLE"].update(
-      values=self.table_manager.tabla_principal, 
-      row_colors=self.table_manager.formato_tabla)
-
   def table_management(self, window, values, modify_object):
     modify_index, modify_flag, modify_status = modify_object
     # print(modify_index, modify_flag, modify_status)
@@ -574,6 +475,74 @@ class VentanaGeneral:
     )
     return False
 
+  #? Ejecutar programa
+  def ejecutar_programa(self, window, values):
+    #* Revisar archivo de Excel
+    if len(self.ruta_archivo) == 0: 
+      pop.warning_excel_file()
+      return False 
+    nombre_archivo = self.ruta_archivo.split('/')[-1] if len(self.ruta_archivo) != 0 else 'Sin Archivo'
+
+    # * Checar si existe algun elemento erroneo
+    if self.table_manager.revisar_tabla() is False:
+      pop.warning_clas()
+      return False
+    
+    #* Revisar nombre archivo salida
+    nombre_salida = window['NAME'].get()
+    if len(nombre_salida) == 0:
+      pop.warning_name()
+      return False
+    
+    #* Proceso para seleccionar un folder de guardado
+    window['Guardar'].click()
+    ruta = window['FOLDER'].get()
+    if len(ruta) == 0: return False
+    
+    #* Revisar que se haya seleccionado una opcion
+    if values['REPORT'] + values['EXCEL_ORD'] + values['EXCEL_INSTRUCT'] == 0:
+      pop.warning_option()
+      return False
+    
+    #? Crear reporte sobre el archivo
+    if values['REPORT']: 
+      self.table_manager.crear_reporte_general(ruta, nombre_salida, nombre_archivo)
+      # self.table_manager.crear_reporte_modificados(ruta, nombre_salida)
+      self.table_manager.crear_reporte_QRO(ruta, nombre_salida)
+
+
+
+    # TODO Mandar llamar funcion para partir y organizar
+    # TODO Contemplar las posibilidad de hacer multi hojas pero por partes
+    # ! Actualmente solo funciona para 1 sola hoja de excel, si se implementa más resultados desconocidos
+
+    
+
+    # if not (values['EXCEL_ORD'] or values['EXCEL_ERR_ORD']):
+    #   window['Actualizar'].click()
+    #   continue
+
+    # lista_no_ordenada = mainif.separar_atributos_libros(tabla_datos)
+    # lista_no_ordenada, largos = mainif.limpiar_atributos_libros(lista_no_ordenada)
+    # lista_no_ordenada = mainif.estandarizar_atributos_libros(lista_no_ordenada, largos)
+    # # # print(*salida, sep='\n\n')
+    # # # print(largos)
+    # lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
+    # # # print(*salida_ordenada, sep='\n')
+    # # * Sección para crear excel ordenado
+    # if values['EXCEL_ORD']:
+    #   dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, main_dataframe)
+    #   # print(*dataframe_salida, sep='\n')
+    #   mainif.escribir_excel(dataframe_salida, archivo_info, hoja_actual, index_hoja)
+    # # * Sección para crear instrucciones ordenar
+    # if values['EXCEL_ERR_ORD']: 
+    #   lista_retirar, lista_colocar = mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos)
+    #   if not lista_retirar[0]: 
+    #     window['Actualizar'].click()
+    #     continue
+    #   ventana_instruc_ordenar(lista_retirar, lista_colocar, hoja_actual, nombre_archivo)
+
+    # window['Actualizar'].click()
 
 def main():
   """ Funcion principal para el manejo de la aplicacion """
