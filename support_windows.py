@@ -248,6 +248,177 @@ class VentanaModificar:
       window["PIPE_B"].update(value="XXXXXX", text_color='#F04150')
       window["Modificar"].update(disabled=True)
 
+def ventana_instruc_ordenar(lista_colocar:list, lista_retirar:list, hoja:str, nombre_archivo:str):
+  # Sacar datos de libros
+  lista_main = [lista_colocar, lista_retirar]
+  main_index = 0
+  libro_erroneo = lista_main[0][main_index]['libro'] 
+  libro_ant_corr = lista_main[0][main_index]['anterior']
+  libro_pos_corr = lista_main[0][main_index]['siguiente']
+  instruc_index = 0
+  action = ('RETIRAR', 'ORDENAR')
+  len_listas = (len(lista_colocar), len(lista_retirar))
+
+  title_frame = [
+    [
+      sg.Text(
+        text=f'{nombre_archivo} - {hoja}', 
+        font=('Open Sans', 18, 'bold', 'italic'), 
+        background_color='#FFFFFF', justification='c', pad=0
+      ),
+    ],
+    [
+      sg.Text(
+        text=f'pasos para ordenar:', 
+        font=('Open Sans', 14, 'italic'), 
+        background_color='#FFFFFF', justification='c', pad=0
+      ),
+    ],
+
+  ]
+  instruction_frame = [
+    [
+      sg.Text(
+        text='Instrucción:',
+        font=('Open Sans', 18, 'bold'),
+        background_color='#FFFFFF', justification='c', pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{action[0]}',
+        font=('Arial', 18, 'bold'),
+        background_color='#FFFFFF',
+        justification='c', key='INSTRUCT', pad=0
+      )
+    ]
+  ]
+  libro_erroneo_frame = [
+    [
+      sg.Text(
+        text='Información Libro Erróneo',
+        font=('Open Sans', 14, 'bold', 'italic'),
+        background_color='#FFFFFF', justification='c', pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{libro_erroneo[0]} \n {libro_erroneo[1]}',
+        font=('Open Sans', 12, 'italic'),
+        background_color='#FFFFFF', justification='c', key='LIBRO', pad=0
+      )
+    ]
+  ]
+  libro_anterior_corr = [
+    [
+      sg.Text(
+        text='Libro Anterior Correcto',
+        font=('Open Sans', 14, 'bold', 'italic'),
+        background_color='#FFFFFF', justification='c', pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{libro_ant_corr[0]} \n {libro_ant_corr[1]}',
+        font=('Open Sans', 12, 'italic'),
+        background_color='#FFFFFF', justification='c', key='ANT', pad=0
+      )
+    ]
+  ]
+  libro_posterior_corr = [
+    [
+      sg.Text(
+        text='Libro Posterior Correcto',
+        font=('Open Sans', 14, 'bold', 'italic'),
+        background_color='#FFFFFF', justification='c', pad=0
+      )
+    ],
+    [
+      sg.Text(
+        text=f'{libro_pos_corr[0]} \n {libro_pos_corr[1]}',
+        font=('Open Sans', 12, 'italic'),
+        background_color='#FFFFFF', justification='c', key='POS', pad=0
+      )
+    ]
+  ]
+  boton_count = [
+    [
+      sg.Text(
+        text=f'{main_index+1}/{len_listas[0]}',
+        font=('Open Sans', 18, 'bold', 'italic'),
+        background_color='#FFFFFF', justification='c', key='COUNT', pad=0
+      )
+    ],
+    [
+      sg.Button(
+        button_text='Siguiente',
+        font=('Open Sans', 18, 'bold', 'italic'),
+        pad=0
+      )
+    ],
+  ]
+  left_column = [
+    [sg.Frame('', libro_erroneo_frame, background_color='#FFFFFF', element_justification='l', border_width=0, pad=(15,(20,10)))],
+    [sg.Frame('', libro_anterior_corr, background_color='#FFFFFF', element_justification='l', border_width=4, pad=(15,(5,5)))],
+    [sg.Frame('', libro_posterior_corr, background_color='#FFFFFF', element_justification='l', border_width=4, pad=(15,(5,5))),],
+  ]
+  right_column = [
+    [sg.Frame('', boton_count, background_color='#FFFFFF', element_justification='c', border_width=0, pad=0)]
+  ]
+  
+  main_layout = [
+    [
+      sg.Frame('', title_frame, background_color='#FFFFFF', element_justification='c', border_width=0, pad=((10,200), (10,20))),
+      sg.Frame('', instruction_frame, background_color='#FFFFFF', element_justification='c', border_width=0, pad=((0,10), (10,10)))
+    ],
+    [sg.HorizontalSeparator(color='#000000', pad=0)],
+    [
+      sg.Column(layout=left_column, background_color='#FFFFFF', element_justification='l'),
+      sg.Column(layout=right_column, background_color='#FFFFFF', element_justification='c', pad=((40,10), (140,10)))
+    ]
+  ]
+
+  layout = [[sg.Frame('', main_layout, background_color='#FFFFFF', element_justification='l', pad=0)]]
+  window = sg.Window('Salida', layout, element_justification='c', icon=resource_path('Assets/book_icon.ico'))
+
+  while True:
+    event, values = window.read()
+    # print('-'*50)
+    # print(f'Eventos que suceden {event}')
+    # print(f'Valores guardaros {values}')
+    # print('-'*50 + '\n')
+
+    if event in (sg.WINDOW_CLOSED, "Exit"): 
+      window.close()
+      return
+    
+    if event == 'Siguiente':
+      # print('Cambio de libro')
+      # * Revisar si se terminaron los libros
+      main_index += 1
+      if main_index >= len_listas[instruc_index]: 
+        if instruc_index != 0: 
+          pop.success_manual_order()
+          window.close()
+          return
+        instruc_index = 1
+        main_index = 0
+        window['INSTRUCT'].update(f'{action[instruc_index]}')
+      
+      # * Sacar datos
+      libro_erroneo = lista_main[instruc_index][main_index]['libro'] 
+      libro_ant_corr = lista_main[instruc_index][main_index]['anterior']
+      libro_pos_corr = lista_main[instruc_index][main_index]['siguiente']
+
+      # * Actualizar datos
+      window['LIBRO'].update(f'{libro_erroneo[0]} \n {libro_erroneo[1]}')
+      window['ANT'].update(f'{libro_ant_corr[0]} \n {libro_ant_corr[1]}')
+      window['POS'].update(f'{libro_pos_corr[0]} \n {libro_pos_corr[1]}')
+      window['COUNT'].update(f'{main_index+1}/{len_listas[0]}')
+
+
+
+
 if __name__ == "__main__":
   # VS = VentanaSeleccionarPosicion(10,10)
   # print(VS.run_window())
