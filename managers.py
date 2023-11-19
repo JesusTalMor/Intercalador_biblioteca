@@ -1,3 +1,4 @@
+import pandas as pd
 from pandas import read_excel
 
 import string_helper as sh
@@ -12,6 +13,20 @@ class Clasificacion:
     self._autor = 'A0'
     self._anio = '1000'
 
+  #? GETTERS Y SETTERS ********************************
+  @property
+  def clase(self): return self._clase
+  @property
+  def subdecimal(self): return self._subdecimal
+  @property
+  def temaesp(self): return self._temaesp
+  @property
+  def autor(self): return self._autor
+  @property
+  def anio(self): return self._anio
+
+
+  #? FUNCIONALIDAD DE LA CLASE *****************************
   def sacar_atributos(self, PIPE_A, PIPE_B):
     atributos_pipe_a = PIPE_A.split('.')
     atributos_pipe_b = PIPE_B.split(' ')
@@ -27,28 +42,23 @@ class Clasificacion:
 
     # Revisar los casos especiales
     # ? Autor no tiene letra 
-    if self._autor[0].isalpha() is False: 
+    if self._autor[1].isalpha() is False: 
       self._anio = self._autor
       self._autor = 'A0'
 
   def __str__(self) -> str:
     return f"""  
       Imprimiendo Atributos de Clasificacion:
-      ---------------------
-      Atributos:
-      ----------
+      ---------------------------------------
       Clase: {self._clase} Subdecimal: {self._subdecimal} temaesp: {self._temaesp}
       Autor: {self._autor} Año: {self._anio}
       """
-
-
-
 
 class Etiqueta:
   """ Objeto de tipo Etiqueta que contenga toda la informacion de una etiqueta comun """
   def __init__(self, aClasif='', aEncabezado='', aVolumen='', aCopia='') -> None:
     # Asignar valores al objeto
-    self._atributos = Clasificacion()
+    self.atributos = Clasificacion()
     self._clasif = self.limpiar_clasif(aClasif)
     self._encabezado = aEncabezado
     self._volumen = aVolumen if aVolumen not in ['', ' ', 'nan'] else '0'
@@ -62,10 +72,11 @@ class Etiqueta:
     self.revisar_clasificacion()
     # Llenar los atributos de clasificacion
     if self.clasif_valida is True:
-      self._atributos.sacar_atributos(self._PIPE_A, self.PIPE_B)
+      self.atributos.sacar_atributos(self._PIPE_A, self.PIPE_B)
     # Crear clasificacion completa
     self.crear_clasif_completa()
-    
+  
+  #? GETTERS Y SETTERS *********************************
   @property
   def clasif(self): return self._clasif
   @clasif.setter
@@ -74,37 +85,8 @@ class Etiqueta:
     self.revisar_clasificacion()
     # Llenar los atributos de clasificacion
     if self.clasif_valida is True:
-      self._atributos.sacar_atributos(self._PIPE_A, self.PIPE_B)
+      self.atributos.sacar_atributos(self._PIPE_A, self.PIPE_B)
     self.crear_clasif_completa()
-  
-  def limpiar_clasif(self, STR:str) -> str:
-    ''' Limpiar la clasificación del libro de Caracteres no Necesarios'''
-    # * Eliminar caracteres no deseados
-    if 'LX' in STR: STR = sh.cortar_string(STR, 'LX')
-    if 'MAT' in STR: STR = sh.cortar_string(STR, 'MAT')
-    if 'V.' in STR: STR = sh.cortar_string(STR, 'V.')
-    if 'C.' in STR: STR = sh.cortar_string(STR, 'C.')
-    return STR
-  
-  @property
-  def PIPE_A(self): return self._PIPE_A
-  @property
-  def PIPE_B(self): return self._PIPE_B
-  @property
-  def clasif_valida(self): return self._clasif_valida
-  def revisar_clasificacion(self):
-    """ Revisar si la clasificacion cumple el estandar """
-    # Buscar un espacio en los primeros indices
-    if self.clasif.find(' ') < 3:
-      self._clasif_valida = False
-    elif sh.revisar_corte_pipe(self.clasif) and sh.revisar_pipeB(self.clasif):
-      pos_div, sum = sh.buscar_pipe(self.clasif)
-      self._PIPE_A = self.clasif[:pos_div].replace(' ','.')
-      self._PIPE_B = '.' + self.clasif[pos_div+sum:]
-      self._clasif_valida = True
-      self._clasif = self._PIPE_A + ' ' + self._PIPE_B
-    else:
-      self._clasif_valida = False
 
   @property
   def volumen(self): return self._volumen
@@ -113,6 +95,16 @@ class Etiqueta:
     #* Unicamente acepta numeros
     self._volumen = aVolumen if aVolumen not in ['', ' ', 'nan'] else '0'
     self.crear_clasif_completa()
+
+
+  @property
+  def clasif_valida(self): return self._clasif_valida
+  @property
+  def clasif_completa(self):return self._clasif_completa
+  @property
+  def PIPE_A(self): return self._PIPE_A
+  @property
+  def PIPE_B(self): return self._PIPE_B
 
   @property
   def copia(self):return self._copia
@@ -130,8 +122,29 @@ class Etiqueta:
     self._encabezado = aEncabezado
     self.crear_clasif_completa()
   
-  @property
-  def clasif_completa(self):return self._clasif_completa
+
+  #? FUNCIONALIDAD DE LA CLASE
+  def limpiar_clasif(self, STR:str) -> str:
+    ''' Limpiar la clasificación del libro de Caracteres no Necesarios'''
+    # * Eliminar caracteres no deseados
+    if 'LX' in STR: STR = sh.cortar_string(STR, 'LX')
+    if 'MAT' in STR: STR = sh.cortar_string(STR, 'MAT')
+    if 'V.' in STR: STR = sh.cortar_string(STR, 'V.')
+    if 'C.' in STR: STR = sh.cortar_string(STR, 'C.')
+    return STR
+  def revisar_clasificacion(self):
+    """ Revisar si la clasificacion cumple el estandar """
+    # Buscar un espacio en los primeros indices
+    if self.clasif.find(' ') < 3:
+      self._clasif_valida = False
+    elif sh.revisar_corte_pipe(self.clasif) and sh.revisar_pipeB(self.clasif):
+      pos_div, sum = sh.buscar_pipe(self.clasif)
+      self._PIPE_A = self.clasif[:pos_div].replace(' ','.')
+      self._PIPE_B = '.' + self.clasif[pos_div+sum:]
+      self._clasif_valida = True
+      self._clasif = self._PIPE_A + ' ' + self._PIPE_B
+    else:
+      self._clasif_valida = False
   def crear_clasif_completa(self):
     ''' Genera un atributo completo de clasificacion '''
     clasif_completa = self.clasif
@@ -142,7 +155,6 @@ class Etiqueta:
     #* Manejo de el parametro de copia
     clasif_completa += ' C.' + self.copia if self.copia != '1' else ''
     self._clasif_completa = clasif_completa
-    
 
 
   def __str__(self) -> str:
@@ -152,8 +164,8 @@ class Etiqueta:
       Clasificacion completa: {self._clasif_completa}
       Clasificacion correcta? {self._clasif_valida}
       
-      Atributos:
-      ----------
+      Atributos Generales:
+      --------------------
       Volumen: {self._volumen} Copia: {self._copia} Encabezado: {self._encabezado}
       Clasificacion: {self._clasif} PIPES: {self._PIPE_A}|{self._PIPE_B}
 
@@ -164,10 +176,11 @@ class Libro:
   """ Clase para generar objectos de tipo libro con todos sus datos """
   # TODO Considerar una bandera para agregar estatus de libros
   all = []
-  def __init__(self, aTitulo='', aCbarras='', aClasif='', aVolumen='0', aCopia='1', aEncabezado=''):
+  def __init__(self, aID=1, aTitulo='', aCbarras='', aClasif='', aVolumen='0', aCopia='1', aEncabezado=''):
     # Asignar Valores al objeto
     self._titulo = aTitulo
     self._cbarras = aCbarras
+    self._ID = aID
     # Crear objeto de tipo etiqueta
     self.etiqueta = Etiqueta(
       aClasif= aClasif,
@@ -179,6 +192,7 @@ class Libro:
     # Agregar libro a una lista de objetos
     # Libro.all.append(self)
 
+  #? GETTERS Y SETTERS *****************************
   @property
   def titulo(self): return self._titulo
   
@@ -186,11 +200,16 @@ class Libro:
   def cbarras(self): return self._cbarras
 
   @property
-  def estatus(self): return self._estatus
+  def ID(self): return self._ID
+  @ID.setter
+  def ID(self, aID): self._ID = aID
 
+  @property
+  def estatus(self): return self._estatus
   @estatus.setter
   def estatus(self, aEstatus): self._estatus = aEstatus
   
+  #? FUNCIONALIDAD CARGAR DESDE EXCEL *************
   @classmethod
   def llenar_desde_excel(cls, ruta):
     df = read_excel(ruta, header=0)
@@ -202,6 +221,7 @@ class Libro:
       vol = str(df['Volumen'][ind]) if 'Volumen' in header else ''
       vol = vol[2:] if 'V.' in vol or 'v.' in vol else '0'
       lista_libros.append(Libro(
+        aID=ind,
         aTitulo= str(df['Título'][ind]) if 'Título' in header else '',
         aCbarras= str(df['C. Barras'][ind]) if 'C. Barras' in header else '',
         aClasif= str(df['Clasificación'][ind]) if 'Clasificación' in header else '',
@@ -212,10 +232,12 @@ class Libro:
     
     return lista_libros
   
+  #? IMPRIMIR OBJETO **********************
   def __str__(self) -> str:
     return f"""  
       Imprimiendo Libro:
-      ---------------------
+      -------------------
+      Libro num. : {self._ID}
       Titulo: {self._titulo}
       Codigo de Barras: {self._cbarras}
 
@@ -231,26 +253,11 @@ class ManejoTabla:
   _tabla_len = 0
   estatus_color = {'Error':'#F04150', 'Valid':'#FFFFFF', 'Selected':'#498C8A', 'Modify':'#E8871E'}
 
-  def agregar_elemento(self, aLibro:Libro):
-    """ Agregar un elemento a la tabla general """
-    color = self.estatus_color[aLibro.estatus]
-    formato = (self.tabla_len, color)
-    principal = [
-      aLibro.etiqueta.clasif_completa, 
-      aLibro.etiqueta.PIPE_A, 
-      aLibro.etiqueta.PIPE_B, 
-      aLibro.estatus
-    ]
-    self.tabla_principal.append(principal)
-    self.lista_libros.append(aLibro)
-    self.formato_tabla.append(formato)
-    self._tabla_len += 1
-    # self.diccionario_estatus[largo_tabla] = estatus    
+  #? OPERACIONES GENERALES DE LA TABLA ************************************
 
   def crear_tabla(self, aRuta:str):
     lista_libros = Libro.llenar_desde_excel(aRuta)
     for libro in lista_libros: 
-      # print(libro)
       self.agregar_elemento(libro)
 
   def seleccionar_tabla(self):
@@ -282,12 +289,23 @@ class ManejoTabla:
     self._tabla_len = 0
     # self.diccionario_estatus = {}
 
-  def actualizar_estatus_elemento(self, num_elem, aEstatus):
-    self.lista_libros[num_elem].estatus = aEstatus
-    self.tabla_principal[num_elem][3] = aEstatus
-    color = self.estatus_color[aEstatus]
-    formato = (num_elem, color)
-    self.formato_tabla[num_elem] = formato
+  #? FUNCIONES PARA MANEJO DE UN SOLO ELEMENTO *********************************
+
+  def agregar_elemento(self, aLibro:Libro):
+    """ Agregar un elemento a la tabla general """
+    color = self.estatus_color[aLibro.estatus]
+    formato = (self.tabla_len, color)
+    principal = [
+      aLibro.etiqueta.clasif_completa, 
+      aLibro.etiqueta.PIPE_A, 
+      aLibro.etiqueta.PIPE_B, 
+      aLibro.estatus
+    ]
+    self.tabla_principal.append(principal)
+    self.lista_libros.append(aLibro)
+    self.formato_tabla.append(formato)
+    self._tabla_len += 1
+    # self.diccionario_estatus[largo_tabla] = estatus    
 
   def agregar_elemento_modificado(self, num_elem, aLibro, aClasifAnterior):
     self.lista_modificados[num_elem] = (aLibro, aClasifAnterior)
@@ -303,6 +321,15 @@ class ManejoTabla:
     self.tabla_principal[num_elem] = principal
     self.lista_libros[num_elem] = aLibro
 
+  def actualizar_estatus_elemento(self, num_elem, aEstatus):
+    self.lista_libros[num_elem].estatus = aEstatus
+    self.tabla_principal[num_elem][3] = aEstatus
+    color = self.estatus_color[aEstatus]
+    formato = (num_elem, color)
+    self.formato_tabla[num_elem] = formato
+
+  #? OPERACIONES FINALES DE LA TABLA *************************************
+
   def exportar_libros_selecionados(self):
     libros_a_imprimir = []
     #* Recorrer todos los libros de la tabla
@@ -314,6 +341,76 @@ class ManejoTabla:
     # TODO crear una funcion de ordenamiento
     return libros_a_imprimir
 
+  def ordenar_libros(self):
+    """ 
+    Convierte toda la tabla en general y los objetos
+    a un dataframe general donde cada columna es un atributo del libro.
+
+    Esta funcion es un paso previo para el ordenamiento de los libros.
+    """
+    orden_jerarquia = ['clase', 'subdecimal', 'temaesp', 'autor', 'anio', 'volumen', 'copia']
+    
+    libros_df = {
+      'id'          : [libro.ID for libro in self.lista_libros],
+      'clase'       : [libro.etiqueta.atributos.clase for libro in self.lista_libros],
+      'subdecimal'  : [libro.etiqueta.atributos.subdecimal for libro in self.lista_libros],
+      'temaesp'     : [libro.etiqueta.atributos.temaesp for libro in self.lista_libros],
+      'autor'       : [libro.etiqueta.atributos.autor for libro in self.lista_libros],
+      'anio'        : [libro.etiqueta.atributos.anio for libro in self.lista_libros],
+      'volumen'     : [libro.etiqueta.volumen for libro in self.lista_libros],
+      'copia'       : [libro.etiqueta.copia for libro in self.lista_libros],
+    }
+    libros_df = pd.DataFrame(libros_df)
+    libros_df.sort_values(by=orden_jerarquia, inplace=True)
+
+    return libros_df['id'].tolist()
+
+  def organizar_libros(self, orden):
+    """ Ordena los libros del programa con base a un indice """
+    # Llenar ambas tablas necesarias para el programa
+    tabla_principal_aux = []
+    lista_libros_aux = []
+    for indice in orden:
+      tabla_principal_aux.append(self.tabla_principal[indice])
+      self.lista_libros[indice].ID = indice
+      lista_libros_aux.append(self.lista_libros[indice])
+
+    self.tabla_principal = tabla_principal_aux.copy()
+    self.lista_libros = lista_libros_aux.copy()
+
+  def organizar_libros_excel(self, ruta, orden):
+    # * Importar el dataframe del Excel
+    df_excel = read_excel(ruta, header=0)
+
+    #* Corregir columnas seleccionadas
+    # libro = Libro()
+    correct_df = {
+      'Copia'         : [libro.etiqueta.copia for libro in self.lista_libros],
+      'Volumen'       : ['V.' + str(libro.etiqueta.volumen) if str(libro.etiqueta.volumen) != '0' else '' for libro in self.lista_libros],
+      'Clasificación' : [libro.etiqueta.clasif for libro in self.lista_libros],
+      'Encabezado'    : [libro.etiqueta.encabezado for libro in self.lista_libros],
+      'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros]
+    }
+
+    for column, values in correct_df.items():
+      df_excel[column] = values
+    
+    df_order = pd.DataFrame()
+    for index in orden:
+      row = df_excel.iloc[index]
+      df_order = pd.concat([df_order, pd.DataFrame([row])], ignore_index=True)
+    
+    return df_order
+
+  def escribir_excel(self, ruta, nombre, dataframe):
+    excel_path = f'{ruta}/{nombre}.xlsx'
+    print(excel_path)
+    excel_writer = pd.ExcelWriter(excel_path, mode='w')
+
+    dataframe.to_excel(excel_writer, index=False)
+    excel_writer.close()
+
+  #? CREACION DE REPORTES SOBRE TABLA ************************************
   def crear_reporte_modificados(self, path:str, nombre:str,):
     '''Genera un reporte en un txt de libros modificados'''
     if not self.lista_modificados: return False # Revisar si tenemos datos

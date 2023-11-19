@@ -56,7 +56,6 @@ class VentanaGeneral:
   titulo_ventana = 'INTERCALADOR'
   def __init__(self) -> None:
     self.ruta_archivo = ''
-    self.ruta_folder = ''
     self.table_manager = ManejoTabla()
 
   def left_layout(self):
@@ -280,7 +279,7 @@ class VentanaGeneral:
         self.cargar_excel(window)
       
       #?#********** FUNCIONALIDAD DE TABLA **********#?#
-      elif event == "LIMPIAR":
+      elif event == "Limpiar":
         self.reset_window(window)
         bandera_modificar = False
       elif event == "TABLE":
@@ -509,6 +508,22 @@ class VentanaGeneral:
       self.table_manager.crear_reporte_general(ruta, nombre_salida, nombre_archivo)
       # self.table_manager.crear_reporte_modificados(ruta, nombre_salida)
       self.table_manager.crear_reporte_QRO(ruta, nombre_salida)
+
+    #? Crear un archivo de excel ordenado
+    if values['EXCEL_ORD']:
+      orden_de_libros = self.table_manager.ordenar_libros()
+      excel_ordenado = self.table_manager.organizar_libros_excel(self.ruta_archivo, orden_de_libros)
+      self.table_manager.escribir_excel(ruta, nombre_salida, excel_ordenado)
+      self.table_manager.organizar_libros(orden_de_libros)
+      
+      #* Actualizar apariencia de la tabla
+      window["TABLE"].update(
+        values=self.table_manager.tabla_principal, 
+        row_colors=self.table_manager.formato_tabla
+      )
+
+      
+      # self.table_manager.ordenar_libros()
 
 
 
