@@ -37,7 +37,7 @@ sg.theme('MyCreatedTheme')
 
 #? Menu superior de opciones
 menu_opciones = [
-  ['Programa', ['Salir']],
+  ['Programa', ['Guardar','Salir']],
   ['Ayuda', ['Tutoriales','Licencia','Acerca de...']],
 ]
 
@@ -56,6 +56,7 @@ class VentanaGeneral:
   titulo_ventana = 'INTERCALADOR'
   def __init__(self) -> None:
     self.ruta_archivo = ''
+    self.estatus_guardar = False
     self.table_manager = ManejoTabla()
 
   def left_layout(self):
@@ -256,7 +257,10 @@ class VentanaGeneral:
       self.show_window_events(event, values)
       #? ******** FUNCIONALIDAD BASICA VENTANA  ***************
       #* Cerrar la aplicación
-      if event in (sg.WINDOW_CLOSED, "Exit", "__TIMEOUT__"):
+      if event in (sg.WINDOW_CLOSED, "Exit", "__TIMEOUT__", 'Salir'):
+        #* Ver si quiere guardar el archivo
+        if pop.save_file() is True:
+          self.guardar_programa()
         window.close()
         return
       #* Mostrar licencia del Programa
@@ -265,6 +269,9 @@ class VentanaGeneral:
       #* Mostrar version del Programa
       elif event == "Acerca de...":
         pop.info_about(VERSION)
+      #* Guardar archivo
+      elif event == 'Guardar':
+        self.guardar_programa()
       
       #? ********** FUNCIONALIDAD CARGAR ARCHIVO *******************
       #* Cargar elementos desde un Excel
@@ -474,13 +481,13 @@ class VentanaGeneral:
     )
     return False
 
-  #? Ejecutar programa
+  #? EJECUTAR PROGRAMA ***************************
   def ejecutar_programa(self, window, values):
     #* Revisar archivo de Excel
     if len(self.ruta_archivo) == 0: 
       pop.warning_excel_file()
       return False 
-    nombre_archivo = self.ruta_archivo.split('/')[-1] if len(self.ruta_archivo) != 0 else 'Sin Archivo'
+    nombre_archivo = self.ruta_archivo.split('/')[-1]
 
     # * Checar si existe algun elemento erroneo
     if self.table_manager.revisar_tabla() is False:
@@ -534,6 +541,18 @@ class VentanaGeneral:
     #   ventana_instruc_ordenar(lista_retirar, lista_colocar, hoja_actual, nombre_archivo)
 
     # window['Actualizar'].click()
+
+  def guardar_programa(self):
+    #* Revisar archivo de Excel
+    if len(self.ruta_archivo) == 0: 
+      return False 
+    
+    nombre_archivo = self.ruta_archivo.split('/')[-1]
+    nombre_archivo = nombre_archivo[:nombre_archivo.find('.xlsx')]
+    ruta_archivo = self.ruta_archivo[:self.ruta_archivo.find(nombre_archivo)-1]
+    #* Crear y actualizar el dataframe del excel
+    guardar_df = self.table_manager.guardar_libros_tabla(self.ruta_archivo)
+    self.table_manager.escribir_excel(ruta_archivo, nombre_archivo, guardar_df)
 
 def main():
   """ Funcion principal para el manejo de la aplicacion """

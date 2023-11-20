@@ -77,6 +77,11 @@ def check_images():
   answer = messagebox.askokcancel("Generador IMG", msg)
   return answer
 
+def save_file():
+  msg = f'Desea guardar su progreso ?'
+  answer = messagebox.askokcancel("Save Progress", msg)
+  return answer
+
 if __name__ == "__main__":
   print(check_images())
 

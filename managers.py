@@ -52,7 +52,6 @@ class Clasificacion:
     largo_max = 10
     ceros = (largo_max - len(STR)) * '0'
     for ind, char in enumerate(STR):
-      print(char)
       if char.isalpha() is False:
         str_salida = STR[:ind] + ceros + STR[ind:]
         break
@@ -239,13 +238,15 @@ class Libro:
       # Manejo del volumen en los datos
       vol = str(df['Volumen'][ind]) if 'Volumen' in header else ''
       vol = vol[2:] if 'V.' in vol or 'v.' in vol else '0'
+      encabezado = str(df['Encabezado'][ind]) if 'Encabezado' in header else ''
+      encabezado = encabezado if encabezado != 'nan' else ''
       lista_libros.append(Libro(
         aID=ind,
         aTitulo= str(df['Título'][ind]) if 'Título' in header else '',
         aCbarras= str(df['C. Barras'][ind]) if 'C. Barras' in header else '',
         aClasif= str(df['Clasificación'][ind]) if 'Clasificación' in header else '',
         aCopia= str(df['Copia'][ind]) if 'Copia' in header else '',
-        aEncabezado= str(df['Encabezado'][ind]) if 'Encabezado' in header else '',
+        aEncabezado= encabezado,
         aVolumen= vol
       ))
     
@@ -427,10 +428,38 @@ class ManejoTabla:
   def escribir_excel(self, ruta, nombre, dataframe):
     excel_path = f'{ruta}/{nombre}.xlsx'
     print(excel_path)
-    excel_writer = pd.ExcelWriter(excel_path, mode='w')
+    try:
+      excel_writer = pd.ExcelWriter(excel_path, mode='w')
+      dataframe.to_excel(excel_writer, index=False)
+      excel_writer.close()
+    except:
+      print('No se pudo escribir en la ruta seleccionada')
+      excel_path = f'{ruta}/{nombre}_copia.xlsx'
+      excel_writer = pd.ExcelWriter(excel_path, mode='w')
+      dataframe.to_excel(excel_writer, index=False)
+      excel_writer.close()
 
-    dataframe.to_excel(excel_writer, index=False)
-    excel_writer.close()
+
+
+  def guardar_libros_tabla(self, ruta):
+    """ Guarda todos los cambios realizados en el programa hasta ahora """
+    # * Importar el dataframe del Excel
+    df_excel = read_excel(ruta, header=0)
+    
+    #* Corregir columnas seleccionadas
+    correct_df = {
+      'Copia'         : [libro.etiqueta.copia for libro in self.lista_libros],
+      'Volumen'       : ['V.' + str(libro.etiqueta.volumen) if str(libro.etiqueta.volumen) != '0' else '' for libro in self.lista_libros],
+      'Clasificación' : [libro.etiqueta.clasif for libro in self.lista_libros],
+      'Encabezado'    : [libro.etiqueta.encabezado for libro in self.lista_libros],
+      'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros]
+    }
+
+    for column, values in correct_df.items():
+      df_excel[column] = values
+    return df_excel
+
+
 
   #? CREAR INSTRUCCIONES DE ORDENAMIENTO *********************************
   def marcar_condiciones_libros(self):
