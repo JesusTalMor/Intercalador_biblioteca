@@ -509,48 +509,24 @@ class VentanaGeneral:
       # self.table_manager.crear_reporte_modificados(ruta, nombre_salida)
       self.table_manager.crear_reporte_QRO(ruta, nombre_salida)
 
-    #? Crear un archivo de excel ordenado
-    if values['EXCEL_ORD']:
+    #? Ordenar tabla del programa
+    if values['EXCEL_ORD'] or values['EXCEL_INSTRUCT']:
       orden_de_libros = self.table_manager.ordenar_libros()
-      excel_ordenado = self.table_manager.organizar_libros_excel(self.ruta_archivo, orden_de_libros)
-      self.table_manager.escribir_excel(ruta, nombre_salida, excel_ordenado)
-      self.table_manager.organizar_libros(orden_de_libros)
-      
+      self.table_manager.organizar_libros_tabla(orden_de_libros)
       #* Actualizar apariencia de la tabla
       window["TABLE"].update(
         values=self.table_manager.tabla_principal, 
         row_colors=self.table_manager.formato_tabla
       )
 
-      
-      # self.table_manager.ordenar_libros()
-
-
-
-    # TODO Mandar llamar funcion para partir y organizar
-    # TODO Contemplar las posibilidad de hacer multi hojas pero por partes
-    # ! Actualmente solo funciona para 1 sola hoja de excel, si se implementa más resultados desconocidos
-
+    #? Crear un archivo de excel ordenado
+    if values['EXCEL_ORD']:
+      excel_ordenado = self.table_manager.organizar_libros_excel(self.ruta_archivo, orden_de_libros)
+      self.table_manager.escribir_excel(ruta, nombre_salida, excel_ordenado)
     
-
-    # if not (values['EXCEL_ORD'] or values['EXCEL_ERR_ORD']):
-    #   window['Actualizar'].click()
-    #   continue
-
-    # lista_no_ordenada = mainif.separar_atributos_libros(tabla_datos)
-    # lista_no_ordenada, largos = mainif.limpiar_atributos_libros(lista_no_ordenada)
-    # lista_no_ordenada = mainif.estandarizar_atributos_libros(lista_no_ordenada, largos)
-    # # # print(*salida, sep='\n\n')
-    # # # print(largos)
-    # lista_ordenada = mainif.ordenar_libros_atributo(lista_no_ordenada)
-    # # # print(*salida_ordenada, sep='\n')
-    # # * Sección para crear excel ordenado
-    # if values['EXCEL_ORD']:
-    #   dataframe_salida = mainif.crear_excel_ordenado(lista_ordenada, tabla_datos, main_dataframe)
-    #   # print(*dataframe_salida, sep='\n')
-    #   mainif.escribir_excel(dataframe_salida, archivo_info, hoja_actual, index_hoja)
-    # # * Sección para crear instrucciones ordenar
-    # if values['EXCEL_ERR_ORD']: 
+    # * Sección para crear instrucciones ordenar
+    if values['EXCEL_INSTRUCT']: 
+      pass
     #   lista_retirar, lista_colocar = mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos)
     #   if not lista_retirar[0]: 
     #     window['Actualizar'].click()

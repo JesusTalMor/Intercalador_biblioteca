@@ -29,7 +29,7 @@ class Clasificacion:
   #? FUNCIONALIDAD DE LA CLASE *****************************
   def sacar_atributos(self, PIPE_A, PIPE_B):
     atributos_pipe_a = PIPE_A.split('.')
-    atributos_pipe_b = PIPE_B.split(' ')
+    atributos_pipe_b = PIPE_B[1:].split(' ')
     # Rellenar en diccionario
     for index, elem in enumerate(atributos_pipe_a):
       if index == 0: self._clase = elem
@@ -42,16 +42,35 @@ class Clasificacion:
 
     # Revisar los casos especiales
     # ? Autor no tiene letra 
-    if self._autor[1].isalpha() is False: 
+    if self._autor[0].isalpha() is False: 
       self._anio = self._autor
       self._autor = 'A0'
+
+    self.estandarizar_atributos()
+
+  def estandarizar(self, STR):
+    largo_max = 10
+    ceros = (largo_max - len(STR)) * '0'
+    for ind, char in enumerate(STR):
+      print(char)
+      if char.isalpha() is False:
+        str_salida = STR[:ind] + ceros + STR[ind:]
+        break
+    
+    return str_salida
+
+  def estandarizar_atributos(self):
+    self._clase = self.estandarizar(self.clase)
+    self._subdecimal = self.estandarizar(self.subdecimal)
+    self._temaesp = self.estandarizar(self.temaesp)
+    self._autor = self.estandarizar(self.autor)
 
   def __str__(self) -> str:
     return f"""  
       Imprimiendo Atributos de Clasificacion:
       ---------------------------------------
-      Clase: {self._clase} Subdecimal: {self._subdecimal} temaesp: {self._temaesp}
-      Autor: {self._autor} Año: {self._anio}
+      Clase: {self.clase} Subdecimal: {self.subdecimal} temaesp: {self.temaesp}
+      Autor: {self.autor} Año: {self.anio}
       """
 
 class Etiqueta:
@@ -169,7 +188,7 @@ class Etiqueta:
       Volumen: {self._volumen} Copia: {self._copia} Encabezado: {self._encabezado}
       Clasificacion: {self._clasif} PIPES: {self._PIPE_A}|{self._PIPE_B}
 
-      {self._atributos}
+      {self.atributos}
       """
 
 class Libro:
@@ -247,6 +266,7 @@ class Libro:
 class ManejoTabla:
   """ Clase para manejo de Tabla """
   tabla_principal = []
+  lista_original = []
   formato_tabla = []
   lista_libros = []
   lista_modificados = {}
@@ -365,25 +385,33 @@ class ManejoTabla:
 
     return libros_df['id'].tolist()
 
-  def organizar_libros(self, orden):
+  def organizar_libros_tabla(self, orden):
     """ Ordena los libros del programa con base a un indice """
     # Llenar ambas tablas necesarias para el programa
+    self.lista_original = self.lista_libros.copy()
     tabla_principal_aux = []
     lista_libros_aux = []
     for indice in orden:
       tabla_principal_aux.append(self.tabla_principal[indice])
-      self.lista_libros[indice].ID = indice
+      # self.lista_libros[indice].ID = indice
       lista_libros_aux.append(self.lista_libros[indice])
 
     self.tabla_principal = tabla_principal_aux.copy()
     self.lista_libros = lista_libros_aux.copy()
 
+    for libro in self.lista_libros:
+      print(libro.ID)
+  
   def organizar_libros_excel(self, ruta, orden):
     # * Importar el dataframe del Excel
     df_excel = read_excel(ruta, header=0)
-
+    
+    df_order = pd.DataFrame()
+    for index in orden:
+      row = df_excel.iloc[index]
+      df_order = pd.concat([df_order, pd.DataFrame([row])], ignore_index=True)
+    
     #* Corregir columnas seleccionadas
-    # libro = Libro()
     correct_df = {
       'Copia'         : [libro.etiqueta.copia for libro in self.lista_libros],
       'Volumen'       : ['V.' + str(libro.etiqueta.volumen) if str(libro.etiqueta.volumen) != '0' else '' for libro in self.lista_libros],
@@ -393,13 +421,7 @@ class ManejoTabla:
     }
 
     for column, values in correct_df.items():
-      df_excel[column] = values
-    
-    df_order = pd.DataFrame()
-    for index in orden:
-      row = df_excel.iloc[index]
-      df_order = pd.concat([df_order, pd.DataFrame([row])], ignore_index=True)
-    
+      df_order[column] = values
     return df_order
 
   def escribir_excel(self, ruta, nombre, dataframe):
@@ -409,6 +431,32 @@ class ManejoTabla:
 
     dataframe.to_excel(excel_writer, index=False)
     excel_writer.close()
+
+  #? CREAR INSTRUCCIONES DE ORDENAMIENTO *********************************
+  def marcar_condiciones_libros(self):
+    """ Checar y asigna una condicion a cada libro dependiendo su situacion 
+      Se sobre entiende que para ejecutar esta funcion se organizaron los libros
+    """
+
+    condiciones_libros = []
+    libro = Libro()
+    for ind, libro in enumerate(self.lista_libros):
+      entry_IND = libro.ID 
+      out_IND = ind
+
+      #* Revisar si coinciden los indices
+      if entry_IND == out_IND:
+        condiciones_libros.append([libro, 'correcto'])
+        continue
+
+      #* Indices no coinciden
+      if (out_IND - 1) >= 0 or (out_IND + 1) < self.tabla_len:
+        condicion = 'erroneo'
+
+        # Condicionado anterior
+        if (out_IND - 1) >= 0:
+          pass
+          
 
   #? CREACION DE REPORTES SOBRE TABLA ************************************
   def crear_reporte_modificados(self, path:str, nombre:str,):
@@ -474,7 +522,7 @@ if __name__ == '__main__':
   # ruta1 = 'C:/Users/EQUIPO/Desktop/Proyectos_biblioteca/Etiquetas/Pruebas/Mario_excel.xlsx'
   # libros = Libro.llenar_desde_excel(ruta1)
   # print(libros[0])
-  etiqueta1 = Etiqueta('B2430.D484 .P6818 1997', '', '0', '1')
+  etiqueta1 = Etiqueta('B2430.D484.4 .P6818 1997', '', '0', '1')
   print(etiqueta1)
   # etiqueta1 = Etiqueta('B2430.D484 P6818 1997', '', '', '1')
   # print(etiqueta1)
