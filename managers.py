@@ -78,7 +78,7 @@ class Etiqueta:
     # Asignar valores al objeto
     self.atributos = Clasificacion()
     self._clasif = self.limpiar_clasif(aClasif)
-    self._encabezado = aEncabezado
+    self._encabezado = aEncabezado if aEncabezado not in ['', ' ', 'nan'] else ''
     self._volumen = aVolumen if aVolumen not in ['', ' ', 'nan'] else '0'
     self._copia = aCopia if aCopia not in ['', ' ', 'nan'] else '1'
     self._PIPE_A = 'XXXXXX'
@@ -114,16 +114,6 @@ class Etiqueta:
     self._volumen = aVolumen if aVolumen not in ['', ' ', 'nan'] else '0'
     self.crear_clasif_completa()
 
-
-  @property
-  def clasif_valida(self): return self._clasif_valida
-  @property
-  def clasif_completa(self):return self._clasif_completa
-  @property
-  def PIPE_A(self): return self._PIPE_A
-  @property
-  def PIPE_B(self): return self._PIPE_B
-
   @property
   def copia(self):return self._copia
   @copia.setter
@@ -137,11 +127,23 @@ class Etiqueta:
   def encabezado(self): return self._encabezado
   @encabezado.setter
   def encabezado(self, aEncabezado):
-    self._encabezado = aEncabezado
+    #* Unicamente palabras.
+    #* No acepta {'', ' ', 'nan'}
+    self._encabezado = aEncabezado if aEncabezado not in ['', ' ', 'nan'] else ''
     self.crear_clasif_completa()
+
+  @property
+  def clasif_valida(self): return self._clasif_valida
+  @property
+  def clasif_completa(self):return self._clasif_completa
+  @property
+  def PIPE_A(self): return self._PIPE_A
+  @property
+  def PIPE_B(self): return self._PIPE_B
+
   
 
-  #? FUNCIONALIDAD DE LA CLASE
+  #? FUNCIONALIDAD DE LA CLASE *******************************************
   def limpiar_clasif(self, STR:str) -> str:
     ''' Limpiar la clasificación del libro de Caracteres no Necesarios'''
     # * Eliminar caracteres no deseados
@@ -192,8 +194,6 @@ class Etiqueta:
 
 class Libro:
   """ Clase para generar objectos de tipo libro con todos sus datos """
-  # TODO Considerar una bandera para agregar estatus de libros
-  all = []
   def __init__(self, aID=1, aTitulo='', aCbarras='', aClasif='', aVolumen='0', aCopia='1', aEncabezado=''):
     # Asignar Valores al objeto
     self._titulo = aTitulo
@@ -236,18 +236,14 @@ class Libro:
     lista_libros = []
     for ind in df.index:
       # Manejo del volumen en los datos
-      vol = str(df['Volumen'][ind]) if 'Volumen' in header else ''
-      vol = vol[2:] if 'V.' in vol or 'v.' in vol else '0'
-      encabezado = str(df['Encabezado'][ind]) if 'Encabezado' in header else ''
-      encabezado = encabezado if encabezado != 'nan' else ''
       lista_libros.append(Libro(
         aID=ind,
         aTitulo= str(df['Título'][ind]) if 'Título' in header else '',
         aCbarras= str(df['C. Barras'][ind]) if 'C. Barras' in header else '',
         aClasif= str(df['Clasificación'][ind]) if 'Clasificación' in header else '',
         aCopia= str(df['Copia'][ind]) if 'Copia' in header else '',
-        aEncabezado= encabezado,
-        aVolumen= vol
+        aEncabezado= str(df['Encabezado'][ind]) if 'Encabezado' in header else '',
+        aVolumen= str(df['Volumen'][ind]) if 'Volumen' in header else '',
       ))
     
     return lista_libros
@@ -330,7 +326,7 @@ class ManejoTabla:
 
   def agregar_elemento_modificado(self, num_elem, aLibro, aClasifAnterior):
     self.lista_modificados[num_elem] = (aLibro, aClasifAnterior)
-    print('Elemento agregado')
+    print('[INFO] Elemento modificado agregado')
   
   def actualizar_elemento(self, num_elem, aLibro):
     principal = [
@@ -341,6 +337,7 @@ class ManejoTabla:
     ]
     self.tabla_principal[num_elem] = principal
     self.lista_libros[num_elem] = aLibro
+    print('[INFO] Elemento Actualizado')
 
   def actualizar_estatus_elemento(self, num_elem, aEstatus):
     self.lista_libros[num_elem].estatus = aEstatus
@@ -400,6 +397,7 @@ class ManejoTabla:
     self.tabla_principal = tabla_principal_aux.copy()
     self.lista_libros = lista_libros_aux.copy()
 
+    # Imprimir los indices
     for libro in self.lista_libros:
       print(libro.ID)
   
@@ -415,7 +413,7 @@ class ManejoTabla:
     #* Corregir columnas seleccionadas
     correct_df = {
       'Copia'         : [libro.etiqueta.copia for libro in self.lista_libros],
-      'Volumen'       : ['V.' + str(libro.etiqueta.volumen) if str(libro.etiqueta.volumen) != '0' else '' for libro in self.lista_libros],
+      'Volumen'       : [libro.etiqueta.volumen for libro in self.lista_libros],
       'Clasificación' : [libro.etiqueta.clasif for libro in self.lista_libros],
       'Encabezado'    : [libro.etiqueta.encabezado for libro in self.lista_libros],
       'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros]
