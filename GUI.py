@@ -1,11 +1,11 @@
 # Editor: Jesus Talamantes Morales
-# Fecha Ultima Mod: 14 de Noviembre 2023
+# Fecha Ultima Mod: 21 de Noviembre 2023
 # Version Antigua Modificaciones aun sin objetos
 ################################################
 
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
 ALPHA = 0
-FUNCIONALIDAD = 6
+FUNCIONALIDAD = 7
 BUGS = 0
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
 
@@ -110,7 +110,8 @@ class VentanaGeneral:
     SELECCIONAR_OPCIONES = [
       #* Opciones del Programa
       [sg.Checkbox('Reporte', 'G1', key='REPORT', **option_format)],
-      [sg.Checkbox('Orden Instrucciones', 'G1', key='EXCEL_INSTRUCT', **option_format)],
+      # Opcion en desarrollo invisible
+      [sg.Checkbox('Orden Instrucciones', 'G1', key='EXCEL_INSTRUCT', visible=False, **option_format)],
       [sg.Checkbox('Excel Orden', 'G1', key='EXCEL_ORD', **option_format)],
     ]
 
