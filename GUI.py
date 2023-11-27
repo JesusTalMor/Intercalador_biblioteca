@@ -1,6 +1,6 @@
 # Editor: Jesus Talamantes Morales
 # Fecha Ultima Mod: 21 de Noviembre 2023
-# Version Antigua Modificaciones aun sin objetos
+# Versión implementando objetos
 ################################################
 
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
