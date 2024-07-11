@@ -1,5 +1,6 @@
 Assets
 env
+.env
 pruebas.py
 __pycache__
 output
