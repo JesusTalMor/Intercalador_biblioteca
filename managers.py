@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 from pandas import read_excel
 
@@ -28,41 +30,80 @@ class Clasificacion:
 
   #? FUNCIONALIDAD DE LA CLASE *****************************
   def sacar_atributos(self, PIPE_A, PIPE_B):
-    atributos_pipe_a = PIPE_A.split('.')
-    atributos_pipe_b = PIPE_B[1:].split(' ')
-    # Rellenar en diccionario
-    for index, elem in enumerate(atributos_pipe_a):
-      if index == 0: self._clase = elem
-      elif index == 1: self._subdecimal = elem
-      elif index == 2: self._temaesp = elem
+    """ 
+    REQUERIMIENTOS
+    * COMPLETO
+    Ambos pipes siempre tienen datos, campos no vacios
+
+    * COMPLETO
+    PIPE A siempre esta separado con '.'
+    PIPE B siempre esta separado con ' '
+
+    * Completo
+    PIPE A puede tener hasta 3 elementos.
+    PIPE B puede tener hasta 2 elementos.
+
+    * Completo
+    Elemento Autor siempre tiene caracter alfanumerico
+    En caso contrario el atributo es anio
+
+    """
+
+    if len(PIPE_A) == 0 or len(PIPE_B) == 0:
+      print('[WARN] Sin PIPES')
+      return 
     
-    for index, elem in enumerate(atributos_pipe_b):
-      if index == 0: self._autor = elem
-      elif index == 1: self._anio = elem
+    atributos_pipe_a = PIPE_A.split('.')
+    atributos_pipe_b = PIPE_B.split(' ')
+
+    # Rellenar en diccionario
+    len_pipe_a = len(atributos_pipe_a)
+    self._clase = atributos_pipe_a[0] 
+    self._subdecimal = atributos_pipe_a[1] if len_pipe_a > 1 else self._subdecimal
+    self._temaesp = atributos_pipe_a[2] if len_pipe_a > 2 else self.temaesp
+
+    len_pipe_b = len(atributos_pipe_b)
+    self._autor = atributos_pipe_b[0] 
+    self._anio = atributos_pipe_b[1] if len_pipe_b > 1 else self._anio
 
     # Revisar los casos especiales
     # ? Autor no tiene letra 
-    if self._autor[0].isalpha() is False: 
+    if re.search('[a-zA-Z]+', self._autor) is None:
       self._anio = self._autor
       self._autor = 'A0'
+  
+  def estandarizar(self, STR, flag=True):
+    """  
+    2 Modos de operacion con bandera
+    * COMPLETO
+    Modo 1. Bandera True. Agregar Ceros a la izquierda de los numeros
+    Ejemplo: BF76 --> BF000...76
+    * COMPLETO
+    Modo 2. Bandera False. Agregar Ceros a la derecha de los numeros
+    Ejemplo: BF76 --> BF76000...
 
-    self.estandarizar_atributos()
+    Modo 1 por defecto.
+    """
+    MAX_len = 10
+    ceros = (MAX_len - len(STR)) * '0'
 
-  def estandarizar(self, STR):
-    largo_max = 10
-    ceros = (largo_max - len(STR)) * '0'
-    for ind, char in enumerate(STR):
-      if char.isalpha() is False:
-        str_salida = STR[:ind] + ceros + STR[ind:] if ind != 0 else 'A' + ceros + STR
-        break
-    
+    # MODO 2
+    if not flag:
+      str_salida = STR + ceros
+    # MODO 1
+    else:
+      str_salida = STR
+      text = re.findall("[a-zA-Z]+", STR)[0]
+      number = re.findall("\d+", STR)[0]
+      str_salida = text + ceros + number
+
     return str_salida
 
   def estandarizar_atributos(self):
-    self._clase = self.estandarizar(self.clase)
-    self._subdecimal = self.estandarizar(self.subdecimal)
-    self._temaesp = self.estandarizar(self.temaesp)
-    self._autor = self.estandarizar(self.autor)
+    self._clase = self.estandarizar(self.clase, True)
+    self._subdecimal = self.estandarizar(self.subdecimal, True)
+    self._temaesp = self.estandarizar(self.temaesp, True)
+    self._autor = self.estandarizar(self.autor, False)
 
   def __str__(self) -> str:
     return f"""  
