@@ -1,5 +1,5 @@
 # Editor: Jesus Talamantes Morales
-# Fecha Ultima Mod: 21 de Noviembre 2023
+# Fecha Ultima Mod: 16 de Julio 2024
 # Versión implementando objetos
 ################################################
 
@@ -10,13 +10,13 @@ BUGS = 0
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
 
 import os
+import re
 import sys
 
 import PySimpleGUI as sg
 
 import main_inter_functions as mainif
 import pop_ups as pop
-import string_helper as sh
 import ticket_maker as ticket
 from managers import ManejoTabla
 from support_windows import VentanaModificar
@@ -59,6 +59,7 @@ class VentanaGeneral:
     self.estatus_guardar = False
     self.table_manager = ManejoTabla()
 
+  #? CREACION de la Ventana. ***********************
   def left_layout(self):
     """ Layout de columna izquierda del programa
 
@@ -110,9 +111,9 @@ class VentanaGeneral:
     SELECCIONAR_OPCIONES = [
       #* Opciones del Programa
       [sg.Checkbox('Reporte', 'G1', key='REPORT', **option_format)],
-      # Opcion en desarrollo invisible
-      [sg.Checkbox('Orden Instrucciones', 'G1', key='EXCEL_INSTRUCT', visible=False, **option_format)],
       [sg.Checkbox('Excel Orden', 'G1', key='EXCEL_ORD', **option_format)],
+      # Opcion en desarrollo invisible
+      # [sg.Checkbox('Orden Instrucciones', 'G1', key='EXCEL_INSTRUCT', visible=False, **option_format)],
     ]
 
     #?#********* LAYOUT GENERAL DE COLUMNA IZQUIERDA #?#*********
@@ -260,8 +261,7 @@ class VentanaGeneral:
       #* Cerrar la aplicación
       if event in (sg.WINDOW_CLOSED, "Exit", "__TIMEOUT__", 'Salir'):
         #* Ver si quiere guardar el archivo
-        if pop.save_file() is True:
-          self.guardar_programa()
+        self.guardar_programa()
         window.close()
         return
       #* Mostrar licencia del Programa
@@ -543,17 +543,34 @@ class VentanaGeneral:
 
     # window['Actualizar'].click()
 
-  def guardar_programa(self):
-    #* Revisar archivo de Excel
+  def guardar_programa(self, bypass=False):
+    # Revisar si tenemos datos en el programa.
+    if self.table_manager.tabla_len == 0:
+      print('[INFO] Sin datos que guardar')
+      return False
+    # Revisar archivo de Excel
     if len(self.ruta_archivo) == 0: 
+      print('[INFO] Sin ruta para guardar')
       return False 
     
+    if bypass is False:
+      if pop.save_file() is False:
+        print('[INFO] Anular guardado')
+        return False
+
+    # Obtener el nombre del archivo
     nombre_archivo = self.ruta_archivo.split('/')[-1]
-    nombre_archivo = nombre_archivo[:nombre_archivo.find('.xlsx')]
-    ruta_archivo = self.ruta_archivo[:self.ruta_archivo.find(nombre_archivo)-1]
-    #* Crear y actualizar el dataframe del excel
+    nombre_archivo = re.sub(r'\.xlsx', '', nombre_archivo)
+    # Obtener la ruta a la carpeta de guardado
+    regex = '/' + nombre_archivo + '.*'
+    ruta_folder = re.sub(regex, '', self.ruta_archivo)
+    # Crear y actualizar el dataframe del excel
+    nombre_archivo = nombre_archivo + '_saved'
+    print(f'[DEBUG] Nombre generado {nombre_archivo}')
+    print(f'[DEBUG] Ruta Generada {ruta_folder}')
     guardar_df = self.table_manager.guardar_libros_tabla(self.ruta_archivo)
-    self.table_manager.escribir_excel(ruta_archivo, nombre_archivo, guardar_df)
+    self.table_manager.escribir_excel(ruta_folder, nombre_archivo, guardar_df)
+    return True
 
 def main():
   """ Funcion principal para el manejo de la aplicacion """

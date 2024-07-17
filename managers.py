@@ -10,7 +10,7 @@ class Clasificacion:
   """ Objeto para separar todos los elementos de una clasificacion """
   def __init__(self) -> None:
     self._clase = 'A0'
-    self._subdecimal = 'A0'
+    self._subdecimal = '0'
     self._temaesp = 'A0'
     self._autor = 'A0'
     self._anio = '1000'
@@ -30,27 +30,9 @@ class Clasificacion:
 
   #? FUNCIONALIDAD DE LA CLASE *****************************
   def sacar_atributos(self, PIPE_A, PIPE_B):
-    """ 
-    REQUERIMIENTOS
-    * COMPLETO
-    Ambos pipes siempre tienen datos, campos no vacios
-
-    * COMPLETO
-    PIPE A siempre esta separado con '.'
-    PIPE B siempre esta separado con ' '
-
-    * Completo
-    PIPE A puede tener hasta 3 elementos.
-    PIPE B puede tener hasta 2 elementos.
-
-    * Completo
-    Elemento Autor siempre tiene caracter alfanumerico
-    En caso contrario el atributo es anio
-
-    """
-
     if len(PIPE_A) == 0 or len(PIPE_B) == 0:
-      print('[WARN] Sin PIPES')
+      self.estandarizar_atributos()
+      # print('[WARN] Sin PIPES')
       return 
     
     atributos_pipe_a = PIPE_A.split('.')
@@ -70,20 +52,15 @@ class Clasificacion:
     # ? Autor no tiene letra 
     if re.search('[a-zA-Z]+', self._autor) is None:
       self._anio = self._autor
-      self._autor = 'A0'
+      self._autor = 'A0'  
+    # ? Subdecimal con letra
+    if re.search('[a-zA-Z]+', self._subdecimal) is not None:
+      self._temaesp = self._subdecimal
+      self._subdecimal = '0'
+    
+    self.estandarizar_atributos()
   
   def estandarizar(self, STR, flag=True):
-    """  
-    2 Modos de operacion con bandera
-    * COMPLETO
-    Modo 1. Bandera True. Agregar Ceros a la izquierda de los numeros
-    Ejemplo: BF76 --> BF000...76
-    * COMPLETO
-    Modo 2. Bandera False. Agregar Ceros a la derecha de los numeros
-    Ejemplo: BF76 --> BF76000...
-
-    Modo 1 por defecto.
-    """
     MAX_len = 10
     ceros = (MAX_len - len(STR)) * '0'
 
@@ -93,16 +70,16 @@ class Clasificacion:
     # MODO 1
     else:
       str_salida = STR
-      text = re.findall("[a-zA-Z]+", STR)[0]
-      number = re.findall("\d+", STR)[0]
+      text = re.findall(r'[a-zA-Z]+', STR)[0] if re.search(r'[a-zA-Z]+', STR) is not None else ''
+      number = re.findall(r'\d+', STR)[0] if re.search(r'\d+', STR) is not None else ''
       str_salida = text + ceros + number
 
     return str_salida
 
   def estandarizar_atributos(self):
     self._clase = self.estandarizar(self.clase, True)
-    self._subdecimal = self.estandarizar(self.subdecimal, True)
-    self._temaesp = self.estandarizar(self.temaesp, True)
+    self._subdecimal = self.estandarizar(self.subdecimal, False)
+    self._temaesp = self.estandarizar(self.temaesp, False)
     self._autor = self.estandarizar(self.autor, False)
 
   def __str__(self) -> str:
@@ -115,20 +92,28 @@ class Clasificacion:
 
 class Etiqueta:
   """ Objeto de tipo Etiqueta que contenga toda la informacion de una etiqueta comun """
-  def __init__(self, aClasif='', aEncabezado='', aVolumen='', aCopia='') -> None:
+  def __init__(self, aClasif='', aEncabezado='', aVolumen='', aCopia=''):
     # Asignar valores al objeto
     self.atributos = Clasificacion()
     self._clasif = self.limpiar_clasif(aClasif)
-    self._encabezado = aEncabezado if aEncabezado not in ['', ' ', 'nan'] else ''
-    self._volumen = aVolumen if aVolumen not in ['', ' ', 'nan'] else '0'
-    self._copia = aCopia if aCopia not in ['', ' ', 'nan'] else '1'
+    
+    match = re.findall(r'[1-9]+', aVolumen) # Todos los numeros, menos el cero
+    self._volumen = match[0] if len(match) != 0 else '0'
+    
+    match = re.findall(r'[1-9]+', aCopia) # Todos los numeros, menos el cero
+    self._copia = match[0] if len(match) != 0 else '1'
+    
+    match = re.findall(r'(\bnan\b)|(\bNAN\b)|[ ]', aEncabezado) # Todas las letras, excepto nan.
+    self._encabezado = aEncabezado if len(match) == 0 else ''
+    
     self._PIPE_A = 'XXXXXX'
     self._PIPE_B = 'XXXXXX'
+    
     self._clasif_valida = False
     self._clasif_completa = ''
 
     # llenar pipe_a_b y marcar como correcta la etiqueta
-    self.revisar_clasificacion()
+    self._clasif_valida = self.revisar_clasif(self._clasif)
     # Llenar los atributos de clasificacion
     if self.clasif_valida is True:
       self.atributos.sacar_atributos(self._PIPE_A, self.PIPE_B)
@@ -141,10 +126,12 @@ class Etiqueta:
   @clasif.setter
   def clasif(self, aClasif):
     self._clasif = self.limpiar_clasif(aClasif)
-    self.revisar_clasificacion()
+    # llenar pipe_a_b y marcar como correcta la etiqueta
+    self._clasif_valida = self.revisar_clasif(self._clasif)
     # Llenar los atributos de clasificacion
     if self.clasif_valida is True:
       self.atributos.sacar_atributos(self._PIPE_A, self.PIPE_B)
+    # Crear clasificacion completa
     self.crear_clasif_completa()
 
   @property
@@ -152,7 +139,8 @@ class Etiqueta:
   @volumen.setter
   def volumen(self, aVolumen):
     #* Unicamente acepta numeros
-    self._volumen = aVolumen if aVolumen not in ['', ' ', 'nan'] else '0'
+    match = re.findall('[1-9]', aVolumen)
+    self._volumen = match[0] if len(match) != 0 else '0'
     self.crear_clasif_completa()
 
   @property
@@ -160,17 +148,18 @@ class Etiqueta:
   @copia.setter
   def copia(self, aCopia):
     #* Unicamente acepta numeros
-    #* No acepta {'', ' ', '1'}
-    self._copia = aCopia if aCopia not in ['', ' ', 'nan'] else '1'
+    match = re.findall('[1-9]', aCopia)
+    self._copia = match[0] if len(match) != 0 else '1'
     self.crear_clasif_completa()
 
   @property
   def encabezado(self): return self._encabezado
   @encabezado.setter
   def encabezado(self, aEncabezado):
-    #* Unicamente palabras.
+    #* Unicamente palabras. No acepta nan|NAN
     #* No acepta {'', ' ', 'nan'}
-    self._encabezado = aEncabezado if aEncabezado not in ['', ' ', 'nan'] else ''
+    match = re.findall('\w+[^(NAN)][^(nan)]\w+', aEncabezado)
+    self._encabezado = match[0] if len(match) != 0 else ''
     self.crear_clasif_completa()
 
   @property
@@ -182,30 +171,33 @@ class Etiqueta:
   @property
   def PIPE_B(self): return self._PIPE_B
 
-  
-
   #? FUNCIONALIDAD DE LA CLASE *******************************************
   def limpiar_clasif(self, STR:str) -> str:
     ''' Limpiar la clasificación del libro de Caracteres no Necesarios'''
-    # * Eliminar caracteres no deseados
-    if 'LX' in STR: STR = sh.cortar_string(STR, 'LX')
-    if 'MAT' in STR: STR = sh.cortar_string(STR, 'MAT')
-    if 'V.' in STR: STR = sh.cortar_string(STR, 'V.')
-    if 'C.' in STR: STR = sh.cortar_string(STR, 'C.')
-    return STR
-  def revisar_clasificacion(self):
-    """ Revisar si la clasificacion cumple el estandar """
-    # Buscar un espacio en los primeros indices
-    if self.clasif.find(' ') < 3:
-      self._clasif_valida = False
-    elif sh.revisar_corte_pipe(self.clasif) and sh.revisar_pipeB(self.clasif):
-      pos_div, sum = sh.buscar_pipe(self.clasif)
-      self._PIPE_A = self.clasif[:pos_div].replace(' ','.')
-      self._PIPE_B = '.' + self.clasif[pos_div+sum:]
-      self._clasif_valida = True
-      self._clasif = self._PIPE_A + ' ' + self._PIPE_B
+    # * Eliminar caracteres no deseados MAT, LX, C.XXX, V.XXX
+    return re.sub(r'\s?(LX|MAT|V\.\d+|C\.\d+)\s?', '', STR)  
+  
+  def revisar_clasif(self, STR):
+    # Buscar caracteres de separacion especiales
+    if re.search(r'(?: \.)|(?:\. )', STR) is not None:
+      PIPE_A, PIPE_B = re.split(r'(?: \.)|(?:\. )', STR, maxsplit=1)
+      # print('Correcto', PIPE_A, '|', PIPE_B, '||',STR)
+      self._PIPE_A = re.sub(r"\s+", '', PIPE_A)
+      self._PIPE_B = re.sub(r"\.", ' ', PIPE_B)
+      self._clasif = self._PIPE_A + ' .' + self._PIPE_B
+      return True
+    elif re.search(r'(\d [a-zA-Z])', STR) is not None:
+      PIPE_A, PIPE_B = re.split(r' ', STR, maxsplit=1)
+      # print('Correcto', PIPE_A, '|', PIPE_B, '||',STR)
+      self._PIPE_A = re.sub(r"\s+", '', PIPE_A)
+      self._PIPE_B = re.sub(r"\.", ' ', PIPE_B)
+      self._clasif = self._PIPE_A + ' .' + self._PIPE_B
+      return True
     else:
-      self._clasif_valida = False
+      # print('Separador no encontrado', STR)
+      # print(STR)\
+      return False
+
   def crear_clasif_completa(self):
     ''' Genera un atributo completo de clasificacion '''
     clasif_completa = self.clasif
@@ -217,7 +209,6 @@ class Etiqueta:
     clasif_completa += ' C.' + self.copia if self.copia != '1' else ''
     self._clasif_completa = clasif_completa
 
-
   def __str__(self) -> str:
     return f"""  
       Imprimiendo Etiqueta:
@@ -228,7 +219,8 @@ class Etiqueta:
       Atributos Generales:
       --------------------
       Volumen: {self._volumen} Copia: {self._copia} Encabezado: {self._encabezado}
-      Clasificacion: {self._clasif} PIPES: {self._PIPE_A}|{self._PIPE_B}
+      Clasificacion: {self._clasif} 
+      PIPES: {self._PIPE_A}|{self._PIPE_B}
 
       {self.atributos}
       """
@@ -248,8 +240,6 @@ class Libro:
       aCopia= aCopia,
     )
     self._estatus = 'Valid' if self.etiqueta.clasif_valida else 'Error'
-    # Agregar libro a una lista de objetos
-    # Libro.all.append(self)
 
   #? GETTERS Y SETTERS *****************************
   @property
@@ -271,20 +261,53 @@ class Libro:
   #? FUNCIONALIDAD CARGAR DESDE EXCEL *************
   @classmethod
   def llenar_desde_excel(cls, ruta):
+    # Cargar el excel completo.
     df = read_excel(ruta, header=0)
-    header = df.head(0)
 
+    # Revisar encabezados del excel.
+    header = df.head(0)
+    titulo = None
+    codigo = None
+    clasif = None
+    encabe = None
+    volume = None
+    copia  = None
+    for text in header:
+      ltext = text.lower()
+      if 'tit' in ltext or 'tít' in ltext:
+        titulo = text
+        # print('Titulo Encontrado como', ltext)
+      elif 'bar' in ltext or 'codi' in ltext or 'códi' in ltext:
+        codigo = text
+        # print('Codigo Barras Encontrado como', ltext)
+      elif 'clas' in ltext:
+        clasif = text
+        # print('Clasificacion Encontrado como', ltext)
+      elif 'encab' in ltext or 'head' in ltext:
+        encabe = text
+      elif 'vol' in ltext:
+        volume = text
+      elif 'cop' in ltext:
+        copia = text
+
+
+    # Revisar encabezados obtenidos.
+    if titulo is None and codigo is None and clasif is None:
+      print('[ERROR] Revisar encabezados archivo faltante de los necesarios')
+      return None
+
+    # Llenar Libros usando un excel
     lista_libros = []
     for ind in df.index:
       # Manejo del volumen en los datos
       lista_libros.append(Libro(
         aID=ind,
-        aTitulo= str(df['Título'][ind]) if 'Título' in header else '',
-        aCbarras= str(df['C. Barras'][ind]) if 'C. Barras' in header else '',
-        aClasif= str(df['Clasificación'][ind]) if 'Clasificación' in header else '',
-        aCopia= str(df['Copia'][ind]) if 'Copia' in header else '',
-        aEncabezado= str(df['Encabezado'][ind]) if 'Encabezado' in header else '',
-        aVolumen= str(df['Volumen'][ind]) if 'Volumen' in header else '',
+        aTitulo= str(df[titulo][ind]),
+        aCbarras= str(df[codigo][ind]),
+        aClasif= str(df[clasif][ind]),
+        aEncabezado= str(df[encabe][ind]) if encabe is not None else '',
+        aVolumen= str(df[volume][ind]) if volume is not None else '0',
+        aCopia= str(df[copia][ind]) if copia is not None else '1',
       ))
     
     return lista_libros
@@ -299,6 +322,7 @@ class Libro:
       Codigo de Barras: {self._cbarras}
 
       {self.etiqueta}
+      \n\n\n
       """
 
 class ManejoTabla:
@@ -309,7 +333,18 @@ class ManejoTabla:
   lista_libros = []
   lista_modificados = {}
   _tabla_len = 0
-  estatus_color = {'Error':'#F04150', 'Valid':'#FFFFFF', 'Selected':'#498C8A', 'Modify':'#E8871E'}
+  estatus_color = {
+    'Error':'#F04150', 
+    'Valid':'#FFFFFF', 
+    'Selected':'#498C8A', 
+    'Modify':'#E8871E'
+  }
+
+  #? GETTERS Y SETTERS ************************
+  @property
+  def tabla_len(self): return self._tabla_len
+
+
 
   #? OPERACIONES GENERALES DE LA TABLA ************************************
 
@@ -363,7 +398,6 @@ class ManejoTabla:
     self.lista_libros.append(aLibro)
     self.formato_tabla.append(formato)
     self._tabla_len += 1
-    # self.diccionario_estatus[largo_tabla] = estatus    
 
   def agregar_elemento_modificado(self, num_elem, aLibro, aClasifAnterior):
     self.lista_modificados[num_elem] = (aLibro, aClasifAnterior)
@@ -466,13 +500,13 @@ class ManejoTabla:
 
   def escribir_excel(self, ruta, nombre, dataframe):
     excel_path = f'{ruta}/{nombre}.xlsx'
-    print(excel_path)
+    print(f'[DEBUG] Ruta excel salida {excel_path}')
     try:
       excel_writer = pd.ExcelWriter(excel_path, mode='w')
       dataframe.to_excel(excel_writer, index=False)
       excel_writer.close()
     except:
-      print('No se pudo escribir en la ruta seleccionada')
+      print('[WARN] No se pudo escribir, excel ya existe, archivo abierto')
       excel_path = f'{ruta}/{nombre}_copia.xlsx'
       excel_writer = pd.ExcelWriter(excel_path, mode='w')
       dataframe.to_excel(excel_writer, index=False)
@@ -582,8 +616,6 @@ class ManejoTabla:
       report_file.write('\n')
     report_file.close()    
 
-  @property
-  def tabla_len(self): return self._tabla_len
 
 
 if __name__ == '__main__':
