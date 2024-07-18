@@ -143,7 +143,7 @@ Funcionalidad para la ventana principal de la aplicacion.
 - **MVG.24** - Al presionar el boton 'Cargar' se activa la funcion cargar_excel, con la cual se cargan los datos del excel seleccionado, al programa, actualizando la tabla principal del sistema.
 - **MVG.28** - Al presionar el boton 'Limpiar' se reinicia el programa por completo haciendo llamar la funcion reset_window()
 - **MVG.32** - Un elemento se puede seleccionar presionando sobre el en la tabla, este pasara por los siguientes estatus: 
-  - Elementos Valido: Valid -> Selected -> Modify -> Valid.
+  - Elementos Valido: Valid -> Modify -> Valid.
   - Elementos Erroneos: Error -> Modify -> Valid | Error.
 Esto se logra con la funcion table_control(). Para seguir por estas opciones de seleccion, unicamente se puede modificar un elemento a la vez.
 #### Guardar programa.
@@ -169,4 +169,11 @@ NOTA esta funcion puede genear un dataset con columnas adicionales debido a posi
 - **MVG.30** - Se eliminan la ruta del archivo de excel seleccionado y el nombre designado para el archivo de salida.
 - **MVG.31** - Actualizar vista de la tabla a una tabla vacia.
 #### Table Control.
-- **MVG.33** -
+- **MVG.33** - Si no se selecciona ningun libro valido, la funcion termina y regresa modify_object sin modificaciones.
+- **MVG.34** - Se extraen los datos del libro seleccionado: INDICE En la tabla, ESTATUS que maneja el libro.
+- **MVG.35** - Se actualiza el estatus del libro seleccionado usando la funcion actualizar_estatus_elemento() del modulo Manejo Tabla se pueden tener los siguientes casos:
+  - Libro Valido: Valid -> Modify. Se selecciona un elemento para modificar, se guarda el estatus 'Valid' y se guarda el indice del libro 'INDEX' y se actualiza la bandera modificar a 'True'.
+  - Libro Error: Error -> Modify. Se selecciona un elemento para modificar, se guarda el estatus 'Error' y se guarda el indice del libro 'INDEX' y se actualiza la bandera modificar a 'True'
+  - Libro Modificar: Modify -> Valid | Modify -> Error. Para deseleccionar un elemento, se regresa al estatus anterior ('Valid'|'Error') y se libera la bandera modificar a  'False'
+- **MVG.36** - Solo se puede modificar un libro a la vez por lo que se maneja una bandera para aceptar unicamente un elemento. La bandera tiene el siguiente comportamiento: 'False' sin libro a modificar. 'True' libro para modificar seleccionado.
+- **MVG.37** - Se debe actualizar los estatus de los libros en la tabla principal.

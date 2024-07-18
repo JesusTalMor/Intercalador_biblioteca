@@ -417,48 +417,47 @@ class VentanaGeneral:
     )
 
   def table_control(self, window, values, modify_object):
+    # Forma de la estructura modify_object.
+    # modify_object = { 'INDEX': 0, 'STATUS': 'XXXX', 'FLAG': False,}
     #* Manejar excepcion con respecto a datos inexistentes
     if len(values["TABLE"]) == 0: return modify_object
     
-    index_value = int(values["TABLE"][0])  # * elemento a seleccionar
-    print('Libro seleccionado:', index_value)
-    estatus = self.table_manager.lista_libros[index_value].estatus
-    print('Estatus libro seleccionado', estatus)
-
-    # * Seleccionar una casilla valida
-    if estatus == "Valid":
-      # Cambias el estatus de ese elemento a seleccionado
-      self.table_manager.actualizar_estatus_elemento(index_value, "Selected")
+    index = int(values["TABLE"][0])  # * elemento a seleccionar
+    estatus = self.table_manager.lista_libros[index].estatus
+    print(f'[DEBUG] Libro seleccionado. Numero {index}.')
+    print(f'[DEBUG] Libro seleccionado. Estatus {estatus}.')
 
     # * Seleccionar casilla para modificar
-    elif estatus in ("Selected", "Error") and modify_flag is False:
+    if estatus in ("Valid", "Error") and modify_object['FLAG'] is False:
       #* Actualizar datos de modificacion
-      modify_status = estatus
-      modify_flag = True
-      modify_index = index_value
+      modify_object['STATUS'] = estatus
+      modify_object['FLAG'] = True
+      modify_object['INDEX'] = index
       #* Modificar elemento visualmente
-      self.table_manager.actualizar_estatus_elemento(index_value, "Modify")
+      self.table_manager.actualizar_estatus_elemento(index, "Modify")
 
     # * Quitar casilla de modificar
     elif estatus == "Modify":
       #? Cambiar elemento modificado/seleccionado a Normal
-      if modify_status == "Selected":
-        self.table_manager.actualizar_estatus_elemento(index_value, "Valid")
+      if modify_object['STATUS'] == "Valid":
+        self.table_manager.actualizar_estatus_elemento(index, "Valid")
       #? Cambiar elemento modificado/error a Error
-      elif modify_status == "Error":
-        self.table_manager.actualizar_estatus_elemento(index_value, "Error")
-      modify_flag = False
+      elif modify_object['STATUS'] == "Error":
+        self.table_manager.actualizar_estatus_elemento(index, "Error")
+      modify_object['FLAG'] = False
 
-    # * Regresar casilla a normalidad
-    elif estatus == "Selected" and modify_flag is True:
-      self.table_manager.actualizar_estatus_elemento(index_value, "Valid")
-    
     #* Actualizar tabla
     window["TABLE"].update(
       values=self.table_manager.tabla_principal, 
       row_colors=self.table_manager.formato_tabla)
     
-    return modify_index, modify_flag, modify_status
+    print(f"""
+      [DEBUG] Objeto Modificar:
+      Indice Modificado:  {modify_object['INDEX']}
+      Estatus Modificado: {modify_object['STATUS']}
+      Bandera Modificar:  {modify_object['FLAG']}
+    """)
+    return modify_object
 
   def modificar_elemento(self, window, modify_index):
     #* Sacar los datos de esa etiqueta
