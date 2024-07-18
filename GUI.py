@@ -56,7 +56,6 @@ class VentanaGeneral:
   titulo_ventana = 'INTERCALADOR'
   def __init__(self) -> None:
     self.ruta_archivo = ''
-    self.estatus_guardar = False
     self.table_manager = ManejoTabla()
 
   #? CREACION de la Ventana. ***********************
@@ -249,9 +248,11 @@ class VentanaGeneral:
   #? FUNCIONAMIENTO PRINCIPAL DE LA VENTANA ***********************
   def run_window(self, window):
     #? MANEJO DE VARIABLES
-    bandera_modificar = False
-    estatus_modificar = 'XXXXXX'
-    index_modificar = 0
+    modify_object = {
+      'INDEX': 0,
+      'STATUS': 'XXXX',
+      'FLAG': False,
+    }
     
     #? LOOP PRINCIPAL
     while True:
@@ -272,27 +273,25 @@ class VentanaGeneral:
         pop.info_about(VERSION)
       #* Guardar archivo
       elif event == 'Guardar':
-        self.guardar_programa()
+        self.guardar_programa(True)
       
       #? ********** FUNCIONALIDAD CARGAR ARCHIVO *******************
-      #* Cargar elementos desde un Excel
+      #* Seleccionar archivo de Excel
       elif event == 'UPLOAD':
-        window["Abrir"].click() # Activar funcionalidad para abrir archivo
-        self.ruta_archivo = window['EXCEL_FILE'].get() # Actualizar ruta del archivo
-        # Actualizar nombre del archivo de la ventana
-        nombre_archivo = self.ruta_archivo.split('/')[-1] if len(self.ruta_archivo) != 0 else 'Sin Archivo'
-        window["EXCEL_TEXT"].update(nombre_archivo)
+        self.seleccionar_excel(window)
       # * Cargar excel completo de un archivo
       elif event == "Cargar":
         self.cargar_excel(window)
       
       #?#********** FUNCIONALIDAD DE TABLA **********#?#
+      # * Reiniciar programa por completo
       elif event == "Limpiar":
         self.reset_window(window)
         bandera_modificar = False
+      # * Eventos relacionados con clicks en la tabla
       elif event == "TABLE":
-        modify_object = (index_modificar, bandera_modificar, estatus_modificar)
-        index_modificar, bandera_modificar, estatus_modificar = self.table_management(window, values, modify_object)
+        modify_object = self.table_control(window, values, modify_object)
+      # * Modificar un elemento seleccionado
       elif event == "Modificar" and bandera_modificar is True:
         bandera_modificar = self.modificar_elemento(window, index_modificar)
 
@@ -382,6 +381,13 @@ class VentanaGeneral:
     """)
 
   #? CARGAR ELEMENTOS DESDE EXCEL *************
+  def seleccionar_excel(self, window):
+    window["Abrir"].click() # Activar funcionalidad para abrir archivo
+    self.ruta_archivo = window['EXCEL_FILE'].get() # Actualizar ruta del archivo
+    # Actualizar nombre del archivo de la ventana
+    nombre_archivo = self.ruta_archivo.split('/')[-1] if len(self.ruta_archivo) != 0 else 'Sin Archivo'
+    window["EXCEL_TEXT"].update(nombre_archivo)
+  
   def cargar_excel(self, window):
     # Revisar que tengamos un archivo excel
     if len(self.ruta_archivo) == 0:
@@ -399,6 +405,9 @@ class VentanaGeneral:
   #? FUNCIONALIDAD MANEJO DE TABLA *************
   def reset_window(self, window):
     """ Reiniciar todos los valores de la tabla que se trabaja """
+    self.ruta_archivo = ''
+    window["EXCEL_TEXT"].update('Sin Archivo')
+    window["NAME"].update('')
     self.table_manager.reset_tabla()
     
     #* Actualizar tabla
@@ -407,11 +416,9 @@ class VentanaGeneral:
       row_colors=self.table_manager.formato_tabla
     )
 
-  def table_management(self, window, values, modify_object):
-    modify_index, modify_flag, modify_status = modify_object
-    # print(modify_index, modify_flag, modify_status)
+  def table_control(self, window, values, modify_object):
     #* Manejar excepcion con respecto a datos inexistentes
-    if len(values["TABLE"]) == 0: return modify_index, modify_flag, modify_status
+    if len(values["TABLE"]) == 0: return modify_object
     
     index_value = int(values["TABLE"][0])  # * elemento a seleccionar
     print('Libro seleccionado:', index_value)
@@ -570,6 +577,7 @@ class VentanaGeneral:
     print(f'[DEBUG] Ruta Generada {ruta_folder}')
     guardar_df = self.table_manager.guardar_libros_tabla(self.ruta_archivo)
     self.table_manager.escribir_excel(ruta_folder, nombre_archivo, guardar_df)
+    print(f'[DEBUG] Archivo Salvado Correctamente')
     return True
 
 def main():

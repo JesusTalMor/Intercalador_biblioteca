@@ -137,7 +137,15 @@ Funcionalidad para la ventana principal de la aplicacion.
 **MVG.09** - Un boton denominado 'Ejecutar' para ejecutar todo el ordenamiento del programa.
 **MVG.10** - Un boton para reiniciar todo el programa y empezar con uno nuevo, boton 'LIMPIAR'
 #### Run Window.
-**MVG.11** - Al salir del programa si no se tiene nada en la aplicacion, se cierra la aplicacion en caso se muestra un pop up para realiza un guardado del programa con la funcion guardar_programa o no guardar el progreso.
+- **MVG.11** - Al salir del programa si no se tiene nada en la aplicacion, se cierra la aplicacion en caso se muestra un pop up para realiza un guardado del programa con la funcion guardar_programa o no guardar el progreso. Se tiene implementado un boton para poder guardar el programa cada que sea necesario.
+- **MVG.19** - El programa debera poder mostrar licencias de usuario y la version que esta manejando por medio de los siguientes 
+- **MVG.20** - Al presionar sobre el boton con simbolo de cargar se manda llamar la funcion seleccionar_excel() para obtener la ruta de un archivo excel y actualizar la visualizacion del programa.
+- **MVG.24** - Al presionar el boton 'Cargar' se activa la funcion cargar_excel, con la cual se cargan los datos del excel seleccionado, al programa, actualizando la tabla principal del sistema.
+- **MVG.28** - Al presionar el boton 'Limpiar' se reinicia el programa por completo haciendo llamar la funcion reset_window()
+- **MVG.32** - Un elemento se puede seleccionar presionando sobre el en la tabla, este pasara por los siguientes estatus: 
+  - Elementos Valido: Valid -> Selected -> Modify -> Valid.
+  - Elementos Erroneos: Error -> Modify -> Valid | Error.
+Esto se logra con la funcion table_control(). Para seguir por estas opciones de seleccion, unicamente se puede modificar un elemento a la vez.
 #### Guardar programa.
 - **MVG.12** - Se revisa si la tabla cuenta con contenido, en caso de no tenerlo se omite el guardado 'Sin datos para guardar'
 - **MVG.13** - Se revisa si se tiene un archivo de excel base, en caso de no tenerlo se omite el guardado 'Sin Ruta para guardar'
@@ -148,5 +156,17 @@ Funcionalidad para la ventana principal de la aplicacion.
 NOTA esta funcion puede no dar los resultados esperados en el caso de que se ejecute el programa para ordenar ya que no considera el orden del excel.
 NOTA esta funcion puede genear un dataset con columnas adicionales debido a posibles errores de nombres.
 - **MVG.18** - Se utiliza la funcion del modulo Table Manager llamada escribir_excel() para escribir el excel de salida.
-
-
+#### Seleccionar Excel.
+- **MVG.21** - La funcion debera abrir un explorador de archivos para seleccionar unicamente archivos de excel.
+- **MVG.22** - Posterior a la seleccion del archivo se guarda el nombre del archivo y en caso de que el proceso se cancele dicho nombre se mantiene como vacio.
+- **MVG.23** - En caso de tener un nombre de archivo actualizar el elemento EXCEL_TEXT con el nombre o en caso de no contrar con una ruta u archivo poner por defecto el texto 'Sin Archivo'
+#### Cargar Excel.
+- **MVG.25** - Se revisa si se tiene un archivo para cargar en caso contrario activar el pop.warning_excel_file() para informar al usuario que debe seleccionar una archivo y teminar el proceso.
+- **MVG.26** - En caso de tener un archivo seleccionado mandar llamar la funcion crear_tabla() del modulo Manejo Tabla, para cargar todos los libros del archivo de excel.
+- **MVG.27** - Actualizar los valores de la tabla principal para mostrar los datos cargados, en conjunto con los colores correspondientes a sus estatus en este caso unicamente 2 estatus son posibles: 'Error':'#F04150', 'Valid':'#FFFFFF'.
+#### Reset Window.
+- **MVG.29** - Se hace uso de la funcion reset_table() del modulo Manejo Tabla, la cual de manera resumida reinicia todos los valores de la tabla.
+- **MVG.30** - Se eliminan la ruta del archivo de excel seleccionado y el nombre designado para el archivo de salida.
+- **MVG.31** - Actualizar vista de la tabla a una tabla vacia.
+#### Table Control.
+- **MVG.33** -
