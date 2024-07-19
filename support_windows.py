@@ -68,6 +68,7 @@ class VentanaModificar:
 
     """
     #?#********* LAYOUT PARA MANEJO DE PIPE'S #?#*********
+    color = '#1AB01F' if self._Libro.etiqueta.clasif_valida is True else '#F04150'
     text_format = {
       'font':("Open Sans", 12, "bold"), 
       'background_color':"#FFFFFF", 
@@ -81,11 +82,21 @@ class VentanaModificar:
     }
     pipe_a_layout = [
       [sg.Text(text="PIPE A", pad=5, **text_format)],
-      [sg.In(default_text='', key="PIPE_A", ** in_format)],
+      [sg.In(
+        default_text=self._Libro.etiqueta.PIPE_A, 
+        key="PIPE_A", 
+        text_color= color,
+        ** in_format
+      )],
     ]
     pipe_b_layout = [
       [sg.Text(text="PIPE B", pad=5, **text_format)],
-      [sg.In(default_text='', key="PIPE_B", ** in_format)],
+      [sg.In(
+        default_text=self._Libro.etiqueta.PIPE_B, 
+        key="PIPE_B",
+        text_color=color, 
+        ** in_format,
+      )],
     ]
     colum_format = {'background_color':"#FFFFFF", 'element_justification':"c"}
     PIPE_AB_LAYOUT = [[
@@ -108,9 +119,17 @@ class VentanaModificar:
     }
     VOL_COP_LAYOUT = [
       sg.Text(text="Volumen", **text_format),
-      sg.In(default_text=self._Libro.etiqueta.volumen, key="VOL", **in_format),
+      sg.In(
+        default_text=self._Libro.etiqueta.volumen, 
+        key="VOL", 
+        **in_format
+      ),
       sg.Text(text="Copia", **text_format),
-      sg.In(default_text=self._Libro.etiqueta.copia, key="COP", **in_format),
+      sg.In(
+        default_text=self._Libro.etiqueta.copia, 
+        key="COP", 
+        **in_format
+      ),
     ],
     
     #?#********* LAYOUT PARA MANEJO DE CLASIFICACION Y ENCABEZADO #?#*********
@@ -131,10 +150,21 @@ class VentanaModificar:
     LAYOUT_GENERAL = [
       #* Titulo de esta seccion
       [sg.Text(text="Clasificación", font=("Open Sans", 14, "bold"), **text_format)],
-      [sg.In(default_text=self._Libro.etiqueta.clasif, size=(28, 1), key="CLAS", pad=(15, 5), **in_format)],
+      [sg.In(
+        default_text=self._Libro.etiqueta.clasif, 
+        size=(28, 1), 
+        key="CLAS", 
+        pad=(15, 5), 
+        **in_format
+      )],
       #* Funcion para agregar un encabezado
       [sg.Text(text="Agregar Encabezado", font=("Open Sans", 12), **text_format)],
-      [sg.In(default_text=self._Libro.etiqueta.encabezado, size=(18, 1), key="HEAD", **in_format)],
+      [sg.In(
+        default_text=self._Libro.etiqueta.encabezado, 
+        size=(18, 1), 
+        key="HEAD", 
+        **in_format
+      )],
       [sg.Frame("",layout=VOL_COP_LAYOUT, **frame_format)],
       [sg.Frame("",layout=PIPE_AB_LAYOUT, **frame_format)],
     ]
@@ -176,8 +206,10 @@ class VentanaModificar:
       ],
       [
         sg.Text(
-          text=self._Libro.etiqueta.clasif_completa, key="TEXT",
-          font=("Open Sans", 16, "bold"), **text_format
+          text=self._Libro.etiqueta.clasif_completa, 
+          key="CLASS_FULL",
+          font=("Open Sans", 16, "bold"), 
+          **text_format
         )
       ],
       [sg.HorizontalSeparator(pad=(0, (10, 6)))],
@@ -185,7 +217,11 @@ class VentanaModificar:
       [sg.HorizontalSeparator(pad=(0, (6, 10)))],
       [
         sg.Button("Cancelar", font=("Open Sans", 12, "bold")),
-        sg.Button("Modificar", font=("Open Sans", 12, "bold"), disabled=True),
+        sg.Button(
+          "Modificar", 
+          font=("Open Sans", 12, "bold"), 
+          disabled=not(self._Libro.etiqueta.clasif_valida)
+        ),
       ],    
     ]
     return GENERAL_LAYOUT
@@ -199,23 +235,21 @@ class VentanaModificar:
   #? FUNCIONAMIENTO PRINCIPAL DE LA VENTANA ***********************
   def run_window(self):
     window = self.create_window()
-
     while True:
       event, values = window.read()
-      self.show_window_events(event, values)
+      # self.show_window_events(event, values)
       #* Cerrar programa sin resultados
       if event in (sg.WINDOW_CLOSED, "Exit", "Cancelar"):
         window.close() 
-        return False, self._Libro
-      
-      #* Actualizar elemento de Clasificacion Completa
-      self.actualizar_clasif(window, values)
-      window['TEXT'].update(self._Libro.etiqueta.clasif_completa)
+        return None      
+      #* Mostrar informacion del libro.
+      elif event == 'INFO': pop.show_info_libro(self._Libro.titulo)
+      #* Actualizar Ventana.
+      self.actualizar_ventana(window)
 
       if event == 'Modificar':
         window.close()
-        return True, self._Libro
-      elif event == 'INFO': pop.show_info_libro(self._Libro.titulo)
+        return self._Libro
 
   #? FUNCIONALIDAD GENERAL *********************************
   def show_window_events(self, event, values):
@@ -227,18 +261,16 @@ class VentanaModificar:
       {'-'*50}
     """)
 
-  def actualizar_clasif(self, window, values):
+  def actualizar_ventana(self, window):
     """ Construye una clasificacion en tiempo real 
     """
-    #* Tomar datos
-    try:
-      self._Libro.etiqueta.clasif = str(values["CLAS"])
-      self._Libro.etiqueta.volumen = str(values['VOL'])
-      self._Libro.etiqueta.copia = str(values['COP'])
-      self._Libro.etiqueta.encabezado = str(values['HEAD'])
-    except TypeError:
-      pass
+    self._Libro.etiqueta.volumen = window['VOL'].get()
+    self._Libro.etiqueta.copia = window['COP'].get()
+    self._Libro.etiqueta.encabezado = window['HEAD'].get()
+    self._Libro.etiqueta.clasif = window['CLAS'].get()
+    window['CLASS_FULL'].update(self._Libro.etiqueta.clasif_completa)
 
+    # * Actualizar PIPES
     if self._Libro.etiqueta.clasif_valida:
       window["PIPE_A"].update(value=self._Libro.etiqueta.PIPE_A, text_color='#1AB01F')  
       window["PIPE_B"].update(value=self._Libro.etiqueta.PIPE_B, text_color='#1AB01F')

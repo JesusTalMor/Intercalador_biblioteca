@@ -292,8 +292,8 @@ class VentanaGeneral:
       elif event == "TABLE":
         modify_object = self.table_control(window, values, modify_object)
       # * Modificar un elemento seleccionado
-      elif event == "Modificar" and bandera_modificar is True:
-        bandera_modificar = self.modificar_elemento(window, index_modificar)
+      elif event == "Modificar" and modify_object['FLAG'] is True:
+        modify_object['FLAG'] = self.modificar_elemento(window, modify_object)
 
       # TODO Revisar la parte de implementar las funcionalidades extras
       elif event == 'Ejecutar':
@@ -325,51 +325,6 @@ class VentanaGeneral:
         modify_flag = False
 
         window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
-      elif event == 'Actualizar':
-        continue
-        # * Realizar proceso de actualización a nueva hoja
-        index_hoja += 1
-        if index_hoja > len(hojas_excel)-1: 
-          pop.success_program()
-          continue
-        
-        main_dicc = {}
-        row_color_array = []
-        tabla_modify = []
-        main_dataframe = {}
-        tabla_datos = []
-        tabla_principal = []
-        
-        # print('Vamos a actualizar datos')
-        # print(index_hoja, hojas_excel[index_hoja])
-
-        hoja_actual = hojas_excel[index_hoja]
-        main_dataframe = excel_completo[hoja_actual]
-        # print(main_dataframe)
-        # Sacar datos de clasificacion de etiquetas
-        temp_etiquetas = mainif.generar_etiquetas_libros(main_dataframe)
-        # Sacamos la tabla de titulo de libro y de QRO
-        temp_informacion = mainif.generar_informacion_libros(main_dataframe)  
-
-        # ? Se cargaron etiquetas
-        if not temp_etiquetas[0]:
-          pop.error_excel_file()
-          continue
-
-        # * Generamos la tabla de datos para el Excel
-        for ind in range(len(temp_etiquetas)):
-          status = temp_etiquetas[ind][3]
-          main_dicc[len(tabla_principal) + ind] = status
-          if status == "False": row = ((len(tabla_principal) + ind), "#B00020")
-          else: row = ((len(tabla_principal) + ind), "#FFFFFF")
-          row_color_array.append(row)
-
-        #  * Concatenamos los nuevos datos a los antiguos
-        tabla_principal = temp_etiquetas
-        tabla_datos = temp_informacion
-        
-        window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
-        window["PAGE"].update(f'{index_hoja+1}/{len(hojas_excel)}')
   #? MOSTRAR ELEMENTOS DEL VENTANA **********
   def show_window_events(self, event, values):
     print(f"""
@@ -459,33 +414,34 @@ class VentanaGeneral:
     """)
     return modify_object
 
-  def modificar_elemento(self, window, modify_index):
-    #* Sacar los datos de esa etiqueta
-    libro_a_modificar = self.table_manager.lista_libros[modify_index]
-    clasif_libro_a_modificar = libro_a_modificar.etiqueta.clasif_completa
-    #* Mandar llamar ventana modificar
+  def modificar_elemento(self, window, modify_object):
+    # #* Sacar los datos de esa etiqueta
+    libro_a_modificar = self.table_manager.lista_libros[modify_object['INDEX']]
+    print(f'[DEBUG] Entrando al a Funcion \n {libro_a_modificar}')
+    clasif_anterior = libro_a_modificar.etiqueta.clasif_completa
+    # #* Mandar llamar ventana modificar
     VM = VentanaModificar(libro_a_modificar)
     estatus, libro_modificado = VM.run_window()
     del VM
 
-    print('Se modifico? ', estatus)
-    #* Checar si hubieron cambios
-    if estatus is False: return True
+    # print('Se modifico? ', estatus)
+    # #* Checar si hubieron cambios
+    # if estatus is False: return True
     
-    # * Agregamos elemento a una tabla de modificaciones
-    self.table_manager.agregar_elemento_modificado(modify_index, libro_modificado, clasif_libro_a_modificar)
+    # # * Agregamos elemento a una tabla de modificaciones
+    # self.table_manager.agregar_elemento_modificado(modify_index, libro_modificado, clasif_libro_a_modificar)
 
-    # * Actualizar valores de tabla de datos
-    self.table_manager.actualizar_elemento(modify_index, libro_modificado)
+    # # * Actualizar valores de tabla de datos
+    # self.table_manager.actualizar_elemento(modify_index, libro_modificado)
 
-    # * Cambiamos la apariencia del elemento en la tabla
-    self.table_manager.actualizar_estatus_elemento(modify_index, 'Valid')
+    # # * Cambiamos la apariencia del elemento en la tabla
+    # self.table_manager.actualizar_estatus_elemento(modify_index, 'Valid')
     
-    #* Actualizar apariencia de la tabla
-    window["TABLE"].update(
-      values=self.table_manager.tabla_principal, 
-      row_colors=self.table_manager.formato_tabla
-    )
+    # #* Actualizar apariencia de la tabla
+    # window["TABLE"].update(
+    #   values=self.table_manager.tabla_principal, 
+    #   row_colors=self.table_manager.formato_tabla
+    # )
     return False
 
   #? EJECUTAR PROGRAMA ***************************

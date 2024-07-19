@@ -146,6 +146,7 @@ Funcionalidad para la ventana principal de la aplicacion.
   - Elementos Valido: Valid -> Modify -> Valid.
   - Elementos Erroneos: Error -> Modify -> Valid | Error.
 Esto se logra con la funcion table_control(). Para seguir por estas opciones de seleccion, unicamente se puede modificar un elemento a la vez.
+- **MVG.38** - Se podra modificar un elemento con el estatus 'MODIFY' de la tabla haciendo click derecho y presionando en el boton y verificando que la Bandera Modify sea 'True' para hacer uso de la funcion modificar_elemento().
 #### Guardar programa.
 - **MVG.12** - Se revisa si la tabla cuenta con contenido, en caso de no tenerlo se omite el guardado 'Sin datos para guardar'
 - **MVG.13** - Se revisa si se tiene un archivo de excel base, en caso de no tenerlo se omite el guardado 'Sin Ruta para guardar'
@@ -177,3 +178,29 @@ NOTA esta funcion puede genear un dataset con columnas adicionales debido a posi
   - Libro Modificar: Modify -> Valid | Modify -> Error. Para deseleccionar un elemento, se regresa al estatus anterior ('Valid'|'Error') y se libera la bandera modificar a  'False'
 - **MVG.36** - Solo se puede modificar un libro a la vez por lo que se maneja una bandera para aceptar unicamente un elemento. La bandera tiene el siguiente comportamiento: 'False' sin libro a modificar. 'True' libro para modificar seleccionado.
 - **MVG.37** - Se debe actualizar los estatus de los libros en la tabla principal.
+#### Modificar Elemento.
+- **MVG.39** - Se obtiene la informacion del modulo libro con todos sus datos.
+- **MVG.40** - Se debera guardar la clasificacion previo a la modificacion por temas de reportes.
+- **MVG.41** - Se despliega una ventana secundaria para modificar el libro en su totalidad.
+
+## Script support_windows.py
+### Modulo Ventana Modificar.
+#### Inicializacion
+- **MVM.01** - Para su inicializacion requiere un objeto de tipo Libro, del cual obtiene los elementos. En caso de no pararse dicho objeto se iniciaria todo el programa con elementos vacios.
+#### Layout General.
+- **MVM.02** - Se despliega en como enfoque principal la clasificacion completa del libro, la cual debera ser actualizada en tiempo real, pero no podra ser seleccionada por el usuario sino que debera actualizarse con las acciones y modificaciones que realiza el usuario.
+- **MVM.03** - Se integra una seccion donde se puedan mostrar y modificar los siguientes elementos de la clasificacion del libro:
+  - Clasificacion : Donde se planea modificar la clasificacion principal.
+  - Encabezado: Donde se puede agregar un encabezado al inicio de la clasificacion completa si se desea.
+  - Volumen: Seccion para modificar el valor unicamente acepta valores numericos.
+  - Copia: Mismo funcionamiento que la seccion de volumen.
+  - PIPE A y B, ambas secciones son de debugeo utilizados para mostrar la separacion de los atributos de la clasificacion.
+- **MVM.04** - Un boton con forma de 'i' mediante el cual se podra desplegar el nombre del libro por medio de un pop up.
+- **MVM.05** - 2 Botones para terminar el proceso de modificacion:
+  - Cancelar: Cancela todo el proceso y no realiza absolutamente ningun cambio al libro, esta opcion debe mostrar una bandera cuando se activa.
+  - Modificar: Finaliza el proceso de modificacion cambiando la clasificacion y atributos del libro. Esta opcion unicamente se activa si se cumple con una clasificacion correcta.
+#### Run Window.
+- **MVM.06** - Al cerrar la ventana o presionar el boton de 'Cancelar' se regresa un objeto nulo o 'None' para informar a otra interfaz que no se realizo ninguna modificacion
+- **MVM.07** - Al presionar el boton 'INFO' se despliega un pop up nombrado pop.show_info_libro() para mostrar el titulo del libro.
+- **MVM.08** - Al actualizar cualquier elemento posible, se actualizan 3 secciones de la ventana: Clasificacion Completa 'CLAS_FULL', PIPE_A y PIPE_B 'PIPE_A' 'PIPE_B' y El boton Modificar que se habilita con base en el estatus del libro. Todo esto se logra con la funcion actualizar_ventana()
+- **MVM.09** - Al presionar el boton Modificar este cierra la ventana y regresa el libro modificado. por completo.

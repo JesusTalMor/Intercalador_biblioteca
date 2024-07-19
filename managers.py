@@ -97,10 +97,10 @@ class Etiqueta:
     self.atributos = Clasificacion()
     self._clasif = self.limpiar_clasif(aClasif)
     
-    match = re.findall(r'[1-9]+', aVolumen) # Todos los numeros, menos el cero
+    match = re.findall(r'[0-9]+', aVolumen) # Todos los numeros, menos el cero
     self._volumen = match[0] if len(match) != 0 else '0'
     
-    match = re.findall(r'[1-9]+', aCopia) # Todos los numeros, menos el cero
+    match = re.findall(r'[1-9][0-9]*', aCopia) # Todos los numeros, menos el cero
     self._copia = match[0] if len(match) != 0 else '1'
     
     match = re.findall(r'(\bnan\b)|(\bNAN\b)|[ ]', aEncabezado) # Todas las letras, excepto nan.
@@ -139,7 +139,7 @@ class Etiqueta:
   @volumen.setter
   def volumen(self, aVolumen):
     #* Unicamente acepta numeros
-    match = re.findall('[1-9]', aVolumen)
+    match = re.findall(r'[0-9]+', aVolumen)
     self._volumen = match[0] if len(match) != 0 else '0'
     self.crear_clasif_completa()
 
@@ -148,7 +148,7 @@ class Etiqueta:
   @copia.setter
   def copia(self, aCopia):
     #* Unicamente acepta numeros
-    match = re.findall('[1-9]', aCopia)
+    match = re.findall(r'[1-9][0-9]*', aCopia)
     self._copia = match[0] if len(match) != 0 else '1'
     self.crear_clasif_completa()
 
@@ -158,8 +158,8 @@ class Etiqueta:
   def encabezado(self, aEncabezado):
     #* Unicamente palabras. No acepta nan|NAN
     #* No acepta {'', ' ', 'nan'}
-    match = re.findall('\w+[^(NAN)][^(nan)]\w+', aEncabezado)
-    self._encabezado = match[0] if len(match) != 0 else ''
+    match = re.findall(r'(\bnan\b)|(\bNAN\b)|\ ', aEncabezado)
+    self._encabezado = aEncabezado if len(match) == 0 else ''
     self.crear_clasif_completa()
 
   @property
@@ -179,8 +179,8 @@ class Etiqueta:
   
   def revisar_clasif(self, STR):
     # Buscar caracteres de separacion especiales
-    if re.search(r'(?: \.)|(?:\. )', STR) is not None:
-      PIPE_A, PIPE_B = re.split(r'(?: \.)|(?:\. )', STR, maxsplit=1)
+    if re.search(r'(?:\ \.)|(?:\.\ )', STR) is not None:
+      PIPE_A, PIPE_B = re.split(r'(?:\ \.)|(?:\.\ )', STR, maxsplit=1)
       # print('Correcto', PIPE_A, '|', PIPE_B, '||',STR)
       self._PIPE_A = re.sub(r"\s+", '', PIPE_A)
       self._PIPE_B = re.sub(r"\.", ' ', PIPE_B)

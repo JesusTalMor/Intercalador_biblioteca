@@ -1,6 +1,7 @@
 import re
 
 from managers import Clasificacion, Etiqueta, Libro
+from support_windows import VentanaModificar
 
 
 def prueba_clasificacion():
@@ -110,7 +111,25 @@ def prueba_libro():
   
   print(lista_libros[476])
 
+def prueba_modificar():
+  libro_prueba = Libro(
+    aID=1,
+    aTitulo='Libro Prueba', 
+    aCbarras='QRO0001', 
+    aClasif='BF76.5.G89 .M48 1998',
+    aVolumen='V.5',
+    aCopia='C.2',
+    aEncabezado='TEXTO')
+  
+  print(f'[DEBUG] {libro_prueba}')
+
+  V = VentanaModificar(libro_prueba)
+  resultado = V.run_window()
+  print(f'[DEBUG] Salida {type(resultado)}')
+  print(resultado)
+
 if __name__ == '__main__':
   # prueba_clasificacion()
   # prueba_etiqueta()
-  prueba_libro()
+  # prueba_libro()
+  prueba_modificar()
