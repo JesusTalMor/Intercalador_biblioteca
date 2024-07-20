@@ -110,9 +110,50 @@ Donde el string resultante conecta todos estos parametros
 ### Modulo Manejo Tabla.
 ---
 #### Inicializacion
-**MMT.01** - Atributos de la clase
+- **MMT.01** - El Objeto Manejo Tabla no requiere nigun valor de incializacion por el momento.
+- **MMT.02** - Los atributos que maneja este objeto son los siguientes:
+  - Tabla Datos: Es la tabla que despliega la informacion que ve el usuario. La cual tiene la siguiente forma para sus elementos: [Clasificacion Completa | PIPE_A | PIPE_B | Estatus Libro]
+  - Tabla Formato: Es la tabla encargada de guardar el formato de los elementos. Tiene el siguiente formato: [Numero Elemento (Libro) | Color] Esta tabla se maneja con los estatus que puede tener el libro.
+  - Lista Libros: Es la lista que cuenta con todos los libros cargados a la aplicacion, esta no cuenta con ningun orden.
+  - Lista Modificados: Esta lista contiene todos los libros que fueron modificados durante la sesion, por lo que solo se puede tener una instancia del libro en toda la lista.
+  - Esatus Color: Es una lista con todos los posibles estatus que puede tomar un libro explicados a continuacion:
+    - Libro Valido "Valid" #FFFFFF: Representa que un libro cumple con la norma del programa.
+    - Libro con Error "Error" #F04150: Representa un libro con algun error en su clasificacion.
+    - Libro Seleccionado "Selected" #498C8A: Representa un libro seleccionado para el usuario: Para esta implementacion no se usa este estatus.
+    - Libro a Modificar "Modify" #E8871E: Representa un libro seleccionado para se modificado.
+#### GETTERS y SETTERS
+- **MMT.03** - Contamos con un getter que es para obtener la longitud de los libros cargados denominado como get_table_len()
+
+#### Operaciones Generales de la Tabla.
+---
 #### Crear Tabla
-**MMT.02** - Genera la tabla de los libros, carga todos los libros desde una ruta para un archivo de Excel utiliza la funcion agregar elemento.
+- **MMT.04** - Carga todos los libros a la variable lista_libros a la aplicacion haciendo uso de la funcion del Objeto Libro llenar_desde_excel() la cual utiliza una ruta de archivo.
+- **MMT.05** - Utiliza la funcion agregar_elemento() la cual utiliza los libros cargados para mostrarlos en las tablas de los atributos.
+#### Revisar Tabla
+- **MMT.08** - Revisa si el diccionario de libros con errores esta vacio. Si esta vacio 'True' significa que no contamos con libros con errores, caso contrario se regresa un 'False'
+#### Reset Tabla
+- **MMT.09** - Reinicia todos los atributos del objeto. Reinicia todo el programa.
+
+#### Funciones de Manejo de Elementos.
+---
+#### Agregar Elemento.
+- **MMT.06** - Con base en el estatus se le da un color al libro y esto se guarda en el elemento formato el cual cuenta con Indice Libro | Color.
+- **MMT.07** - Si el libro cuenta con algun error en su Clasificacion se agrega a un diccionario secundario donde la llave sera por medio del Codigo de Barras. Esto es uando la funcion agregar_elemento_error() que usa el objeto Libro.
+#### Agregar Elemento Error.
+- **MMT.10** - Se agrega al diccionario de errores un libro utilizando como llave el codigo de barras del libro y cargando el libro con error.
+#### Agregar Elemento Modificado
+- **MMT.11** - se agregar al diccionario de libros modificados un libro, utilizando como llave el codigo de barrras del libro y cargando la siguiente estructura [El Libro y la Modificacion realizada]
+#### Actualizar Datos Elemento
+- **MMT.12** - Modificar la informacion de un libro por lo que debera modificar los datos vistos por el usuario y la lista de los libros cargados.
+#### Actualizar Estatus Elemento
+- **MMT.13** - Cambia el estatus de un libro lo cual cambia la aparencia (Color e informacion) en la pantalla que ve el usuario.
+
+
+#### Operaciones Finales de la Tabla.
+---
+#### Ordenar Libros.
+
+
 
 
 
@@ -141,12 +182,14 @@ Funcionalidad para la ventana principal de la aplicacion.
 - **MVG.19** - El programa debera poder mostrar licencias de usuario y la version que esta manejando por medio de los siguientes 
 - **MVG.20** - Al presionar sobre el boton con simbolo de cargar se manda llamar la funcion seleccionar_excel() para obtener la ruta de un archivo excel y actualizar la visualizacion del programa.
 - **MVG.24** - Al presionar el boton 'Cargar' se activa la funcion cargar_excel, con la cual se cargan los datos del excel seleccionado, al programa, actualizando la tabla principal del sistema.
-- **MVG.28** - Al presionar el boton 'Limpiar' se reinicia el programa por completo haciendo llamar la funcion reset_window()
+- **MVG.28** - Al presionar el boton 'Limpiar' se reinicia el programa por completo haciendo llamar la funcion reset_window() y regresando al objeto modify_object a su estado base.
 - **MVG.32** - Un elemento se puede seleccionar presionando sobre el en la tabla, este pasara por los siguientes estatus: 
   - Elementos Valido: Valid -> Modify -> Valid.
   - Elementos Erroneos: Error -> Modify -> Valid | Error.
 Esto se logra con la funcion table_control(). Para seguir por estas opciones de seleccion, unicamente se puede modificar un elemento a la vez.
 - **MVG.38** - Se podra modificar un elemento con el estatus 'MODIFY' de la tabla haciendo click derecho y presionando en el boton y verificando que la Bandera Modify sea 'True' para hacer uso de la funcion modificar_elemento().
+- **MVG.45** - Al presionar el boton ejecutar se llama la funcion ejecutar_programa()
+- **MVG.46** - Se podra desplegar mas informacion del libro si este se encuentra en un estatus 'MODIFY', esto se logra haciendo click derecho y presionando el boton 'Información'
 #### Guardar programa.
 - **MVG.12** - Se revisa si la tabla cuenta con contenido, en caso de no tenerlo se omite el guardado 'Sin datos para guardar'
 - **MVG.13** - Se revisa si se tiene un archivo de excel base, en caso de no tenerlo se omite el guardado 'Sin Ruta para guardar'
@@ -155,8 +198,10 @@ Esto se logra con la funcion table_control(). Para seguir por estas opciones de 
 - **MVG.16** - Se realiza una copia del excel por temas de seguridad a la hora de guardar cualquier tipo de informacion de la aplicacion. Por lo que se toma el nombre de donde se tomaron los datos y se agrega el sufijo '_saved' para poder aclarar la copia. 
 - **MVG.17** - Se utiliza una funcion guardar_libros_tabla que genera un dataframe igual al excel original agregando las correciones hechas en el programa. 
 NOTA esta funcion puede no dar los resultados esperados en el caso de que se ejecute el programa para ordenar ya que no considera el orden del excel.
-NOTA esta funcion puede genear un dataset con columnas adicionales debido a posibles errores de nombres.
+NOTA esta funcion puede generar un dataset con columnas adicionales debido a posibles errores de nombres.
 - **MVG.18** - Se utiliza la funcion del modulo Table Manager llamada escribir_excel() para escribir el excel de salida.
+- **MVG.19** - Cuando se guarde una copia con el sufijo '_saved' agregar un numero como identificador adicional. ejemplo 'excel_saved1.xlsx'
+- **MVG.20** - En caso de tener el sufijo '_saved' en lugar de anadir un segundo sufijo '_saved' se anade un numero adicional
 #### Seleccionar Excel.
 - **MVG.21** - La funcion debera abrir un explorador de archivos para seleccionar unicamente archivos de excel.
 - **MVG.22** - Posterior a la seleccion del archivo se guarda el nombre del archivo y en caso de que el proceso se cancele dicho nombre se mantiene como vacio.
@@ -164,7 +209,10 @@ NOTA esta funcion puede genear un dataset con columnas adicionales debido a posi
 #### Cargar Excel.
 - **MVG.25** - Se revisa si se tiene un archivo para cargar en caso contrario activar el pop.warning_excel_file() para informar al usuario que debe seleccionar una archivo y teminar el proceso.
 - **MVG.26** - En caso de tener un archivo seleccionado mandar llamar la funcion crear_tabla() del modulo Manejo Tabla, para cargar todos los libros del archivo de excel.
-- **MVG.27** - Actualizar los valores de la tabla principal para mostrar los datos cargados, en conjunto con los colores correspondientes a sus estatus en este caso unicamente 2 estatus son posibles: 'Error':'#F04150', 'Valid':'#FFFFFF'.
+- **MVG.27** - Se revisa el estatus de la funcion crear_tabla() y si se da un resultado negativo 'False' se concluye que hubo un error con los encabezados. Se manda llamar un pop.error_excel_head()
+- **MVG.28** - Se revisan cuantos elementos se cargaron al sistema, y en caso de superar 5000 elementos se da un aviso por medio del pop.warning_excel_size()
+- **MVG.29** - Actualizar los valores de la tabla principal para mostrar los datos cargados, en conjunto con los colores correspondientes a sus estatus en este caso unicamente 2 estatus son posibles: 'Error':'#F04150', 'Valid':'#FFFFFF'.
+- **MVG.30** - Ordenar todos los elementos de la tabla usando 
 #### Reset Window.
 - **MVG.29** - Se hace uso de la funcion reset_table() del modulo Manejo Tabla, la cual de manera resumida reinicia todos los valores de la tabla.
 - **MVG.30** - Se eliminan la ruta del archivo de excel seleccionado y el nombre designado para el archivo de salida.
@@ -182,6 +230,15 @@ NOTA esta funcion puede genear un dataset con columnas adicionales debido a posi
 - **MVG.39** - Se obtiene la informacion del modulo libro con todos sus datos.
 - **MVG.40** - Se debera guardar la clasificacion previo a la modificacion por temas de reportes.
 - **MVG.41** - Se despliega una ventana secundaria para modificar el libro en su totalidad.
+- **MVG.42** - Si el libro se modifica se regresa un objeto de tipo Libro con todas las modificaciones, en caso de que no se modifique o se cierre la ventana se regresa un objeto de tipo 'None', si sucede este caso se cancela el proceso de modificacion y se regresa un valor 'True'.
+- **MVG.43** - Cuando un libro se modifica, se debe agregar a una lista de libros modificados para tener un conteo de las modificaciones relacionadas usando la funcion agregar_elemento_modificado() del modulo Manejo Tabla.
+- **MVG.44** - Una vez que se modifica el elemento este cambio se debe ver reflejado en la tabla principal. El texto y estatus. Usando las funciones actualizar_elemento() y actualizar_estatus_elemento()
+- **MVG.45** - Actualizar los elementos de la tabla.
+#### Ejecutar Programa.
+- **MVG.46** - Se revisa si se cuenta con datos en la tabla en caso de no tenerlos el proceso de ejecucion se aborta y se muestra un mensaje en pantalla pop.warning_data().
+- **MVG.47** - Se revisa si se tiene algun archivo de excel seleccionado en caso de que no se tenga ninguno seleccionado se aborta el proceso y se muestra un mensaje en pantalla pop.warning_excel_file()
+- **MVG.48** - El programa requiere que se seleccione una opcion valida del proceso por lo que se debe seleccionar como minimo una opcion.
+- **MVG.49** - El programa debe desplegar una opcion para seleccionar un folder donde guardar los datos que va a generar. En caso de cancelar este proceso se cancela todo el proceso de ejecucion.
 
 ## Script support_windows.py
 ### Modulo Ventana Modificar.
@@ -204,3 +261,9 @@ NOTA esta funcion puede genear un dataset con columnas adicionales debido a posi
 - **MVM.07** - Al presionar el boton 'INFO' se despliega un pop up nombrado pop.show_info_libro() para mostrar el titulo del libro.
 - **MVM.08** - Al actualizar cualquier elemento posible, se actualizan 3 secciones de la ventana: Clasificacion Completa 'CLAS_FULL', PIPE_A y PIPE_B 'PIPE_A' 'PIPE_B' y El boton Modificar que se habilita con base en el estatus del libro. Todo esto se logra con la funcion actualizar_ventana()
 - **MVM.09** - Al presionar el boton Modificar este cierra la ventana y regresa el libro modificado. por completo.
+
+
+
+## Requerimientos Nuevos.
+- **RN.00** - Pasar los libros erroneos hasta el principio. Ordenar en la interfaz los libros con clasificacion correcta. Se logra por medio del objeto Clasificacion ya que los atributos estan estandarizandos para irse al tope por medio de la cadena A000
+- **RN.01** - Agregar la opcion de poder mostrar el titulo del libro seleccionado.

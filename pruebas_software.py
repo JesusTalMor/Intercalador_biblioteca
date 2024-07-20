@@ -116,7 +116,7 @@ def prueba_modificar():
     aID=1,
     aTitulo='Libro Prueba', 
     aCbarras='QRO0001', 
-    aClasif='BF76.5.G89 .M48 1998',
+    aClasif='HF23.3.D23 1920 .I22 1990',
     aVolumen='V.5',
     aCopia='C.2',
     aEncabezado='TEXTO')

@@ -1,11 +1,10 @@
 # Editor: Jesus Talamantes Morales
-# Fecha Ultima Mod: 16 de Julio 2024
+# Fecha Ultima Mod: 19 de Julio 2024
 # Versión implementando objetos
 ################################################
-
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
-ALPHA = 0
-FUNCIONALIDAD = 7
+ALPHA = 1
+FUNCIONALIDAD = 0
 BUGS = 0
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
 
@@ -15,9 +14,7 @@ import sys
 
 import PySimpleGUI as sg
 
-import main_inter_functions as mainif
 import pop_ups as pop
-import ticket_maker as ticket
 from managers import ManejoTabla
 from support_windows import VentanaModificar
 
@@ -181,8 +178,8 @@ class VentanaGeneral:
     # * Configuración de la tabla
     colum = ["Clasificación", "PIPE_A", "PIPE_B", "STATUS"]
     col_width = [25, 15, 15, 10]
-    tabla_principal = self.table_manager.tabla_principal
-    row_color_array = self.table_manager.formato_tabla
+    tabla_principal = self.table_manager.tabla_datos
+    row_color_array = self.table_manager.tabla_formato
     boton_font = {'font':("Open Sans", 14),}
     LAYOUT = [
       [sg.Text(text="Lista de Etiquetas", background_color="#FFFFFF",font=("Open", 18, "bold", "italic"),)],
@@ -199,7 +196,7 @@ class VentanaGeneral:
           justification="l",
           expand_y=False,
           enable_events=True,
-          right_click_menu=["Etiqueta", ["Modificar"]],
+          right_click_menu=["Etiqueta", ["Modificar", "Información"]],
           alternating_row_color="#FFFFFF",
           background_color="#FFFFFF",
           header_border_width=2,
@@ -287,44 +284,24 @@ class VentanaGeneral:
       # * Reiniciar programa por completo
       elif event == "Limpiar":
         self.reset_window(window)
-        bandera_modificar = False
+        modify_object = {
+          'INDEX': 0,
+          'STATUS': 'XXXX',
+          'FLAG': False,
+        }
       # * Eventos relacionados con clicks en la tabla
       elif event == "TABLE":
         modify_object = self.table_control(window, values, modify_object)
       # * Modificar un elemento seleccionado
       elif event == "Modificar" and modify_object['FLAG'] is True:
         modify_object['FLAG'] = self.modificar_elemento(window, modify_object)
-
+      # * Mostrar Informacion Adicional del Libro.
+      elif event == "Información" and modify_object['FLAG'] is True:
+        aLibro = self.table_manager.lista_libros[modify_object['INDEX']]
+        pop.show_info_libro(aLibro.titulo)
       # TODO Revisar la parte de implementar las funcionalidades extras
       elif event == 'Ejecutar':
         self.ejecutar_programa(window, values)
-      elif event == 'Imprimir' and bandera_modificar == True and estatus_modificar != 'False':
-        continue
-        ruta_folder = values['FOLDER']
-        if not ruta_folder:
-          pop.warning_folder()
-          continue
-
-        # Crear la lista de datos
-        encabezado = tabla_datos[modify_index]['encabeza']
-        clasif = tabla_datos[modify_index]['clasif']
-        volumen = tabla_datos[modify_index]['volumen']
-        copia = tabla_datos[modify_index]['copia']
-
-        dict_format = {'HEAD':encabezado, 'CLASS':clasif, 'VOL':volumen, 'COP':copia}
-
-        # print(dict_format)
-        # Individual Configuration Parameters
-        ICP = {'PW':0, 'PH':0, 'TW':4.8, 'TH':3.7, 'PR':0, 'PC':0} 
-        ticket.ticket_maker_main([dict_format], str(modify_index), ruta_folder, ICP, (None,None))
-
-        # * Actualizamos la apariencia del elemento en la tabla
-        main_dicc[modify_index] = "True"
-        tabla_principal[index_value][3] = 'Printed'
-        row_color_array[modify_index] = (int(modify_index), "#7699D4")
-        modify_flag = False
-
-        window["TABLE"].update(values=tabla_principal, row_colors=row_color_array)
   #? MOSTRAR ELEMENTOS DEL VENTANA **********
   def show_window_events(self, event, values):
     print(f"""
@@ -334,6 +311,13 @@ class VentanaGeneral:
       Valores guardados {values}
       {'-'*50}
     """)
+
+  def update_table(self, window):
+    #* Actualizar tabla
+    window["TABLE"].update(
+      values=self.table_manager.tabla_datos, 
+      row_colors=self.table_manager.tabla_formato
+    )
 
   #? CARGAR ELEMENTOS DESDE EXCEL *************
   def seleccionar_excel(self, window):
@@ -350,12 +334,24 @@ class VentanaGeneral:
       return False
 
     # Crear tabla de datos    
-    self.table_manager.crear_tabla(self.ruta_archivo)
+    estatus = self.table_manager.crear_tabla(self.ruta_archivo)
+    # Revisar si se pudo generar la tabla.
+    if estatus is False:
+      print('[ERROR] No se encontraron los encabezados necesarios.')
+      pop.error_excel_head()
+      return False
+    
+    # Revisar si se superaron los elementos recomendados
+    if self.table_manager.size > 5000:
+      pop.warning_excel_size()
+      print('[WARN] Se superaron los elementos recomendados')
+
+    #* Ordenar todos los libros.
+    orden = self.table_manager.ordenar_libros()
+    self.table_manager.organizar_libros_tabla(orden)
+
     #* Actualizar apariencia de la tabla
-    window["TABLE"].update(
-      values=self.table_manager.tabla_principal, 
-      row_colors=self.table_manager.formato_tabla
-    )
+    self.update_table(window)
 
   #? FUNCIONALIDAD MANEJO DE TABLA *************
   def reset_window(self, window):
@@ -366,10 +362,7 @@ class VentanaGeneral:
     self.table_manager.reset_tabla()
     
     #* Actualizar tabla
-    window["TABLE"].update(
-      values=self.table_manager.tabla_principal, 
-      row_colors=self.table_manager.formato_tabla
-    )
+    self.update_table(window)
 
   def table_control(self, window, values, modify_object):
     # Forma de la estructura modify_object.
@@ -402,9 +395,7 @@ class VentanaGeneral:
       modify_object['FLAG'] = False
 
     #* Actualizar tabla
-    window["TABLE"].update(
-      values=self.table_manager.tabla_principal, 
-      row_colors=self.table_manager.formato_tabla)
+    self.update_table(window)
     
     print(f"""
       [DEBUG] Objeto Modificar:
@@ -419,48 +410,44 @@ class VentanaGeneral:
     libro_a_modificar = self.table_manager.lista_libros[modify_object['INDEX']]
     print(f'[DEBUG] Entrando al a Funcion \n {libro_a_modificar}')
     clasif_anterior = libro_a_modificar.etiqueta.clasif_completa
-    # #* Mandar llamar ventana modificar
+    #* Mandar llamar ventana modificar
     VM = VentanaModificar(libro_a_modificar)
-    estatus, libro_modificado = VM.run_window()
+    libro_modificado = VM.run_window()
     del VM
 
-    # print('Se modifico? ', estatus)
-    # #* Checar si hubieron cambios
-    # if estatus is False: return True
+    print('[DEBUG] Se Modifico ?', libro_modificado is not None)
+    #* No se realizo ningun cambio
+    if libro_modificado is None: return True
     
-    # # * Agregamos elemento a una tabla de modificaciones
-    # self.table_manager.agregar_elemento_modificado(modify_index, libro_modificado, clasif_libro_a_modificar)
+    # * Agregamos elemento a una tabla de modificaciones
+    self.table_manager.agregar_elemento_modificado(
+      aLibro=libro_modificado, 
+      aModificacion=clasif_anterior
+    )
 
-    # # * Actualizar valores de tabla de datos
-    # self.table_manager.actualizar_elemento(modify_index, libro_modificado)
+    # * Actualizar valores de tabla de datos
+    self.table_manager.actualizar_datos_elemento(modify_object['INDEX'], libro_modificado)
+    # * Cambiamos la apariencia del elemento en la tabla
+    self.table_manager.actualizar_estatus_elemento(modify_object['INDEX'], 'Valid')
 
-    # # * Cambiamos la apariencia del elemento en la tabla
-    # self.table_manager.actualizar_estatus_elemento(modify_index, 'Valid')
-    
-    # #* Actualizar apariencia de la tabla
-    # window["TABLE"].update(
-    #   values=self.table_manager.tabla_principal, 
-    #   row_colors=self.table_manager.formato_tabla
-    # )
+    #* Actualizar apariencia de la tabla
+    self.update_table(window)
     return False
 
   #? EJECUTAR PROGRAMA ***************************
   def ejecutar_programa(self, window, values):
+    #* Revisar si tenemos datos en el programa.
+    if self.table_manager.size == 0:
+      pop.warning_data()
+      return False
     #* Revisar archivo de Excel
     if len(self.ruta_archivo) == 0: 
       pop.warning_excel_file()
       return False 
-    nombre_archivo = self.ruta_archivo.split('/')[-1]
-
-    # * Checar si existe algun elemento erroneo
-    if self.table_manager.revisar_tabla() is False:
-      pop.warning_clas()
-      return False
     
-    #* Revisar nombre archivo salida
-    nombre_salida = window['NAME'].get()
-    if len(nombre_salida) == 0:
-      pop.warning_name()
+    #* Revisar que se haya seleccionado una opcion
+    if values['REPORT'] + values['EXCEL_ORD'] == 0:
+      pop.warning_option()
       return False
     
     #* Proceso para seleccionar un folder de guardado
@@ -468,46 +455,60 @@ class VentanaGeneral:
     ruta = window['FOLDER'].get()
     if len(ruta) == 0: return False
     
-    #* Revisar que se haya seleccionado una opcion
-    if values['REPORT'] + values['EXCEL_ORD'] + values['EXCEL_INSTRUCT'] == 0:
-      pop.warning_option()
-      return False
+    if values['REPORT'] is True:
+      print('[DEBUG] Prueba Condicional Aceptado')
+      # nombre_archivo = self.ruta_archivo.split('/')[-1]
+      self.table_manager.crear_reporte_general(ruta, nombre_salida, nombre_archivo)
+    #   self.table_manager.crear_reporte_modificados(ruta, nombre_salida)
+    #   self.table_manager.crear_reporte_QRO(ruta, nombre_salida)
+    
+    # # * Checar si existe algun elemento erroneo
+    # if self.table_manager.revisar_tabla() is False:
+    #   pop.warning_clas()
+    #   return False
+    
+    # #* Revisar nombre archivo salida
+    # nombre_salida = window['NAME'].get()
+    # if len(nombre_salida) == 0:
+    #   pop.warning_name()
+    #   return False
     
     #? Crear reporte sobre el archivo
-    if values['REPORT']: 
-      self.table_manager.crear_reporte_general(ruta, nombre_salida, nombre_archivo)
-      # self.table_manager.crear_reporte_modificados(ruta, nombre_salida)
-      self.table_manager.crear_reporte_QRO(ruta, nombre_salida)
+    # if values['REPORT']: 
 
-    #? Ordenar tabla del programa
-    if values['EXCEL_ORD'] or values['EXCEL_INSTRUCT']:
-      orden_de_libros = self.table_manager.ordenar_libros()
-      self.table_manager.organizar_libros_tabla(orden_de_libros)
-      #* Actualizar apariencia de la tabla
-      window["TABLE"].update(
-        values=self.table_manager.tabla_principal, 
-        row_colors=self.table_manager.formato_tabla
-      )
+    # #? Ordenar tabla del programa
+    # if values['EXCEL_ORD'] or values['EXCEL_INSTRUCT']:
+    #   orden_de_libros = self.table_manager.ordenar_libros()
+    #   self.table_manager.organizar_libros_tabla(orden_de_libros)
+    #   #* Actualizar apariencia de la tabla
+    #   window["TABLE"].update(
+    #     values=self.table_manager.tabla_principal, 
+    #     row_colors=self.table_manager.formato_tabla
+    #   )
 
-    #? Crear un archivo de excel ordenado
-    if values['EXCEL_ORD']:
-      excel_ordenado = self.table_manager.organizar_libros_excel(self.ruta_archivo, orden_de_libros)
-      self.table_manager.escribir_excel(ruta, nombre_salida, excel_ordenado)
+    # #? Crear un archivo de excel ordenado
+    # if values['EXCEL_ORD']:
+    #   excel_ordenado = self.table_manager.organizar_libros_excel(self.ruta_archivo, orden_de_libros)
+    #   self.table_manager.escribir_excel(ruta, nombre_salida, excel_ordenado)
     
-    # * Sección para crear instrucciones ordenar
-    if values['EXCEL_INSTRUCT']: 
-      pass
-    #   lista_retirar, lista_colocar = mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos)
-    #   if not lista_retirar[0]: 
-    #     window['Actualizar'].click()
-    #     continue
-    #   ventana_instruc_ordenar(lista_retirar, lista_colocar, hoja_actual, nombre_archivo)
+    # # * Sección para crear instrucciones ordenar
+    # if values['EXCEL_INSTRUCT']: 
+    #   pass
+    # #   lista_retirar, lista_colocar = mainif.instrucciones_ordenar(lista_ordenada, lista_no_ordenada, tabla_datos)
+    # #   if not lista_retirar[0]: 
+    # #     window['Actualizar'].click()
+    # #     continue
+    # #   ventana_instruc_ordenar(lista_retirar, lista_colocar, hoja_actual, nombre_archivo)
 
-    # window['Actualizar'].click()
+    # # window['Actualizar'].click()
+  # def ejecutar_reporte(self, window, values):
+  #   pass
+  # def ejecutar_ordenamiento(self, window,values):
+  #   pass
 
   def guardar_programa(self, bypass=False):
     # Revisar si tenemos datos en el programa.
-    if self.table_manager.tabla_len == 0:
+    if self.table_manager.size == 0:
       print('[INFO] Sin datos que guardar')
       return False
     # Revisar archivo de Excel
@@ -527,7 +528,8 @@ class VentanaGeneral:
     regex = '/' + nombre_archivo + '.*'
     ruta_folder = re.sub(regex, '', self.ruta_archivo)
     # Crear y actualizar el dataframe del excel
-    nombre_archivo = nombre_archivo + '_saved'
+    sufijo = '_saved' if '_saved' not in nombre_archivo else '_saved1' 
+    nombre_archivo = nombre_archivo + sufijo
     print(f'[DEBUG] Nombre generado {nombre_archivo}')
     print(f'[DEBUG] Ruta Generada {ruta_folder}')
     guardar_df = self.table_manager.guardar_libros_tabla(self.ruta_archivo)

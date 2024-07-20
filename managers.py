@@ -280,7 +280,7 @@ class Libro:
       elif 'bar' in ltext or 'codi' in ltext or 'códi' in ltext:
         codigo = text
         # print('Codigo Barras Encontrado como', ltext)
-      elif 'clas' in ltext:
+      elif 'clasificación' in ltext:
         clasif = text
         # print('Clasificacion Encontrado como', ltext)
       elif 'encab' in ltext or 'head' in ltext:
@@ -292,7 +292,7 @@ class Libro:
 
 
     # Revisar encabezados obtenidos.
-    if titulo is None and codigo is None and clasif is None:
+    if titulo is None or codigo is None or clasif is None:
       print('[ERROR] Revisar encabezados archivo faltante de los necesarios')
       return None
 
@@ -327,13 +327,13 @@ class Libro:
 
 class ManejoTabla:
   """ Clase para manejo de Tabla """
-  tabla_principal = []
-  lista_original = []
-  formato_tabla = []
-  lista_libros = []
-  lista_modificados = {}
-  _tabla_len = 0
-  estatus_color = {
+  tabla_datos = [] # Tabla con los datos desplegada en la APP
+  tabla_formato = [] # Da formato a la tabla de la APP.
+  lista_libros = [] # Todos los libros que se cargan a la APP.
+  lista_error = {} # Lista con libros que tienen algun error 
+  lista_modificados = {} # Lista con los libros modificados.
+  _size = 0 # Longitud de elementos de la tabla.
+  estatus_color = { # Colores que puede tomar la tabla en conjunto con sus estatus.
     'Error':'#F04150', 
     'Valid':'#FFFFFF', 
     'Selected':'#498C8A', 
@@ -342,16 +342,22 @@ class ManejoTabla:
 
   #? GETTERS Y SETTERS ************************
   @property
-  def tabla_len(self): return self._tabla_len
+  def size(self): return self._size
 
+  def get_errors_len(self):
+    return len(self.lista_error)
 
 
   #? OPERACIONES GENERALES DE LA TABLA ************************************
 
   def crear_tabla(self, aRuta:str):
-    lista_libros = Libro.llenar_desde_excel(aRuta)
-    for libro in lista_libros: 
+    self.lista_libros = Libro.llenar_desde_excel(aRuta)
+    if self.lista_libros is None:
+      return False
+    for libro in self.lista_libros: 
       self.agregar_elemento(libro)
+    print('[INFO] Datos Cargados Correctamente')
+    return True
 
   def seleccionar_tabla(self):
     # recorrer tabla por completo
@@ -368,58 +374,63 @@ class ManejoTabla:
         self.actualizar_estatus_elemento(num_libro,"Valid")
 
   def revisar_tabla(self):
-    # recorrer tabla por completo
-    for num_libro in range(self.tabla_len):
-      if self.lista_libros[num_libro].estatus == 'Error':
-        return False
-    return True
+    return len(self.lista_error) == 0
 
   def reset_tabla(self):
     """ Reiniciar datos de la tabla por completo """
-    self.tabla_principal = []
-    self.formato_tabla = []
-    self.lista_libros = []
-    self._tabla_len = 0
-    # self.diccionario_estatus = {}
+    self.tabla_datos = [] # Tabla con los datos desplegada en la APP
+    self.tabla_formato = [] # Da formato a la tabla de la APP.
+    self.lista_libros = [] # Todos los libros que se cargan a la APP.
+    self.lista_error = {} # Lista con libros que tienen algun error 
+    self.lista_modificados = {} # Lista con los libros modificados.
+    self._size = 0 # Longitud de elementos de la tabla.
+    print('[INFO] Reiniciar todo el modulo')
 
   #? FUNCIONES PARA MANEJO DE UN SOLO ELEMENTO *********************************
-
   def agregar_elemento(self, aLibro:Libro):
     """ Agregar un elemento a la tabla general """
     color = self.estatus_color[aLibro.estatus]
-    formato = (self.tabla_len, color)
-    principal = [
+    formato = (self._size, color)
+    datos = [
       aLibro.etiqueta.clasif_completa, 
       aLibro.etiqueta.PIPE_A, 
       aLibro.etiqueta.PIPE_B, 
       aLibro.estatus
     ]
-    self.tabla_principal.append(principal)
-    self.lista_libros.append(aLibro)
-    self.formato_tabla.append(formato)
-    self._tabla_len += 1
-
-  def agregar_elemento_modificado(self, num_elem, aLibro, aClasifAnterior):
-    self.lista_modificados[num_elem] = (aLibro, aClasifAnterior)
-    print('[INFO] Elemento modificado agregado')
+    self.tabla_datos.append(datos)
+    self.tabla_formato.append(formato)
+    if aLibro.estatus == 'Error':
+      # print('[DEBUG] Elemento con error detectado')
+      self.agregar_elemento_error(aLibro)
+    self._size += 1
+    print('[INFO] Elemento cargado correctamente')
   
-  def actualizar_elemento(self, num_elem, aLibro):
+  def agregar_elemento_error(self, aLibro:Libro):
+    self.lista_error[aLibro.cbarras] = aLibro
+    print('[INFO] Elemento con error agregado')
+
+  def agregar_elemento_modificado(self, aLibro:Libro, aModificacion:str):
+    self.lista_modificados[aLibro.cbarras] = (aLibro, aModificacion)
+    print('[INFO] Elemento modificado agregado')
+
+  def actualizar_datos_elemento(self, num_elem, aLibro):
     principal = [
       aLibro.etiqueta.clasif_completa, 
       aLibro.etiqueta.PIPE_A, 
       aLibro.etiqueta.PIPE_B, 
       aLibro.estatus
     ]
-    self.tabla_principal[num_elem] = principal
+    self.tabla_datos[num_elem] = principal
     self.lista_libros[num_elem] = aLibro
-    print('[INFO] Elemento Actualizado')
+    print('[INFO] Informacion de Elemento Actualizado')
 
   def actualizar_estatus_elemento(self, num_elem, aEstatus):
     self.lista_libros[num_elem].estatus = aEstatus
-    self.tabla_principal[num_elem][3] = aEstatus
+    self.tabla_datos[num_elem][3] = aEstatus
     color = self.estatus_color[aEstatus]
     formato = (num_elem, color)
-    self.formato_tabla[num_elem] = formato
+    self.tabla_formato[num_elem] = formato
+    print('[INFO] Esatus de Elemento Actualizado')
 
   #? OPERACIONES FINALES DE LA TABLA *************************************
 
@@ -444,7 +455,7 @@ class ManejoTabla:
     orden_jerarquia = ['clase', 'subdecimal', 'temaesp', 'autor', 'anio', 'volumen', 'copia']
     
     libros_df = {
-      'id'          : [libro.ID for libro in self.lista_libros],
+      'index'       : [number for number in range(self.size)],
       'clase'       : [libro.etiqueta.atributos.clase for libro in self.lista_libros],
       'subdecimal'  : [libro.etiqueta.atributos.subdecimal for libro in self.lista_libros],
       'temaesp'     : [libro.etiqueta.atributos.temaesp for libro in self.lista_libros],
@@ -455,27 +466,31 @@ class ManejoTabla:
     }
     libros_df = pd.DataFrame(libros_df)
     libros_df.sort_values(by=orden_jerarquia, inplace=True)
-
-    return libros_df['id'].tolist()
+    print('[INFO] Orden Generado')
+    return libros_df['index'].tolist()
 
   def organizar_libros_tabla(self, orden):
     """ Ordena los libros del programa con base a un indice """
     # Llenar ambas tablas necesarias para el programa
     self.lista_original = self.lista_libros.copy()
-    tabla_principal_aux = []
+    tabla_datos_aux = []
+    tabla_formato_aux = []
     lista_libros_aux = []
-    for indice in orden:
-      tabla_principal_aux.append(self.tabla_principal[indice])
+    # Cargar los libros en el orden correcto.
+    for i, index in enumerate(orden):
+      tabla_datos_aux.append(self.tabla_datos[index])
+      color = self.estatus_color[self.tabla_datos[index][3]]
+      tabla_formato_aux.append((i, color))
       # self.lista_libros[indice].ID = indice
-      lista_libros_aux.append(self.lista_libros[indice])
+      lista_libros_aux.append(self.lista_libros[index])
 
-    self.tabla_principal = tabla_principal_aux.copy()
+    # Pasar libros a las tablas principales
+    self.tabla_datos = tabla_datos_aux.copy()
+    self.tabla_formato = tabla_formato_aux.copy()
     self.lista_libros = lista_libros_aux.copy()
 
-    # Imprimir los indices
-    for libro in self.lista_libros:
-      print(libro.ID)
-  
+    print('[INFO] Tabla Ordenada Correctamente')
+
   def organizar_libros_excel(self, ruta, orden):
     # * Importar el dataframe del Excel
     df_excel = read_excel(ruta, header=0)
@@ -558,7 +573,6 @@ class ManejoTabla:
         # Condicionado anterior
         if (out_IND - 1) >= 0:
           pass
-          
 
   #? CREACION DE REPORTES SOBRE TABLA ************************************
   def crear_reporte_modificados(self, path:str, nombre:str,):

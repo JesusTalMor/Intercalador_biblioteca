@@ -7,6 +7,10 @@ def warning_excel_file():
   msg = f'!Fallo!\nSeleccione un archivo de Excel'
   messagebox.showwarning("No Excel File", msg)
 
+def warning_excel_size():
+  msg = f'!Advertencia!\nSe superaron los elementos recomendados para la aplicación.\n Se recomiendan menos de 5000 Elementos.'
+  messagebox.showwarning("Excel Size Warning", msg)
+
 def warning_excel_file_data_error():
   msg = f'!Advertencia!\n Algunas Etiquetas no logran cargarse'
   messagebox.showwarning("File Data Warning", msg)
@@ -38,6 +42,10 @@ def warning_data():
 def error_excel_file():
   msg = f'!Fallo!\n Ninguna Etiqueta se cargo'
   messagebox.showerror("Excel File Error", msg)
+
+def error_excel_head():
+  msg = f'!Fallo!\n No se lograron ubicar los encabezados necesarios. \n Agregar [Clasificación | C. Barras | Título]'
+  messagebox.showerror("Excel File Error Head", msg)
 
 def error_manual_order():
   msg = f'!Fallo!\n No se puede ordenar'
