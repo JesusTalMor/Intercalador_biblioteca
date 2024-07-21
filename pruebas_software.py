@@ -128,6 +128,12 @@ def prueba_modificar():
   print(f'[DEBUG] Salida {type(resultado)}')
   print(resultado)
 
+  """
+  Historia del toreo / Jorge Laverón -> 2 TABS
+  Historia del toreo en México : época colonial, 152
+  ...O llevarás luto por mí / Dominique Lapierre, La
+  """
+
 if __name__ == '__main__':
   # prueba_clasificacion()
   # prueba_etiqueta()

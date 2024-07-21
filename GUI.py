@@ -299,7 +299,7 @@ class VentanaGeneral:
       elif event == "Información" and modify_object['FLAG'] is True:
         aLibro = self.table_manager.lista_libros[modify_object['INDEX']]
         pop.show_info_libro(aLibro.titulo)
-      # TODO Revisar la parte de implementar las funcionalidades extras
+      # * Ejecuta las funcionalidades del programa
       elif event == 'Ejecutar':
         self.ejecutar_programa(window, values)
   #? MOSTRAR ELEMENTOS DEL VENTANA **********
@@ -331,6 +331,12 @@ class VentanaGeneral:
     # Revisar que tengamos un archivo excel
     if len(self.ruta_archivo) == 0:
       pop.warning_excel_file()
+      return False
+    
+    # Revisar que no tengan datos ya cargados.
+    #* Revisar si tenemos datos en el programa.
+    if self.table_manager.size != 0:
+      pop.warning_excel_used()
       return False
 
     # Crear tabla de datos    
@@ -424,11 +430,17 @@ class VentanaGeneral:
       aLibro=libro_modificado, 
       aModificacion=clasif_anterior
     )
+    # * Eliminamos el elementos de la tabla de errores.
+    self.table_manager.eliminar_elemento_error(aLibro=libro_modificado)
 
     # * Actualizar valores de tabla de datos
     self.table_manager.actualizar_datos_elemento(modify_object['INDEX'], libro_modificado)
     # * Cambiamos la apariencia del elemento en la tabla
     self.table_manager.actualizar_estatus_elemento(modify_object['INDEX'], 'Valid')
+
+    #* Ordenar todos los libros.
+    orden = self.table_manager.ordenar_libros()
+    self.table_manager.organizar_libros_tabla(orden)
 
     #* Actualizar apariencia de la tabla
     self.update_table(window)
@@ -454,43 +466,31 @@ class VentanaGeneral:
     window['Guardar'].click()
     ruta = window['FOLDER'].get()
     if len(ruta) == 0: return False
+
+    # * Obtener el nombre del archivo final
+    nombre_archivo = self.ruta_archivo.split('/')[-1]
+    nombre_archivo = re.sub(r'\.xlsx', '', nombre_archivo)
     
     if values['REPORT'] is True:
-      print('[DEBUG] Prueba Condicional Aceptado')
-      # nombre_archivo = self.ruta_archivo.split('/')[-1]
-      self.table_manager.crear_reporte_general(ruta, nombre_salida, nombre_archivo)
-    #   self.table_manager.crear_reporte_modificados(ruta, nombre_salida)
-    #   self.table_manager.crear_reporte_QRO(ruta, nombre_salida)
+      print('[DEBUG] Generando Reportes.')
+      self.table_manager.crear_reporte_general(ruta, nombre_archivo)
+      self.table_manager.crear_reporte_QRO(ruta, nombre_archivo)
+      print('[DEBUG] Reportes Creados con Exito.')
     
-    # # * Checar si existe algun elemento erroneo
-    # if self.table_manager.revisar_tabla() is False:
-    #   pop.warning_clas()
-    #   return False
+    if values['EXCEL_ORD'] is True:
+      print('[DEBUG] Creando Excel Ordenado')
+      # * Generar ordenar lista actual.
+      df_ordenado = self.table_manager.organizar_libros_excel(self.ruta_archivo)
+      # Obtener nombre dado por el usuario.
+      nombre_usuario = window["NAME"].get()
+      # Si el nombre de usuario esta vacio, usar el nombre de archivo 
+      nombre_salida = nombre_usuario if len(nombre_usuario) != 0 else nombre_archivo + '_ordenado'
+      self.table_manager.escribir_excel(ruta, nombre_salida, df_ordenado)
+      print('[DEBUG] Excel Ordenado Creado con Exito')
     
-    # #* Revisar nombre archivo salida
-    # nombre_salida = window['NAME'].get()
-    # if len(nombre_salida) == 0:
-    #   pop.warning_name()
-    #   return False
-    
-    #? Crear reporte sobre el archivo
-    # if values['REPORT']: 
+    # Informar al usuario
+    pop.success_program(ruta)    
 
-    # #? Ordenar tabla del programa
-    # if values['EXCEL_ORD'] or values['EXCEL_INSTRUCT']:
-    #   orden_de_libros = self.table_manager.ordenar_libros()
-    #   self.table_manager.organizar_libros_tabla(orden_de_libros)
-    #   #* Actualizar apariencia de la tabla
-    #   window["TABLE"].update(
-    #     values=self.table_manager.tabla_principal, 
-    #     row_colors=self.table_manager.formato_tabla
-    #   )
-
-    # #? Crear un archivo de excel ordenado
-    # if values['EXCEL_ORD']:
-    #   excel_ordenado = self.table_manager.organizar_libros_excel(self.ruta_archivo, orden_de_libros)
-    #   self.table_manager.escribir_excel(ruta, nombre_salida, excel_ordenado)
-    
     # # * Sección para crear instrucciones ordenar
     # if values['EXCEL_INSTRUCT']: 
     #   pass

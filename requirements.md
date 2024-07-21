@@ -147,11 +147,37 @@ Donde el string resultante conecta todos estos parametros
 - **MMT.12** - Modificar la informacion de un libro por lo que debera modificar los datos vistos por el usuario y la lista de los libros cargados.
 #### Actualizar Estatus Elemento
 - **MMT.13** - Cambia el estatus de un libro lo cual cambia la aparencia (Color e informacion) en la pantalla que ve el usuario.
-
+#### Eliminar Elemento Error.
+- **MMT.14** - Se eliminar un elemento de la tabla error, si este elemento se encuentra en la misma en caso contrario se ignora este paso.
 
 #### Operaciones Finales de la Tabla.
 ---
 #### Ordenar Libros.
+- **MMT.14** - Para ordenar los libros con base en la clasificacion y usando los atributos se toman el siguiente orden de importancia: [Clase, Subdecimal, Tema Especial, Autor, Año, Volumen, Copia]
+- **MMT.15** - El programa arroja una lista con indices donde cada indice simboliza un libro y el orden en el que esta la lista es el orden que deberá de tomar el programa | excel.
+#### Organizar Libros Tabla.
+- **MMT.16** - Se deben generar copias de las listas que se van a modificar que son las siguientes: Tabla Datos, Tabla Formato y Lista Libros.
+- **MMT.17** - Se llenan estas listas siguiendo un orden que se establece en la funcion y que recibe la funcion como argumento.
+- **MMT.18** - Por ultimo si todo salio bien se copian dichas listas auxiliares con las originales para finalizar el proceso.
+#### Organizar Libros Excel.
+- **OLE.01** - Carga un dataframe de un excel usando una ruta que se da como argumento.
+- **OLE.02** - Crea un dataframe ordenado, insertando las filas que se indican usando como referencia de orden la lista_libros para ubicar cada fila de manera ordenada.
+- **OLE.03** - Genera Columnas personalizadas del programa con los cambios y modificaciones hechos en la misma usando el mismo orden dado por lista_libros
+- **OLE.04** - Añade las columnas generadas al dataframe ordenado del excel y da como salida dicho dataframe combinado y ordenado.
+
+
+#### Creacion de Reportes sobre Tabla.
+---
+#### Crear Reporte General - CRG
+- **CRG.01** - Genera un archivo Txt con el nombre del archivo trabajado añadiendo el sufijo '_reporte' al archivo final.
+- **CRG.02** - Dentro del reporte se deberan mostrar los siguientes datos:
+  - Total de Libros cargados.
+  - Total de Libros que pasaron el estandar, sin realizar modificaciones
+  - Total de Libros que fueron modificados para antender el estandar.
+  - Total de Libros que cuentan con errores y no han sido modificados.
+- **CRG.03** - Se deberan generar 2 reportes adicionales en el archivo.
+  - El primero despliega una lista de los libros modificados en caso de que existan. La lista tiene la siguiente forma: Titulo del Libro | Clasificacion Final | Clasificacion que fue Modificada | Codigo de Barras del Libro.
+  - El segundo se trata de una lista para mostrar los libros que aun cuentan con errores en sus clasificaciones. La lista tiene la siguiente forma: Titulo del Libro | Clasificacion | Codigo de Barras del Libro.
 
 
 
@@ -159,7 +185,6 @@ Donde el string resultante conecta todos estos parametros
 
 ## Script GUI.py
 ### Modulo Ventana General
-Funcionalidad para la ventana principal de la aplicacion.
 **MVG.00** - Los colores de la pagina son los siguientes: Color de Fondo #3016F3, Texto #000000, Entrada y color secundario #DEE6F7
 **MVG.01** - Se cuenta con una funcion llamada resource path la cual tiene la tarea de pasar todos los ASSETS a un archivo comprimido para su portabilidad/
 #### Layout Izquierdo.
@@ -213,6 +238,7 @@ NOTA esta funcion puede generar un dataset con columnas adicionales debido a pos
 - **MVG.28** - Se revisan cuantos elementos se cargaron al sistema, y en caso de superar 5000 elementos se da un aviso por medio del pop.warning_excel_size()
 - **MVG.29** - Actualizar los valores de la tabla principal para mostrar los datos cargados, en conjunto con los colores correspondientes a sus estatus en este caso unicamente 2 estatus son posibles: 'Error':'#F04150', 'Valid':'#FFFFFF'.
 - **MVG.30** - Ordenar todos los elementos de la tabla usando 
+- **MVG.31** - Si se cuenta con datos cargados en el programa anunciar al usuario por medio del pop.warning_excel_used() que unicamente se puede cargar un archivo de excel a la vez y abortar el proceso de cargar.
 #### Reset Window.
 - **MVG.29** - Se hace uso de la funcion reset_table() del modulo Manejo Tabla, la cual de manera resumida reinicia todos los valores de la tabla.
 - **MVG.30** - Se eliminan la ruta del archivo de excel seleccionado y el nombre designado para el archivo de salida.
@@ -234,11 +260,21 @@ NOTA esta funcion puede generar un dataset con columnas adicionales debido a pos
 - **MVG.43** - Cuando un libro se modifica, se debe agregar a una lista de libros modificados para tener un conteo de las modificaciones relacionadas usando la funcion agregar_elemento_modificado() del modulo Manejo Tabla.
 - **MVG.44** - Una vez que se modifica el elemento este cambio se debe ver reflejado en la tabla principal. El texto y estatus. Usando las funciones actualizar_elemento() y actualizar_estatus_elemento()
 - **MVG.45** - Actualizar los elementos de la tabla.
+- **MVG.46** - Al terminar de modificar un elemento con error se debera eliminar dicho libro de la lista de error.
+- **MVG.47** - Los elementos se deberan de reordenar para acomodar el nuevo libro que entra en el estandar.
 #### Ejecutar Programa.
 - **MVG.46** - Se revisa si se cuenta con datos en la tabla en caso de no tenerlos el proceso de ejecucion se aborta y se muestra un mensaje en pantalla pop.warning_data().
 - **MVG.47** - Se revisa si se tiene algun archivo de excel seleccionado en caso de que no se tenga ninguno seleccionado se aborta el proceso y se muestra un mensaje en pantalla pop.warning_excel_file()
 - **MVG.48** - El programa requiere que se seleccione una opcion valida del proceso por lo que se debe seleccionar como minimo una opcion.
 - **MVG.49** - El programa debe desplegar una opcion para seleccionar un folder donde guardar los datos que va a generar. En caso de cancelar este proceso se cancela todo el proceso de ejecucion.
+- **MVG.50** - Se extrae de la ruta del archivo seleccionado de excel su nombre sin tener los caracteres '.xlsx'
+- **MVG.51** - Al seleccionar REPORTE, se genera un reporte general usando la funcion crear_reporte_general() para dar datos del archivo actual y de manera adicional se genera un segundo reporte el cual contiene todos los codigo de barras de los libros que hayan sido modificados o no cuenten con el estandar correcto esto con la funcion crear_report_QRO().
+- **MVG.52** - Al seleccionar Orden Excel se genera un excel ordenado. Donde se realizan los siguientes pasos:
+  - Debido al funcionamineto del programa se entiende que antes de presionar ejecutar todos los libros de la aplicacion estan ordenados.
+  - Se ordenan los libros del excel usando la funcion organizar_libros_excel() que genera un dataframe ordenado de los libros.
+  - Se da un nombre final al archivo con base al nombre dado por el usuario o en caso de que no se de un nombre por el usuario se usara el nombre del archivo seleccionado agregando el sufijo '_ordenado'
+  - Se genera un nuevo excel con el nombre seleccionado anteriormente.
+- **MVG.53** - Notificar al usuario que el proceso termino con exito y la ruta donde se encuentran los archivos generados.
 
 ## Script support_windows.py
 ### Modulo Ventana Modificar.
@@ -265,5 +301,3 @@ NOTA esta funcion puede generar un dataset con columnas adicionales debido a pos
 
 
 ## Requerimientos Nuevos.
-- **RN.00** - Pasar los libros erroneos hasta el principio. Ordenar en la interfaz los libros con clasificacion correcta. Se logra por medio del objeto Clasificacion ya que los atributos estan estandarizandos para irse al tope por medio de la cadena A000
-- **RN.01** - Agregar la opcion de poder mostrar el titulo del libro seleccionado.

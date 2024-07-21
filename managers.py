@@ -3,8 +3,6 @@ import re
 import pandas as pd
 from pandas import read_excel
 
-import string_helper as sh
-
 
 class Clasificacion:
   """ Objeto para separar todos los elementos de una clasificacion """
@@ -431,6 +429,11 @@ class ManejoTabla:
     formato = (num_elem, color)
     self.tabla_formato[num_elem] = formato
     print('[INFO] Esatus de Elemento Actualizado')
+  
+  def eliminar_elemento_error(self, aLibro:Libro):
+    if aLibro.cbarras in self.lista_error:
+      self.lista_error.pop(aLibro.cbarras)
+      print('[INFO] Elemento con error corregido', len(self.lista_error))
 
   #? OPERACIONES FINALES DE LA TABLA *************************************
 
@@ -491,13 +494,14 @@ class ManejoTabla:
 
     print('[INFO] Tabla Ordenada Correctamente')
 
-  def organizar_libros_excel(self, ruta, orden):
+  def organizar_libros_excel(self, ruta):
     # * Importar el dataframe del Excel
     df_excel = read_excel(ruta, header=0)
     
     df_order = pd.DataFrame()
-    for index in orden:
-      row = df_excel.iloc[index]
+    for libro in self.lista_libros:
+      # Obtener la fila del libro con base en su ID
+      row = df_excel.iloc[libro.ID]
       df_order = pd.concat([df_order, pd.DataFrame([row])], ignore_index=True)
     
     #* Corregir columnas seleccionadas
@@ -511,23 +515,8 @@ class ManejoTabla:
 
     for column, values in correct_df.items():
       df_order[column] = values
+    print('[INFO] Archivo Excel Ordenado Correctamente')
     return df_order
-
-  def escribir_excel(self, ruta, nombre, dataframe):
-    excel_path = f'{ruta}/{nombre}.xlsx'
-    print(f'[DEBUG] Ruta excel salida {excel_path}')
-    try:
-      excel_writer = pd.ExcelWriter(excel_path, mode='w')
-      dataframe.to_excel(excel_writer, index=False)
-      excel_writer.close()
-    except:
-      print('[WARN] No se pudo escribir, excel ya existe, archivo abierto')
-      excel_path = f'{ruta}/{nombre}_copia.xlsx'
-      excel_writer = pd.ExcelWriter(excel_path, mode='w')
-      dataframe.to_excel(excel_writer, index=False)
-      excel_writer.close()
-
-
 
   def guardar_libros_tabla(self, ruta):
     """ Guarda todos los cambios realizados en el programa hasta ahora """
@@ -547,7 +536,19 @@ class ManejoTabla:
       df_excel[column] = values
     return df_excel
 
-
+  def escribir_excel(self, ruta, nombre, dataframe):
+    excel_path = f'{ruta}/{nombre}.xlsx'
+    print(f'[DEBUG] Ruta excel salida {excel_path}')
+    try:
+      excel_writer = pd.ExcelWriter(excel_path, mode='w')
+      dataframe.to_excel(excel_writer, index=False)
+      excel_writer.close()
+    except:
+      print('[WARN] No se pudo escribir, excel ya existe, archivo abierto')
+      excel_path = f'{ruta}/{nombre}_copia.xlsx'
+      excel_writer = pd.ExcelWriter(excel_path, mode='w')
+      dataframe.to_excel(excel_writer, index=False)
+      excel_writer.close()
 
   #? CREAR INSTRUCCIONES DE ORDENAMIENTO *********************************
   def marcar_condiciones_libros(self):
@@ -575,62 +576,79 @@ class ManejoTabla:
           pass
 
   #? CREACION DE REPORTES SOBRE TABLA ************************************
-  def crear_reporte_modificados(self, path:str, nombre:str,):
-    '''Genera un reporte en un txt de libros modificados'''
-    if not self.lista_modificados: return False # Revisar si tenemos datos
-    
-    txt_path = f'{path}/{str(nombre)}_modificados.txt'
+  def crear_reporte_QRO(self, path:str, archivo:str,):
+    '''Genera un reporte en un txt de libros modificados o con error'''
+    # Si no tenemos ni errores ni modificados. Se anula este proceso.
+    if len(self.lista_error) == 0 and len(self.lista_modificados) == 0: return False
+    txt_path = f'{path}/{str(archivo)}_QRO.txt'
     modif_file = open(txt_path, 'w', encoding="utf-8")
-    modif_file.write(f'Lista de Clasificaciones Modificadas\n')
-    for libro, clasif_anterior in self.lista_modificados.values():
-      titulo_comprimido = libro.titulo[:40] if len(libro.titulo) > 40 else libro.titulo + (' '*(40 - len(libro.titulo)))
-      texto_libro = f"{titulo_comprimido} | {libro.etiqueta.clasif_completa} | {clasif_anterior} | {libro.cbarras}"
-      modif_file.write(texto_libro)
-      modif_file.write('\n')
-    modif_file.close()
-
-  def crear_reporte_QRO(self, path:str, nombre:str,):
-    '''Genera un reporte en un txt de libros modificados'''
-    if not self.lista_modificados: return False # Revisar si tenemos datos
     
-    txt_path = f'{path}/{str(nombre)}_QRO.txt'
-    modif_file = open(txt_path, 'w', encoding="utf-8")
-    for libro, clasif_anterior in self.lista_modificados.values():
-        modif_file.write(libro.cbarras)
-        modif_file.write('\n')
+    # * Genera un reporte en un txt de libros con Error
+    if len(self.lista_error) != 0:
+      print('[DEBUG] Quedan libros con Errores')    
+      for libro in self.lista_error.values():
+        modif_file.write(f'{libro.cbarras}\n')
+    
+    # * Genera un reporte en un txt de libros modificados
+    if len(self.lista_modificados) != 0: 
+      print('[DEBUG] Tenemos Modificaciones')
+      for libro, clasif_anterior in self.lista_modificados.values():
+        modif_file.write(f'{libro.cbarras}\n')
+    
     modif_file.close()
-    return True
+    print('[INFO] Reporte con Codigo de Barras Creado con Exito')
 
-  def crear_reporte_general(self, path:str, nombre_salida:str, nombre_archivo:str):
+  def crear_reporte_general(self, path:str, archivo:str):
     '''Genera un reporte en un txt de libros modificados'''
-    txt_path = f'{path}/{str(nombre_salida)}_reporte.txt'
+    txt_path = f'{path}/{str(archivo)}_reporte.txt'
     
     separador = 50*'=' # largo de separadores de caracteres
-    len_correctos = self.tabla_len - len(self.lista_modificados)
+    libros_correctos = self.size - len(self.lista_modificados) - len(self.lista_error)
     #* Escribir en el archivo
     report_file = open(txt_path, 'w', encoding="utf-8") 
     report_file.write(f'{separador}\n')
-    report_file.write(f'\t Reporte para {nombre_archivo} \n')
+    report_file.write(f'\t Reporte para {archivo} \n')
     report_file.write(f'{separador}\n\n')
     report_file.write(f'\t Registro de Analisis Estandar LC \n')
     report_file.write(f'{separador}\n')
-    report_file.write(f'Clasificaciones cargadas: {self.tabla_len} | 100%\n')
-    report_file.write(f'Clasificaciones con Estandar LC: {len_correctos} | {sh.obtener_porcentaje(len_correctos, self.tabla_len)}%\n')
-    report_file.write(f'Clasificaciones modificadas: {len(self.lista_modificados)} | {sh.obtener_porcentaje(len(self.lista_modificados), self.tabla_len)}%\n')
+    report_file.write(f'Clasificaciones cargadas :\t\t| {self.size}\t| 100%\n')
+    report_file.write(f'Clasificaciones con Estandar LC :\t| {libros_correctos}\t| {get_percent(libros_correctos, self.size):.2f}%\n')
+    report_file.write(f'Clasificaciones con Error :\t\t| {len(self.lista_error)}\t| {get_percent(len(self.lista_error), self.size):.2f}%\n')
+    report_file.write(f'Clasificaciones Modificadas :\t\t| {len(self.lista_modificados)}\t| {get_percent(len(self.lista_modificados), self.size):.2f}%\n')
     report_file.write(f'{separador}\n\n')
-    '''Genera un reporte en un txt de libros modificados'''
-    if not self.lista_modificados: 
-      report_file.close()
-      return False 
+    # * Genera un reporte en un txt de libros con Error
+    if len(self.lista_error) != 0:
+      print('[DEBUG] Quedan libros con Errores')
+      report_file.write(f'\t Reporte de Libros con Error Restantes\n')
+      report_file.write(f'{separador}\n')
     
-    for libro, clasif_anterior in self.lista_modificados.values():
-      titulo_comprimido = libro.titulo[:40] if len(libro.titulo) > 40 else libro.titulo + (' '*(40 - len(libro.titulo)))
-      texto_libro = f"{titulo_comprimido} | {libro.etiqueta.clasif_completa} | {clasif_anterior} | {libro.cbarras}"
-      report_file.write(texto_libro)
-      report_file.write('\n')
-    report_file.close()    
+      for libro in self.lista_error.values():
+        titulo = cut_string(libro.titulo)
+        texto_libro = f"{libro.ID}\t| {titulo}\t| {libro.etiqueta.clasif_completa}\t| {libro.cbarras}"
+        report_file.write(f'{texto_libro}\n')
+      report_file.write(f'{separador}\n\n')
+    
+    # * Genera un reporte en un txt de libros modificados
+    if len(self.lista_modificados) != 0: 
+      print('[DEBUG] Tenemos Modificaciones')
+      report_file.write(f'\t Reporte de Libros Modificados\n')
+      report_file.write(f'{separador}\n')
+    
+      for libro, clasif_anterior in self.lista_modificados.values():
+        titulo = cut_string(libro.titulo)
+        texto_libro = f"{libro.ID}\t| {titulo}\t| {libro.etiqueta.clasif_completa}\t| {clasif_anterior}\t| {libro.cbarras}"
+        report_file.write(f'{texto_libro}\n')
+      report_file.write(f'{separador}\n\n')
+    
+    report_file.close()
+    print('[INFO] Reporte General Creado con Exito')
 
+#? Funciones Auxiliares.
+def get_percent(num1, num_max):
+  return (num1/num_max)*100
 
+def cut_string(STR):
+  return STR if len(STR) <= 50 else STR[:50]
 
 if __name__ == '__main__':
   # ruta1 = 'C:/Users/EQUIPO/Desktop/Proyectos_biblioteca/Etiquetas/Pruebas/Mario_excel.xlsx'

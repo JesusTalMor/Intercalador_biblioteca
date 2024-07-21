@@ -11,6 +11,10 @@ def warning_excel_size():
   msg = f'!Advertencia!\nSe superaron los elementos recomendados para la aplicación.\n Se recomiendan menos de 5000 Elementos.'
   messagebox.showwarning("Excel Size Warning", msg)
 
+def warning_excel_used():
+  msg = f'!Advertencia!\nUn archivo de excel ya se encuentra en uso.\n Presione Limpiar si desea cargar otro archivo.'
+  messagebox.showwarning("Excel Size in Use", msg)
+
 def warning_excel_file_data_error():
   msg = f'!Advertencia!\n Algunas Etiquetas no logran cargarse'
   messagebox.showwarning("File Data Warning", msg)
@@ -54,9 +58,9 @@ def error_manual_order():
 
 # # ? POP_up de Informacion (Info)
 ##########################################################
-def success_program():
-  msg = f'Felicidades\n El programa finalizó con exito'
-  messagebox.showinfo('', msg)
+def success_program(ruta):
+  msg = f'Felicidades\n El programa finalizó con exito\n El Archivo se encuentra en:\n{ruta}'
+  messagebox.showinfo('Program Finished', msg)
 
 def not_enough_books():
   msg = f'Poca Cantidad de Libros \n Itercale a manualmente'
