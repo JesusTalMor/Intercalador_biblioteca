@@ -20,13 +20,13 @@ pycparser==2.21
 pyinstaller==5.10.1
 pyinstaller-hooks-contrib==2023.2
 pyparsing==3.0.9
-PySimpleGUI==5.0.6
 python-dateutil==2.8.2
 pytz==2023.3
 pywin32-ctypes==0.2.0
 rsa==4.9
 six==1.16.0
 tzdata==2023.3
+wcwidth==0.2.13
 whichcraft==0.6.1
 zope.event==4.6
 zope.interface==6.0

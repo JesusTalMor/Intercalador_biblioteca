@@ -12,8 +12,7 @@ import os
 import re
 import sys
 
-import PySimpleGUI as sg
-
+import Assets.PySimpleGUI as sg
 import pop_ups as pop
 from managers import ManejoTabla
 from support_windows import VentanaModificar
