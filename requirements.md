@@ -93,25 +93,27 @@ Donde el string resultante conecta todos estos parametros
   - Encabezado: aEncabezado|Opcional|string. Encabezado opcional. RVIZ. Por defecto '' Vacio.
 ### Getters y Setters. - GS
 - **GS.01** - Todos los atributos son privados y unicamente se pueden acceder con getters y setters.
-### Llenar desde Excel. - LE
-- **LE.01** - Cargar libros usando un archivo de Excel.
+### Llenar desde Excel CSV. - LEC
+- **LEC.01** - Cargar libros usando un archivo de Excel. Se debe especificar el sufijo ".xlsx"
 
-- **LE.02** - Se consideran los siguientes encabezados dentro del archivo excel para una correcta obtencion de datos: Titulo, Codigo de Barras y Clasificacion. En caso de que no se encuentren estos encabezados se regresa el siguiente valor 'None'
+- **LEC.03** - Cargar archivos usando un txt como csv. Se debe especificar el sufijo ".txt"
 
-- **LE.03** - Para encontrar los 6 encabezados posibles se consideran las siguientes cadenas de texto como mas favorables dentro de un excel:
-  - Titulo - Titulo con o sin acento
-  - Codigo de Barras - Bar o codi o códi con acento
-  - Clasificacion - clas
-  - Encabezado - encab, head
-  - Volumen - vol
-  - Copia - cop
+- **LEC.04** - Se consideran los siguientes encabezados dentro del archivo excel para una correcta obtencion de datos: Titulo, Codigo de Barras y Clasificacion. En caso de que no se encuentren estos encabezados se regresa el siguiente valor 'None'
 
-- **LE.04** - Si se pasan los filtros se pasa a la siguiente seccion que es la creacion de los objetos de tipo libro usando el constructor de inicializacion correspondiente
+- **LEC.05** - Para encontrar los 6 encabezados posibles se consideran las siguientes cadenas de texto como mas favorables dentro de un excel:
+  - Titulo - Titulo con o sin acento. Regex tit|tít
+  - Codigo de Barras - Bar o codi o códi con acento. Regex bar|codi|códi
+  - Clasificacion - Regex clas
+  - Copia - Regex cop
+  - Volumen - Regex vol
+  - Encabezado - Regex enca|head
+
+- **LEC.06** - Si se pasan los filtros se pasa a la siguiente seccion que es la creacion de los objetos de tipo libro usando el constructor de inicializacion correspondiente
 
 ### Imprimir Modulo Libro. - IML
 - **IML.01** - Muestra los elementos del libro dentro de una cadea de texto tipo string, hace uso de la impesion del modulo etiqueta.
 
-## Modulo Manejo Tabla.
+## Modulo Manejo Tabla. - MT
 ### Inicializacion - I
 - **I.01** - El Objeto Manejo Tabla no requiere nigun valor de incializacion por el momento.
 
@@ -175,7 +177,20 @@ Donde el string resultante conecta todos estos parametros
 
 - **OLE.04** - Añade las columnas generadas al dataframe ordenado del excel y da como salida dicho dataframe combinado y ordenado.
 
+- **OLE.05** - Hacer una distinción para poder cargar archivos txt con separacion csv
+### Guardar Libros Tabla. - GLT
+- **GLT.01** - Se debera cargar un archivo excel o csv como dataframe de datos de referencia.
 
+- **GLT.02** - Se generan columnas adicionales con los valores trabajados dentro del programa. y usando el orden del mismo las siguientes son las columnas generadas: Copia, Volumen, Clasificación, Encabezado, Clasificación Completa, estatus.
+
+- **GLT.03** - Se integran estas columnas generadas, cabe mencionar como nota que estas columnas generadas pueden reemplazar columnas existentes dentro del archivo final.
+
+### Escribir Excel. - EE
+- **EE.01** - Para esta funcion se requieren los siguientes elementos: Una ruta de guardado, un nombre para el archivo y un dataframe de pandas.
+
+- **EE.02** - Utilizando la funcion ExcelWriter de pandas se realiza una escritura a un archivo si esta se cumple de manera exitosa. Se guarda el archivo.
+
+- **EE.03** - En caso de que la escritura marque un error cachar este error con try except y repetir el proceso de escritura pero añadiendo al nombre del archivo final el sufijo "_copia"
 ### Creacion de Reportes sobre Tabla.
 ---
 ### Crear Reporte General - CRG
@@ -207,6 +222,8 @@ Donde el string resultante conecta todos estos parametros
 - **LI.04** - Se toma el logo del Tec de Monterrey y el nombre de la apliacion es 'INTERCALADOR'
 
 - **LI.05** - Se tiene la opcion de nombrar el archivo de salida, este campo es obligatorio pero en caso de dejarse vacio se toma como base el archivo de excel cargado y se genera una copia del mismo.
+
+- **LI.06** - Se podran considerar archivo tipo ".txt" a la hora de cargar un nuevo archivo
 ### Layout Tabla de Datos. - LTD
 - **LTD.01** - Se tiene una tabla donde se incluyen todos los libros cargados al programa. La tabla cuenta con las siguientes 4 columnas:
   - Clasificacion: La clasificacion obtenida del libro.
@@ -368,4 +385,14 @@ show_info_libro() para mostrar el titulo del libro.
 
 
 
-## Requerimientos Nuevos.
+## Requerimientos Nuevos. - RN
+- **RN.01** - Modificar proceso de corte para detectar casos con . autor y anio  M1234.D23 1900 -> M123 .D23 1900
+
+- **RN.02** - Agregar lectura de Txt separados con CSV para lectura directa de SIERRA.
+- **RN.03** - Detectar Columna CLASIFICAC
+- **RN.04** - Agregar al archivo de salida una columna nombrada estatus.
+- **RN.05** - Clase - Ceros a la izquierda. Subdecimal - Ceros a la izquierda. Tema - Ceros a la izquierda. Autor - Ceros a la Derecha. Anio sin cambios.
+
+## Requerimientos Planeados. - RP
+- **RP.01** - Implementacion para ordenamiento con escaneo.
+- **RP.02** - Implementar posible mejora Logica de LLenado D23.4.D2.D23.1900

@@ -1,5 +1,8 @@
 import re
 
+import pandas as pd
+from pandas import read_csv, read_excel
+
 from managers import Clasificacion, Etiqueta, Libro
 from support_windows import VentanaModificar
 
@@ -116,10 +119,10 @@ def prueba_modificar():
     aID=1,
     aTitulo='Libro Prueba', 
     aCbarras='QRO0001', 
-    aClasif='HF23.3.D23 1920 .I22 1990',
-    aVolumen='V.5',
-    aCopia='C.2',
-    aEncabezado='TEXTO')
+    aClasif='NA1011.5.L6.L8',
+    aVolumen='',
+    aCopia='',
+    aEncabezado='')
   
   print(f'[DEBUG] {libro_prueba}')
 
@@ -133,9 +136,32 @@ def prueba_modificar():
   Historia del toreo en México : época colonial, 152
   ...O llevarás luto por mí / Dominique Lapierre, La
   """
+def pruebas_pandas():
+  ruta = "C:/Users/EQUIPO/Downloads/Desordenados_sec1.txt"
+  lista_libros = Libro.llenar_desde_excel_csv(ruta)
+  total = len(lista_libros)
+  cuenta_pos = 0
+  cuenta_neg = 0
+  for libro in lista_libros:
+    if libro.etiqueta.clasif_valida is True:
+      cuenta_pos += 1
+    else:
+      cuenta_neg += 1
+  
+  print(
+    f"""
+    Estadisticas:
+    Total de libros {total}
+    En regla: {cuenta_pos}|{(cuenta_pos/total)*100:.2f}%
+    Con error: {cuenta_neg}|{(cuenta_neg/total)*100:.2f}%
+    """)
+  #\.[a-zA-z]+\d+ \d{4}
+  
+  print(lista_libros[50])
 
 if __name__ == '__main__':
   # prueba_clasificacion()
   # prueba_etiqueta()
   # prueba_libro()
-  prueba_modificar()
+  # prueba_modificar()
+  pruebas_pandas()

@@ -4,8 +4,8 @@
 ################################################
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
 ALPHA = 1
-FUNCIONALIDAD = 0
-BUGS = 0
+FUNCIONALIDAD = 2
+BUGS = 2
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
 
 import os
@@ -156,7 +156,7 @@ class VentanaGeneral:
       #* Layout Invisible para escoger archivo de excel
       [
         sg.In(key="EXCEL_FILE", visible=False),
-        sg.FileBrowse("Abrir", target='EXCEL_FILE',visible=False, file_types=(("Excel Files", "*.xlsx"),)),
+        sg.FileBrowse("Abrir", target='EXCEL_FILE',visible=False, file_types=(("Excel Files", "*.xlsx"), ("Text Files", "*.txt"))),
       ],
     ]
     return GENERAL_LAYOUT

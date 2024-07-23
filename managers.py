@@ -1,7 +1,7 @@
 import re
 
 import pandas as pd
-from pandas import read_excel
+from pandas import read_csv, read_excel
 
 
 class Clasificacion:
@@ -62,11 +62,11 @@ class Clasificacion:
     MAX_len = 10
     ceros = (MAX_len - len(STR)) * '0'
 
-    # MODO 2
-    if not flag:
+    # MODO 2 - Ceros a la derecha
+    if flag is False:
       str_salida = STR + ceros
-    # MODO 1
-    else:
+    # MODO 1 - Ceros a la Izquierda
+    elif flag is True:
       str_salida = STR
       text = re.findall(r'[a-zA-Z]+', STR)[0] if re.search(r'[a-zA-Z]+', STR) is not None else ''
       number = re.findall(r'\d+', STR)[0] if re.search(r'\d+', STR) is not None else ''
@@ -76,8 +76,8 @@ class Clasificacion:
 
   def estandarizar_atributos(self):
     self._clase = self.estandarizar(self.clase, True)
-    self._subdecimal = self.estandarizar(self.subdecimal, False)
-    self._temaesp = self.estandarizar(self.temaesp, False)
+    self._subdecimal = self.estandarizar(self.subdecimal, True)
+    self._temaesp = self.estandarizar(self.temaesp, True)
     self._autor = self.estandarizar(self.autor, False)
 
   def __str__(self) -> str:
@@ -260,10 +260,15 @@ class Libro:
   @classmethod
   def llenar_desde_excel(cls, ruta):
     # Cargar el excel completo.
-    df = read_excel(ruta, header=0)
+    # Revisar que tipo de archivo cargamos:
+    if ".xlsx" in ruta:
+      df = read_excel(ruta, header=0)
+    elif ".txt" in ruta:
+      df = read_csv(ruta, header=0)
 
     # Revisar encabezados del excel.
     header = df.head(0)
+    print(header)
     titulo = None
     codigo = None
     clasif = None
@@ -271,22 +276,26 @@ class Libro:
     volume = None
     copia  = None
     for text in header:
-      ltext = text.lower()
-      if 'tit' in ltext or 'tít' in ltext:
+      textl = text.lower()
+      # Buscar Titulo
+      if re.search(r'tit|tít', textl) is not None and titulo is None:
         titulo = text
-        # print('Titulo Encontrado como', ltext)
-      elif 'bar' in ltext or 'codi' in ltext or 'códi' in ltext:
+        print('[DEBUG] Titulo Encontrado: ', text)
+      # Buscar Codigo de Barras
+      elif re.search(r'bar|codi|códi', textl) is not None and codigo is None:
         codigo = text
-        # print('Codigo Barras Encontrado como', ltext)
-      elif 'clasificación' in ltext:
+        print('[DEBUG] Codigo de Barras Encontrado: ', text)
+      # Buscar Clasificacion
+      elif re.search(r'clas', textl) is not None and clasif is None:
         clasif = text
-        # print('Clasificacion Encontrado como', ltext)
-      elif 'encab' in ltext or 'head' in ltext:
-        encabe = text
-      elif 'vol' in ltext:
-        volume = text
-      elif 'cop' in ltext:
+        print('[DEBUG] Clasificacion Encontrado: ', text)
+      elif re.search(r'cop', textl) is not None and copia is None:
         copia = text
+        print('[DEBUG] Copia Encontrado: ', text)
+      elif re.search(r'cop', textl) is not None and volume is None:
+        volume = text
+      elif re.search(r'enca|head', textl) is not None and encabe is None:
+        encabe = text
 
 
     # Revisar encabezados obtenidos.
@@ -333,7 +342,8 @@ class ManejoTabla:
   _size = 0 # Longitud de elementos de la tabla.
   estatus_color = { # Colores que puede tomar la tabla en conjunto con sus estatus.
     'Error':'#F04150', 
-    'Valid':'#FFFFFF', 
+    'Valid':'#FFFFFF',
+    'Check':'#FBDA9D',
     'Selected':'#498C8A', 
     'Modify':'#E8871E'
   }
@@ -496,12 +506,16 @@ class ManejoTabla:
 
   def organizar_libros_excel(self, ruta):
     # * Importar el dataframe del Excel
-    df_excel = read_excel(ruta, header=0)
+    # Revisar que tipo de archivo cargamos:
+    if ".xlsx" in ruta:
+      df = read_excel(ruta, header=0)
+    elif ".txt" in ruta:
+      df = read_csv(ruta, header=0)
     
     df_order = pd.DataFrame()
     for libro in self.lista_libros:
       # Obtener la fila del libro con base en su ID
-      row = df_excel.iloc[libro.ID]
+      row = df.iloc[libro.ID]
       df_order = pd.concat([df_order, pd.DataFrame([row])], ignore_index=True)
     
     #* Corregir columnas seleccionadas
@@ -510,7 +524,8 @@ class ManejoTabla:
       'Volumen'       : [libro.etiqueta.volumen for libro in self.lista_libros],
       'Clasificación' : [libro.etiqueta.clasif for libro in self.lista_libros],
       'Encabezado'    : [libro.etiqueta.encabezado for libro in self.lista_libros],
-      'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros]
+      'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros],
+      'estatus'       : [libro.estatus for libro in self.lista_libros]
     }
 
     for column, values in correct_df.items():
@@ -521,7 +536,11 @@ class ManejoTabla:
   def guardar_libros_tabla(self, ruta):
     """ Guarda todos los cambios realizados en el programa hasta ahora """
     # * Importar el dataframe del Excel
-    df_excel = read_excel(ruta, header=0)
+    # Revisar que tipo de archivo cargamos:
+    if ".xlsx" in ruta:
+      df = read_excel(ruta, header=0)
+    elif ".txt" in ruta:
+      df = read_csv(ruta, header=0)
     
     #* Corregir columnas seleccionadas
     correct_df = {
@@ -529,12 +548,13 @@ class ManejoTabla:
       'Volumen'       : ['V.' + str(libro.etiqueta.volumen) if str(libro.etiqueta.volumen) != '0' else '' for libro in self.lista_libros],
       'Clasificación' : [libro.etiqueta.clasif for libro in self.lista_libros],
       'Encabezado'    : [libro.etiqueta.encabezado for libro in self.lista_libros],
-      'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros]
+      'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros],
+      'estatus'       : [libro.estatus for libro in self.lista_libros]
     }
 
     for column, values in correct_df.items():
-      df_excel[column] = values
-    return df_excel
+      df[column] = values
+    return df
 
   def escribir_excel(self, ruta, nombre, dataframe):
     excel_path = f'{ruta}/{nombre}.xlsx'
