@@ -173,28 +173,45 @@ class Etiqueta:
   def limpiar_clasif(self, STR:str) -> str:
     ''' Limpiar la clasificación del libro de Caracteres no Necesarios'''
     # * Eliminar caracteres no deseados MAT, LX, C.XXX, V.XXX
-    return re.sub(r'\s?(LX|MAT|V\.\d+|C\.\d+)\s?', '', STR)  
+    return re.sub(r'\s?(LX|MAT|[vV]\.\d+|[cC]\.\d+)\s?', '', STR)  
   
   def revisar_clasif(self, STR):
-    # Buscar caracteres de separacion especiales
-    if re.search(r'(?:\ \.)|(?:\.\ )', STR) is not None:
-      PIPE_A, PIPE_B = re.split(r'(?:\ \.)|(?:\.\ )', STR, maxsplit=1)
-      # print('Correcto', PIPE_A, '|', PIPE_B, '||',STR)
-      self._PIPE_A = re.sub(r"\s+", '', PIPE_A)
-      self._PIPE_B = re.sub(r"\.", ' ', PIPE_B)
-      self._clasif = self._PIPE_A + ' .' + self._PIPE_B
-      return True
-    elif re.search(r'(\d [a-zA-Z])', STR) is not None:
-      PIPE_A, PIPE_B = re.split(r' ', STR, maxsplit=1)
-      # print('Correcto', PIPE_A, '|', PIPE_B, '||',STR)
-      self._PIPE_A = re.sub(r"\s+", '', PIPE_A)
-      self._PIPE_B = re.sub(r"\.", ' ', PIPE_B)
-      self._clasif = self._PIPE_A + ' .' + self._PIPE_B
-      return True
-    else:
-      # print('Separador no encontrado', STR)
-      # print(STR)\
+    # Buscar caracteres de separacion especiales.
+    # Si no se encuentra ninguno
+    if re.search(r'\d((\ \.)|(\.\ )|(\ )|(\.))[A-Z]', STR) is None:
+      print('[DEBUG] No se pudo encontrar PIPES')
       return False
+    
+    # Buscar caracteres Espacio.punto y punto.espacio
+    if re.search(r'\d((\ \.)|(\.\ ))[A-Z]', STR) is not None:
+      # Buscar separador de PIPE
+      pipe_pos = re.search(r'\d((\ \.)|(\.\ ))[A-Z]', STR)
+      # print(pipe_pos.span())
+    elif re.search(r'\d((\ )|(\.))[A-Z]', STR) is not None:
+      # Buscar separador de PIPE
+      pipe_pos = re.search(r'\d((\ )|(\.))[A-Z]', STR)
+      # print(pipe_pos.span())
+    
+    # Cortamos PIPE's
+    PIPE_A = STR[:pipe_pos.span()[0]+1]
+    PIPE_B = STR[pipe_pos.span()[1]-1:]
+    # print(PIPE_A, '|', PIPE_B)
+    # Limpiamos las PIPE's
+    PIPE_A = re.sub(r"\s+", '', PIPE_A)
+    PIPE_B = re.sub(r"\.+", ' ', PIPE_B)
+    # print(PIPE_A, '|', PIPE_B)
+    # Revisamos PIPE B
+    check_pipe_b = re.findall(r'[a-zA-Z]+', PIPE_B)
+    # print(check_pipe_b)
+    if len(check_pipe_b) > 1:
+      print('[DEBUG] PIPE B incorrecta error')
+      return False
+    
+    # Llenamos atributos del objeto.
+    self._PIPE_A = PIPE_A
+    self._PIPE_B = PIPE_B
+    self._clasif = PIPE_A + ' .' + PIPE_B
+    return True
 
   def crear_clasif_completa(self):
     ''' Genera un atributo completo de clasificacion '''
@@ -264,7 +281,8 @@ class Libro:
     if ".xlsx" in ruta:
       df = read_excel(ruta, header=0)
     elif ".txt" in ruta:
-      df = read_csv(ruta, header=0)
+      # df = read_csv(ruta, sep=',', header=0)
+      df = pd.read_csv(ruta, sep=',', header=0, on_bad_lines='skip')
 
     # Revisar encabezados del excel.
     header = df.head(0)

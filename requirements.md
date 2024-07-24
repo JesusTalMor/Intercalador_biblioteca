@@ -59,18 +59,25 @@ El siguiente modulo es el encargado de manejar la separacion por atributos de la
 - **LC.01** - Recibe un string que se entiende que es una clasificacion y se borran de la cadena los siguiente caracteres no deseados: "LX", "MAT", "V.XXXX" y "C.XXXX" dichos caracteres no deseados se reemplazan con caracteres vacios en la cadena.
 
 ### Funcion Revisar Clasificacion - RC
-- **RC.01** - Revisa en busca de partir un string en 2 pipes por medio de los siguientes caracteres especiales " ." y ". ". Este es el caso base.
+- **RC.01** - Busca dentro de la clasificacion buscando los siguientes separadores posibles de PIPES: usando Regex \d((\ \.)|(\.\ )|(\ )|(\.))[A-Z] donde dentro de cada parentesis se encuentra el caracter separador los cuales deben tener antes un numero y posterior a esto una Letra Mayuscula. En caso de no encontrar ningun posible separador se marca la clasificacion como incorrecta, regresando False.
 
-- **RC.02** - En caso de no contrar con un caracter de separacion especial se toma un espacio como caracter especial el cual debe contar con las siguientes caracteristicas: Tener un numero en su lado izquierdo y tener una letra en su lado derecho.
-EJEMPLO D23.5.D23 D23 1990 --> Cumple con la caracteristica en D23.5.D2**3 D**23 1990 por lo que se utiliza ese primer espacio para la separacion.
+- **RC.02** - Busca caracteres de espacio.punto y punto.espacio en la clasificacion y guarda la posicion donde se encuentra estos separadores. 
 
-- **RC.03** - En caso de que no se cumplan ninguno de estos 2 posibles separaciones de pipe se considerará erronea la clasificacion de la clase y se marcara la bandera de valido como False.
+- **RC.03** - En caso de no encontrar los separadores de RC.02 se buscan espacios y puntos solos con la condicion especial de tener un numero y una letra mayuscula posterior. De igual manera regresa la posicion que cumple esta condicion.
 
-- **RC.04** - En caso de completar con exito los filtros por separacion, se aplica una eliminacion de caracteres no deseados como espacios o puntos adicionales y se actualizan los atributos PIPE_A y PIPE_B con los valores, se genera una clasificacion correcta y por utlimo se marca la bandera valido como True.
+- **RC.04** - Se cortan los PIPES usando la posicion de los separadores.
+
+- **RC.05** - Se limpian ambas PIPES para quitar posibles caracteres no necesarios. En caso de PIPE A se eliminan todos los espacios. Y en el caso del PIPE B se reemplazan los puntos con espacios.
+
+- **RC.06** - Se revisa el PIPE B en busca de letras, esto debido a que el PIPE B correcto unicamente deberia tener un grupo de letras. En caso de encontrar mas de un grupo de letras se marca la clasificacion como incorrecta.
+
+- **RC.07** - Si pasa el proceso de filtro se actualizan todos los parametros de la etiqueta estos siendo: PIPE_A, PIPE_B y clasif usando como separador base espacio.punto " ."
+
 
 ### Funcion Crear Clasificacion Completa - CCC
 - **CCC.01** - Junta todos los atributos necesarios para generar una clasificacion completa usnado los siguientes parametros: Encabezado, Clasificacion, Volumen y Copia.
 Donde el string resultante conecta todos estos parametros
+
 ### Imprimir Modulo - IM
 - **IM.01** - Imprime todos los atributos de la clase de en un solo cuadro de texto para el debugeo de la clase.
 
@@ -93,14 +100,16 @@ Donde el string resultante conecta todos estos parametros
   - Encabezado: aEncabezado|Opcional|string. Encabezado opcional. RVIZ. Por defecto '' Vacio.
 ### Getters y Setters. - GS
 - **GS.01** - Todos los atributos son privados y unicamente se pueden acceder con getters y setters.
-### Llenar desde Excel CSV. - LEC
+### Llenar desde Excel. - LEC
 - **LEC.01** - Cargar libros usando un archivo de Excel. Se debe especificar el sufijo ".xlsx"
 
 - **LEC.03** - Cargar archivos usando un txt como csv. Se debe especificar el sufijo ".txt"
 
-- **LEC.04** - Se consideran los siguientes encabezados dentro del archivo excel para una correcta obtencion de datos: Titulo, Codigo de Barras y Clasificacion. En caso de que no se encuentren estos encabezados se regresa el siguiente valor 'None'
+- **LEC.04** - Al cargar un archivo txt se excluyen los elementos que no cumplen con el numero de columnas. Estos casos se deben gracias a que se cuenta con un mayor numero de separadores.
 
-- **LEC.05** - Para encontrar los 6 encabezados posibles se consideran las siguientes cadenas de texto como mas favorables dentro de un excel:
+- **LEC.05** - Se consideran los siguientes encabezados dentro del archivo excel para una correcta obtencion de datos: Titulo, Codigo de Barras y Clasificacion. En caso de que no se encuentren estos encabezados se regresa el siguiente valor 'None'
+
+- **LEC.06** - Para encontrar los 6 encabezados posibles se consideran las siguientes cadenas de texto como mas favorables dentro de un excel:
   - Titulo - Titulo con o sin acento. Regex tit|tít
   - Codigo de Barras - Bar o codi o códi con acento. Regex bar|codi|códi
   - Clasificacion - Regex clas
@@ -108,7 +117,7 @@ Donde el string resultante conecta todos estos parametros
   - Volumen - Regex vol
   - Encabezado - Regex enca|head
 
-- **LEC.06** - Si se pasan los filtros se pasa a la siguiente seccion que es la creacion de los objetos de tipo libro usando el constructor de inicializacion correspondiente
+- **LEC.07** - Si se pasan los filtros se pasa a la siguiente seccion que es la creacion de los objetos de tipo libro usando el constructor de inicializacion correspondiente
 
 ### Imprimir Modulo Libro. - IML
 - **IML.01** - Muestra los elementos del libro dentro de una cadea de texto tipo string, hace uso de la impesion del modulo etiqueta.
@@ -384,10 +393,11 @@ show_info_libro() para mostrar el titulo del libro.
 - **RW.04** - Al presionar el boton Modificar este cierra la ventana y regresa el libro modificado. por completo.
 
 
+## Requerimiento Implementados - RI
+
 
 ## Requerimientos Nuevos. - RN
 - **RN.01** - Modificar proceso de corte para detectar casos con . autor y anio  M1234.D23 1900 -> M123 .D23 1900
-
 - **RN.02** - Agregar lectura de Txt separados con CSV para lectura directa de SIERRA.
 - **RN.03** - Detectar Columna CLASIFICAC
 - **RN.04** - Agregar al archivo de salida una columna nombrada estatus.

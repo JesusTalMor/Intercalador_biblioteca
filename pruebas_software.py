@@ -49,47 +49,49 @@ def prueba_clasificacion():
 
 def prueba_etiqueta():
   # Inicializacion del Objeto.
-  etiqueta = Etiqueta()
-  print(etiqueta)
+  # etiqueta = Etiqueta()
+  # print(etiqueta)
   etiqueta = Etiqueta(
-    aClasif='BF39.5.D23 .D23 1990  LX  MAT  V.123C.2421', 
-    aEncabezado='nan', 
-    aVolumen='V.12',
-    aCopia='C.15',
+    aClasif='B1649.P64 M33 1994', 
+    aEncabezado='', 
+    aVolumen='',
+    aCopia='',
   )
   print(etiqueta)
 
-  # Objeto Clasificacion PROBADO
-  # Funcion Limpiar Clasificacion
-  lista_pruebas = [
-  'BF39.5.D23 .D23 1990 LX',
-  'BF39.5.D23 .D23 1990LX',
-  'BF39.5.D23 .D23 1990MAT',
-  'BF39.5.D23 .D23 1990 MAT',
-  'BF39.5.D23 .D23 1990 V.1',
-  'BF39.5.D23 .D23 1990 V.1123',
-  'BF39.5.D23 .D23 1990 C.1',
-  'BF39.5.D23 .D23 1990 C.2345',
-  'BF39.5.D23 .D23 1990 LX MAT V.1 C.2',
-  'BF39.5.D23 .D23 1990LXMATV.1C.2',
-  'BF39.5.D23 .D23 1990  LX  MAT  V.123C.2421',
-  ]
-  for prueba in lista_pruebas:
-    print('Entrada', prueba)
-    print('Salida', etiqueta.limpiar_clasif(prueba), '\n')
+  
+
+  # # Objeto Clasificacion PROBADO
+  # # Funcion Limpiar Clasificacion
+  # lista_pruebas = [
+  # 'BF39.5.D23 .D23 1990 LX',
+  # 'BF39.5.D23 .D23 1990LX',
+  # 'BF39.5.D23 .D23 1990MAT',
+  # 'BF39.5.D23 .D23 1990 MAT',
+  # 'BF39.5.D23 .D23 1990 V.1',
+  # 'BF39.5.D23 .D23 1990 V.1123',
+  # 'BF39.5.D23 .D23 1990 C.1',
+  # 'BF39.5.D23 .D23 1990 C.2345',
+  # 'BF39.5.D23 .D23 1990 LX MAT V.1 C.2',
+  # 'BF39.5.D23 .D23 1990LXMATV.1C.2',
+  # 'BF39.5.D23 .D23 1990  LX  MAT  V.123C.2421',
+  # ]
+  # for prueba in lista_pruebas:
+  #   print('Entrada', prueba)
+  #   print('Salida', etiqueta.limpiar_clasif(prueba), '\n')
   
   
-  # Funcion Revisar Clasificacion
-  lista_pruebas = [
-    'BF 39.5.D23 D23 1990',
-    'BF39.5.D23 D23.1990',
-    'BF109.V95 .J69 2002'
-  ]
-  for prueba in lista_pruebas:
-    print('Entrada', prueba)
-    print('Resultado', etiqueta.revisar_clasif(prueba))
-  # Funcion LLenar Atributos - PROBADO.
-  # Funcion Crear Clasificacion Completa.
+  # # Funcion Revisar Clasificacion
+  # lista_pruebas = [
+  #   'BF 39.5.D23 D23 1990',
+  #   'BF39.5.D23 D23.1990',
+  #   'BF109.V95 .J69 2002'
+  # ]
+  # for prueba in lista_pruebas:
+  #   print('Entrada', prueba)
+  #   print('Resultado', etiqueta.revisar_clasif(prueba))
+  # # Funcion LLenar Atributos - PROBADO.
+  # # Funcion Crear Clasificacion Completa.
 
 def prueba_libro():
   ruta = 'C:/Users/EQUIPO/Downloads/Intercalador desordenado.xlsx'
@@ -137,8 +139,8 @@ def prueba_modificar():
   ...O llevarás luto por mí / Dominique Lapierre, La
   """
 def pruebas_pandas():
-  ruta = "C:/Users/EQUIPO/Downloads/Desordenados_sec1.txt"
-  lista_libros = Libro.llenar_desde_excel_csv(ruta)
+  ruta = "C:/Users/EQUIPO/Downloads/Desordenados.txt"
+  lista_libros = Libro.llenar_desde_excel(ruta)
   total = len(lista_libros)
   cuenta_pos = 0
   cuenta_neg = 0

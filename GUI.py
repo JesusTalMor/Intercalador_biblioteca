@@ -1,11 +1,11 @@
 # Editor: Jesus Talamantes Morales
-# Fecha Ultima Mod: 19 de Julio 2024
+# Fecha Ultima Mod: 24 de Julio 2024
 # Versión implementando objetos
 ################################################
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
 ALPHA = 1
 FUNCIONALIDAD = 2
-BUGS = 2
+BUGS = 3
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
 
 import os
