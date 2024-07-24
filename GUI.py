@@ -7,6 +7,7 @@ ALPHA = 1
 FUNCIONALIDAD = 2
 BUGS = 3
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
+AUTOR = 'Jesus Talamantes Morales @2024'
 
 import os
 import re
@@ -266,7 +267,7 @@ class VentanaGeneral:
         pop.info_license()
       #* Mostrar version del Programa
       elif event == "Acerca de...":
-        pop.info_about(VERSION)
+        pop.info_about(VERSION, AUTOR)
       #* Guardar archivo
       elif event == 'Guardar':
         self.guardar_programa(True)

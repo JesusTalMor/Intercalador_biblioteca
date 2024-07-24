@@ -1,4 +1,5 @@
 # Requerimientos de la Aplicacion
+# Intercalador Version 1.2.3
 Dentro del siguiente documento se explican los requerimientos para cada uno de los
 modulos implementados para la aplicacion de intercalador.
 
@@ -394,14 +395,14 @@ show_info_libro() para mostrar el titulo del libro.
 
 
 ## Requerimiento Implementados - RI
+- **RI.01** - Modificar proceso de corte para detectar casos con . autor y anio  M1234.D23 1900 -> M123 .D23 1900
+- **RI.02** - Agregar lectura de Txt separados con CSV para lectura directa de SIERRA.
+- **RI.03** - Detectar Columna CLASIFICAC
+- **RI.04** - Agregar al archivo de salida una columna nombrada estatus.
+- **RI.05** - Clase - Ceros a la izquierda. Subdecimal - Ceros a la izquierda. Tema - Ceros a la izquierda. Autor - Ceros a la Derecha. Anio sin cambios.
 
 
 ## Requerimientos Nuevos. - RN
-- **RN.01** - Modificar proceso de corte para detectar casos con . autor y anio  M1234.D23 1900 -> M123 .D23 1900
-- **RN.02** - Agregar lectura de Txt separados con CSV para lectura directa de SIERRA.
-- **RN.03** - Detectar Columna CLASIFICAC
-- **RN.04** - Agregar al archivo de salida una columna nombrada estatus.
-- **RN.05** - Clase - Ceros a la izquierda. Subdecimal - Ceros a la izquierda. Tema - Ceros a la izquierda. Autor - Ceros a la Derecha. Anio sin cambios.
 
 ## Requerimientos Planeados. - RP
 - **RP.01** - Implementacion para ordenamiento con escaneo.
