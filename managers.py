@@ -30,7 +30,7 @@ class Clasificacion:
   def sacar_atributos(self, PIPE_A, PIPE_B):
     if len(PIPE_A) == 0 or len(PIPE_B) == 0:
       self.estandarizar_atributos()
-      # print('[WARN] Sin PIPES')
+      print('[WARN] Sin PIPES')
       return 
     
     atributos_pipe_a = PIPE_A.split('.')
@@ -187,9 +187,12 @@ class Etiqueta:
       # Buscar separador de PIPE
       pipe_pos = re.search(r'\d((\ \.)|(\.\ ))[A-Z]', STR)
       # print(pipe_pos.span())
-    elif re.search(r'\d((\ )|(\.))[A-Z]', STR) is not None:
+    elif re.search(r'\d(\ )[A-Z]', STR) is not None:
       # Buscar separador de PIPE
-      pipe_pos = re.search(r'\d((\ )|(\.))[A-Z]', STR)
+      pipe_pos = re.search(r'\d(\ )[A-Z]', STR)
+    elif re.search(r'\d(\.)[A-Z]', STR) is not None:
+      # Buscar separador de PIPE
+      pipe_pos = re.search(r'\d(\.)[A-Z]', STR)
       # print(pipe_pos.span())
     
     # Cortamos PIPE's
@@ -242,7 +245,7 @@ class Etiqueta:
 
 class Libro:
   """ Clase para generar objectos de tipo libro con todos sus datos """
-  def __init__(self, aID=1, aTitulo='', aCbarras='', aClasif='', aVolumen='0', aCopia='1', aEncabezado=''):
+  def __init__(self, aID=-1, aTitulo='ClaroLuna', aCbarras='A01706335', aClasif='', aVolumen='0', aCopia='1', aEncabezado=''):
     # Asignar Valores al objeto
     self._titulo = aTitulo
     self._cbarras = aCbarras
@@ -265,13 +268,14 @@ class Libro:
 
   @property
   def ID(self): return self._ID
-  @ID.setter
-  def ID(self, aID): self._ID = aID
 
   @property
   def estatus(self): return self._estatus
   @estatus.setter
-  def estatus(self, aEstatus): self._estatus = aEstatus
+  def estatus(self, aEstatus): 
+    posibles_estatus = ['Error', 'Valid', 'Selected', 'Modify', 'Added', 'Modified']
+    if aEstatus in posibles_estatus:
+      self._estatus = aEstatus
   
   #? FUNCIONALIDAD CARGAR DESDE EXCEL *************
   @classmethod
@@ -283,10 +287,11 @@ class Libro:
     elif ".txt" in ruta:
       # df = read_csv(ruta, sep=',', header=0)
       df = pd.read_csv(ruta, sep=',', header=0, on_bad_lines='skip')
+    df.drop(df.filter(regex="Unname"),axis=1, inplace=True)
 
     # Revisar encabezados del excel.
-    header = df.head(0)
-    print(header)
+    header = df.columns
+    # print(df.columns)
     titulo = None
     codigo = None
     clasif = None
@@ -294,7 +299,7 @@ class Libro:
     volume = None
     copia  = None
     for text in header:
-      textl = text.lower()
+      textl = str(text).lower()
       # Buscar Titulo
       if re.search(r'tit|tít', textl) is not None and titulo is None:
         titulo = text
@@ -385,20 +390,6 @@ class ManejoTabla:
     print('[INFO] Datos Cargados Correctamente')
     return True
 
-  def seleccionar_tabla(self):
-    # recorrer tabla por completo
-    for num_libro in range(self.tabla_len):
-      estatus = self.lista_libros[num_libro].estatus
-      if estatus != "Error":
-        self.actualizar_estatus_elemento(num_libro,"Selected")
-
-  def deseleccionar_tabla(self):
-    # recorrer tabla por completo
-    for num_libro in range(self.tabla_len):
-      estatus = self.lista_libros[num_libro].estatus
-      if estatus != "Error":
-        self.actualizar_estatus_elemento(num_libro,"Valid")
-
   def revisar_tabla(self):
     return len(self.lista_error) == 0
 
@@ -456,7 +447,7 @@ class ManejoTabla:
     color = self.estatus_color[aEstatus]
     formato = (num_elem, color)
     self.tabla_formato[num_elem] = formato
-    print('[INFO] Esatus de Elemento Actualizado')
+    print('[INFO] Estatus de Elemento Actualizado')
   
   def eliminar_elemento_error(self, aLibro:Libro):
     if aLibro.cbarras in self.lista_error:
@@ -464,18 +455,6 @@ class ManejoTabla:
       print('[INFO] Elemento con error corregido', len(self.lista_error))
 
   #? OPERACIONES FINALES DE LA TABLA *************************************
-
-  def exportar_libros_selecionados(self):
-    libros_a_imprimir = []
-    #* Recorrer todos los libros de la tabla
-    for ind in range(self.tabla_len):
-      estatus = self.lista_libros[ind].estatus
-      if estatus == "Selected":
-        libros_a_imprimir.append(self.lista_libros[ind])
-    
-    # TODO crear una funcion de ordenamiento
-    return libros_a_imprimir
-
   def ordenar_libros(self):
     """ 
     Convierte toda la tabla en general y los objetos
@@ -529,12 +508,21 @@ class ManejoTabla:
       df = read_excel(ruta, header=0)
     elif ".txt" in ruta:
       df = read_csv(ruta, header=0)
+    df.drop(df.filter(regex="Unname"),axis=1, inplace=True)
     
+    # Ordenar 
     df_order = pd.DataFrame()
     for libro in self.lista_libros:
       # Obtener la fila del libro con base en su ID
-      row = df.iloc[libro.ID]
-      df_order = pd.concat([df_order, pd.DataFrame([row])], ignore_index=True)
+      index = libro.ID
+      # Revisar si el ID esta dentro del rango.
+      if index != -1:
+        # * Libro dentro del Excel.
+        row = df.iloc[libro.ID]
+        df_order = pd.concat([df_order, pd.DataFrame([row])], ignore_index=True)
+      else:
+        # * Crear una fila vacia para el elemento.
+        df_order.append(pd.Series(), ignore_index=True)
     
     #* Corregir columnas seleccionadas
     correct_df = {
@@ -550,29 +538,6 @@ class ManejoTabla:
       df_order[column] = values
     print('[INFO] Archivo Excel Ordenado Correctamente')
     return df_order
-
-  def guardar_libros_tabla(self, ruta):
-    """ Guarda todos los cambios realizados en el programa hasta ahora """
-    # * Importar el dataframe del Excel
-    # Revisar que tipo de archivo cargamos:
-    if ".xlsx" in ruta:
-      df = read_excel(ruta, header=0)
-    elif ".txt" in ruta:
-      df = read_csv(ruta, header=0)
-    
-    #* Corregir columnas seleccionadas
-    correct_df = {
-      'Copia'         : [libro.etiqueta.copia for libro in self.lista_libros],
-      'Volumen'       : ['V.' + str(libro.etiqueta.volumen) if str(libro.etiqueta.volumen) != '0' else '' for libro in self.lista_libros],
-      'Clasificación' : [libro.etiqueta.clasif for libro in self.lista_libros],
-      'Encabezado'    : [libro.etiqueta.encabezado for libro in self.lista_libros],
-      'Clasificación Completa' : [libro.etiqueta.clasif_completa for libro in self.lista_libros],
-      'estatus'       : [libro.estatus for libro in self.lista_libros]
-    }
-
-    for column, values in correct_df.items():
-      df[column] = values
-    return df
 
   def escribir_excel(self, ruta, nombre, dataframe):
     excel_path = f'{ruta}/{nombre}.xlsx'
@@ -689,10 +654,4 @@ def cut_string(STR):
   return STR if len(STR) <= 50 else STR[:50]
 
 if __name__ == '__main__':
-  # ruta1 = 'C:/Users/EQUIPO/Desktop/Proyectos_biblioteca/Etiquetas/Pruebas/Mario_excel.xlsx'
-  # libros = Libro.llenar_desde_excel(ruta1)
-  # print(libros[0])
-  etiqueta1 = Etiqueta('B2430.D484.4 .P6818 1997', '', '0', '1')
-  print(etiqueta1)
-  # etiqueta1 = Etiqueta('B2430.D484 P6818 1997', '', '', '1')
-  # print(etiqueta1)
+  pass

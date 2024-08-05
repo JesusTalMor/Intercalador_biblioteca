@@ -1,11 +1,11 @@
 # Editor: Jesus Talamantes Morales
-# Fecha Ultima Mod: 24 de Julio 2024
+# Fecha Ultima Mod: 05 de Agosto 2024
 # Versión implementando objetos
 ################################################
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
 ALPHA = 1
-FUNCIONALIDAD = 2
-BUGS = 3
+FUNCIONALIDAD = 5
+BUGS = 10
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
 AUTOR = 'Jesus Talamantes Morales @2024'
 
@@ -51,9 +51,8 @@ def resource_path(relative_path):
 class VentanaGeneral:
   """ Ventana General del Programa """
   titulo_ventana = 'INTERCALADOR'
-  def __init__(self) -> None:
-    self.ruta_archivo = ''
-    self.table_manager = ManejoTabla()
+  ruta_archivo = ''
+  table_manager = ManejoTabla()
 
   #? CREACION de la Ventana. ***********************
   def left_layout(self):
@@ -525,14 +524,14 @@ class VentanaGeneral:
     nombre_archivo = self.ruta_archivo.split('/')[-1]
     nombre_archivo = re.sub(r'\.xlsx', '', nombre_archivo)
     # Obtener la ruta a la carpeta de guardado
-    regex = '/' + nombre_archivo + '.*'
-    ruta_folder = re.sub(regex, '', self.ruta_archivo)
+    ruta_folder = self.ruta_archivo.split('/')[:-1]
+    ruta_folder = '/'.join(ruta_folder)
     # Crear y actualizar el dataframe del excel
     sufijo = '_saved' if '_saved' not in nombre_archivo else '_saved1' 
     nombre_archivo = nombre_archivo + sufijo
     print(f'[DEBUG] Nombre generado {nombre_archivo}')
     print(f'[DEBUG] Ruta Generada {ruta_folder}')
-    guardar_df = self.table_manager.guardar_libros_tabla(self.ruta_archivo)
+    guardar_df = self.table_manager.organizar_libros_excel(self.ruta_archivo)
     self.table_manager.escribir_excel(ruta_folder, nombre_archivo, guardar_df)
     print(f'[DEBUG] Archivo Salvado Correctamente')
     return True

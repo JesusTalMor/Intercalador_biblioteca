@@ -52,7 +52,7 @@ def prueba_etiqueta():
   # etiqueta = Etiqueta()
   # print(etiqueta)
   etiqueta = Etiqueta(
-    aClasif='B1649.P64 M33 1994', 
+    aClasif='R853.C55 C45 2008', 
     aEncabezado='', 
     aVolumen='',
     aCopia='',
@@ -121,7 +121,7 @@ def prueba_modificar():
     aID=1,
     aTitulo='Libro Prueba', 
     aCbarras='QRO0001', 
-    aClasif='NA1011.5.L6.L8',
+    aClasif='R853.C55 C45 2008',
     aVolumen='',
     aCopia='',
     aEncabezado='')
@@ -163,7 +163,7 @@ def pruebas_pandas():
 
 if __name__ == '__main__':
   # prueba_clasificacion()
-  # prueba_etiqueta()
+  prueba_etiqueta()
   # prueba_libro()
   # prueba_modificar()
-  pruebas_pandas()
+  # pruebas_pandas()

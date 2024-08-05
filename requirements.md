@@ -1,5 +1,5 @@
 # Requerimientos de la Aplicacion
-# Intercalador Version 1.2.3
+# Intercalador Version 1.5.10
 Dentro del siguiente documento se explican los requerimientos para cada uno de los
 modulos implementados para la aplicacion de intercalador.
 
@@ -74,6 +74,8 @@ El siguiente modulo es el encargado de manejar la separacion por atributos de la
 
 - **RC.07** - Si pasa el proceso de filtro se actualizan todos los parametros de la etiqueta estos siendo: PIPE_A, PIPE_B y clasif usando como separador base espacio.punto " ."
 
+- **RN.03** - Correccion de bug sobre prioridad de separadores. Se le da mayor prioridad a buscar pipes usando espacio > punto. Funcion modificada revisar_clasif()
+
 
 ### Funcion Crear Clasificacion Completa - CCC
 - **CCC.01** - Junta todos los atributos necesarios para generar una clasificacion completa usnado los siguientes parametros: Encabezado, Clasificacion, Volumen y Copia.
@@ -99,8 +101,12 @@ Donde el string resultante conecta todos estos parametros
   - Volumen: aVolumen|Opcional|string. numero de volumen. V.X o X. Por defecto 0.
   - Copia: aCopia|Opcional|string. Numero de Copia. C.X o X. Por defecto 1.
   - Encabezado: aEncabezado|Opcional|string. Encabezado opcional. RVIZ. Por defecto '' Vacio.
+
+- **RN.04** - Cambian los valores default a la clase libro, para ser valores mas representativos
 ### Getters y Setters. - GS
 - **GS.01** - Todos los atributos son privados y unicamente se pueden acceder con getters y setters.
+- **RN.05** - Se añaden al setter de estatus un paso de confirmación para poner estatus validos.
+
 ### Llenar desde Excel. - LEC
 - **LEC.01** - Cargar libros usando un archivo de Excel. Se debe especificar el sufijo ".xlsx"
 
@@ -119,6 +125,9 @@ Donde el string resultante conecta todos estos parametros
   - Encabezado - Regex enca|head
 
 - **LEC.07** - Si se pasan los filtros se pasa a la siguiente seccion que es la creacion de los objetos de tipo libro usando el constructor de inicializacion correspondiente
+
+- **RN.01** - Se actualizar la funcion llenar_desde_excel(), para siempre pasar todas las columas a valores de string.
+
 
 ### Imprimir Modulo Libro. - IML
 - **IML.01** - Muestra los elementos del libro dentro de una cadea de texto tipo string, hace uso de la impesion del modulo etiqueta.
@@ -188,12 +197,9 @@ Donde el string resultante conecta todos estos parametros
 - **OLE.04** - Añade las columnas generadas al dataframe ordenado del excel y da como salida dicho dataframe combinado y ordenado.
 
 - **OLE.05** - Hacer una distinción para poder cargar archivos txt con separacion csv
-### Guardar Libros Tabla. - GLT
-- **GLT.01** - Se debera cargar un archivo excel o csv como dataframe de datos de referencia.
 
-- **GLT.02** - Se generan columnas adicionales con los valores trabajados dentro del programa. y usando el orden del mismo las siguientes son las columnas generadas: Copia, Volumen, Clasificación, Encabezado, Clasificación Completa, estatus.
+- **RN.09** - Se realiza una modificacion a la funcion organizar_libros_excel() para que pueda detectar libros creados y crear columnas en el excel de salida.
 
-- **GLT.03** - Se integran estas columnas generadas, cabe mencionar como nota que estas columnas generadas pueden reemplazar columnas existentes dentro del archivo final.
 
 ### Escribir Excel. - EE
 - **EE.01** - Para esta funcion se requieren los siguientes elementos: Una ruta de guardado, un nombre para el archivo y un dataframe de pandas.
@@ -217,7 +223,7 @@ Donde el string resultante conecta todos estos parametros
   - El segundo se trata de una lista para mostrar los libros que aun cuentan con errores en sus clasificaciones. La lista tiene la siguiente forma: Titulo del Libro | Clasificacion | Codigo de Barras del Libro.
 
 
-## Script GUI.py
+## Script *GUI.py*
 ## Modulo Ventana General
 - **MVG.00** - Los colores de la pagina son los siguientes: Color de Fondo #3016F3, Texto #000000, Entrada y color secundario #DEE6F7
 
@@ -286,6 +292,11 @@ NOTA esta funcion puede generar un dataset con columnas adicionales debido a pos
 - **GP.08** - Cuando se guarde una copia con el sufijo '_saved' agregar un numero como identificador adicional. ejemplo 'excel_saved1.xlsx'
 
 - **GP.09** - En caso de tener el sufijo '_saved' en lugar de anadir un segundo sufijo '_saved' se anade un numero adicional
+
+- **RN.11** - Se modifica la forma de obtencion de la ruta de guardado para la funcion guardar_programa()
+
+- **RN.12** - Se utiliza ahora la funcion organizar_libros_excel() para generar el dataframe de guardado de la aplicacion
+
 ### Seleccionar Excel. - SE
 - **SE.01** - La funcion debera abrir un explorador de archivos para seleccionar unicamente archivos de excel.
 
@@ -364,7 +375,7 @@ NOTA esta funcion puede generar un dataset con columnas adicionales debido a pos
 
 - **EP.08** - Notificar al usuario que el proceso termino con exito y la ruta donde se encuentran los archivos generados.
 
-## Script support_windows.py
+## Script *support_windows.py*
 ## Modulo Ventana Modificar. - MVM
 ### Inicializacion - I
 - **I.01** - Para su inicializacion requiere un objeto de tipo Libro, del cual obtiene los elementos. En caso de no pararse dicho objeto se iniciaria todo el programa con elementos vacios.
@@ -400,6 +411,14 @@ show_info_libro() para mostrar el titulo del libro.
 - **RI.03** - Detectar Columna CLASIFICAC
 - **RI.04** - Agregar al archivo de salida una columna nombrada estatus.
 - **RI.05** - Clase - Ceros a la izquierda. Subdecimal - Ceros a la izquierda. Tema - Ceros a la izquierda. Autor - Ceros a la Derecha. Anio sin cambios.
+- **RN.03** - Correccion de bug sobre prioridad de separadores. Se le da mayor prioridad a buscar pipes usando espacio > punto. Funcion modificada revisar_clasif()
+- **RN.04** - Cambian los valores default a la clase libro, para ser valores mas representativos
+- **RN.05** - Se añaden al setter de estatus un paso de confirmación para poner estatus validos.
+- **RN.01** - Se actualizar la funcion llenar_desde_excel(), para siempre pasar todas las columas a valores de string.
+- **RN.09** - Se realiza una modificacion a la funcion organizar_libros_excel() para que pueda detectar libros creados y crear columnas en el excel de salida.
+- **RN.10** - Se elimina la funcion guardar_libros_tabla() puesto que esta contenia la misma funcionalidad que organizar_libros_excel()
+- **RN.12** - Se utiliza ahora la funcion organizar_libros_excel() para generar el dataframe de guardado de la aplicacion
+- **RN.11** - Se modifica la forma de obtencion de la ruta de guardado para la funcion guardar_programa()
 
 
 ## Requerimientos Nuevos. - RN
