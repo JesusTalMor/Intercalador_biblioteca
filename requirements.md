@@ -1,5 +1,5 @@
 # Requerimientos de la Aplicacion
-# Intercalador Version 1.5.10
+# Intercalador Version 1.5.11
 Dentro del siguiente documento se explican los requerimientos para cada uno de los
 modulos implementados para la aplicacion de intercalador.
 
@@ -419,9 +419,11 @@ show_info_libro() para mostrar el titulo del libro.
 - **RN.10** - Se elimina la funcion guardar_libros_tabla() puesto que esta contenia la misma funcionalidad que organizar_libros_excel()
 - **RN.12** - Se utiliza ahora la funcion organizar_libros_excel() para generar el dataframe de guardado de la aplicacion
 - **RN.11** - Se modifica la forma de obtencion de la ruta de guardado para la funcion guardar_programa()
+- **RN.12** - Nuevo Bug con respecto a la captura de volumen y copia.
 
 
 ## Requerimientos Nuevos. - RN
+
 
 ## Requerimientos Planeados. - RP
 - **RP.01** - Implementacion para ordenamiento con escaneo.

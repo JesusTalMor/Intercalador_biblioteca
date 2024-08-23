@@ -315,8 +315,9 @@ class Libro:
       elif re.search(r'cop', textl) is not None and copia is None:
         copia = text
         print('[DEBUG] Copia Encontrado: ', text)
-      elif re.search(r'cop', textl) is not None and volume is None:
+      elif re.search(r'vol', textl) is not None and volume is None:
         volume = text
+        print('[DEBUG] Volumen Encontrado: ', text)
       elif re.search(r'enca|head', textl) is not None and encabe is None:
         encabe = text
 

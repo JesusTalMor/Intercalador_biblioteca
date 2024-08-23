@@ -1,11 +1,11 @@
 # Editor: Jesus Talamantes Morales
-# Fecha Ultima Mod: 05 de Agosto 2024
+# Fecha Ultima Mod: 22 de Agosto 2024
 # Versión implementando objetos
 ################################################
 #?#********** VARIABLES CONTROL DE VERSIONES **********#
 ALPHA = 1
 FUNCIONALIDAD = 5
-BUGS = 10
+BUGS = 11
 VERSION = f'{ALPHA}.{FUNCIONALIDAD}.{BUGS}'
 AUTOR = 'Jesus Talamantes Morales @2024'
 
@@ -31,12 +31,6 @@ sg.LOOK_AND_FEEL_TABLE['MyCreatedTheme'] = {
   'PROGRESS_DEPTH': 0,
 }
 sg.theme('MyCreatedTheme')
-
-#? Menu superior de opciones
-menu_opciones = [
-  ['Programa', ['Guardar','Salir']],
-  ['Ayuda', ['Tutoriales','Licencia','Acerca de...']],
-]
 
 #?#********** Función apoyo para relative path *********#
 def resource_path(relative_path):
@@ -156,7 +150,12 @@ class VentanaGeneral:
       #* Layout Invisible para escoger archivo de excel
       [
         sg.In(key="EXCEL_FILE", visible=False),
-        sg.FileBrowse("Abrir", target='EXCEL_FILE',visible=False, file_types=(("Excel Files", "*.xlsx"), ("Text Files", "*.txt"))),
+        sg.FileBrowse(
+          "Abrir", 
+          target='EXCEL_FILE',
+          visible=False, 
+          file_types=(("Excel Files", "*.xlsx"), ("Text Files", "*.txt"))
+        ),
       ],
     ]
     return GENERAL_LAYOUT
@@ -205,7 +204,6 @@ class VentanaGeneral:
       ],
       [
       sg.Button("Ejecutar", font=("Open Sans", 14, "bold", "italic")),
-      # sg.Text(text="0/0", background_color="#FFFFFF", font=("Open", 16, "bold", "italic"), key='PAGE'),
       sg.Button("Limpiar", font=("Open Sans", 14)),
       sg.Button("Actualizar", visible=False)
       ],
@@ -232,13 +230,24 @@ class VentanaGeneral:
   def create_window(self):
     """ Genera un Objeto tipo Ventana de PySimpleGUI """
     LAYOUT = self.create_layout()
+    #? Menu superior de opciones
+    MENU_OPCIONES = [
+      ['Programa',  ['Guardar','Salir']],
+      ['Ayuda',     ['Tutoriales','Licencia','Acerca de...']],
+    ]
     MAIN_LAYOUT = [
       #* Menu superior de la APP
-      [sg.Menu(menu_opciones, tearoff=False)],
+      [sg.Menu(MENU_OPCIONES, tearoff=False)],
       [sg.Frame("",layout=LAYOUT, background_color='#FFFFFF', element_justification='c')],
     ]
     
-    window = sg.Window(self.titulo_ventana, MAIN_LAYOUT, element_justification="c", icon=resource_path("Assets/book_icon.ico"))  
+    window = sg.Window(
+      title=  self.titulo_ventana, 
+      layout= MAIN_LAYOUT, 
+      element_justification="c", 
+      icon=resource_path("Assets/book_icon.ico"),
+      enable_close_attempted_event= True,
+    )  
     return window
   
   #? FUNCIONAMIENTO PRINCIPAL DE LA VENTANA ***********************
@@ -256,17 +265,15 @@ class VentanaGeneral:
       self.show_window_events(event, values)
       #? ******** FUNCIONALIDAD BASICA VENTANA  ***************
       #* Cerrar la aplicación
-      if event in (sg.WINDOW_CLOSED, "Exit", "__TIMEOUT__", 'Salir'):
+      if event in (sg.WINDOW_CLOSED, "Exit", "__TIMEOUT__", 'Salir', '-WINDOW CLOSE ATTEMPTED-'):
         #* Ver si quiere guardar el archivo
         self.guardar_programa()
         window.close()
         return
       #* Mostrar licencia del Programa
-      elif event == "Licencia":
-        pop.info_license()
+      elif event == "Licencia": pop.info_license()
       #* Mostrar version del Programa
-      elif event == "Acerca de...":
-        pop.info_about(VERSION, AUTOR)
+      elif event == "Acerca de...": pop.info_about(VERSION, AUTOR)
       #* Guardar archivo
       elif event == 'Guardar':
         self.guardar_programa(True)
@@ -411,7 +418,7 @@ class VentanaGeneral:
     return modify_object
 
   def modificar_elemento(self, window, modify_object):
-    # #* Sacar los datos de esa etiqueta
+    #* Sacar los datos de esa etiqueta
     libro_a_modificar = self.table_manager.lista_libros[modify_object['INDEX']]
     print(f'[DEBUG] Entrando al a Funcion \n {libro_a_modificar}')
     clasif_anterior = libro_a_modificar.etiqueta.clasif_completa
